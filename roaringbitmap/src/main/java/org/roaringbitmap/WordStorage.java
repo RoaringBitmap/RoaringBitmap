@@ -7,5 +7,4 @@ public interface WordStorage<T> {
   boolean isEmpty();
 
   T runOptimize();
-
 }

@@ -1,16 +1,16 @@
 package org.roaringbitmap.aggregation.xor;
 
+import java.util.concurrent.ThreadLocalRandom;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 @State(Scope.Benchmark)
 public class BitmapContainerXorBenchmark {
 
   @Param({"0.1", "0.5"})
   double thisDensity;
+
   @Param({"0.1", "0.5"})
   double thatDensity;
 

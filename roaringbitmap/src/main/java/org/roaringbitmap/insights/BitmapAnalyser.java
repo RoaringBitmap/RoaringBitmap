@@ -1,9 +1,8 @@
 package org.roaringbitmap.insights;
 
+import java.util.Collection;
 import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.RoaringBitmap;
-
-import java.util.Collection;
 
 public class BitmapAnalyser {
 
@@ -40,11 +39,10 @@ public class BitmapAnalyser {
    * @return the statistics
    */
   public static BitmapStatistics analyse(Collection<? extends RoaringBitmap> bitmaps) {
-    return bitmaps
-      .stream()
-      .reduce(
-        BitmapStatistics.empty,
-        (acc, r) -> acc.merge(BitmapAnalyser.analyse(r)),
-        BitmapStatistics::merge);
+    return bitmaps.stream()
+        .reduce(
+            BitmapStatistics.empty,
+            (acc, r) -> acc.merge(BitmapAnalyser.analyse(r)),
+            BitmapStatistics::merge);
   }
 }

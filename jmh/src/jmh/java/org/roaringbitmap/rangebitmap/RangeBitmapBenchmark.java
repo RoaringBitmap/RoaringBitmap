@@ -1,5 +1,10 @@
 package org.roaringbitmap.rangebitmap;
 
+import java.util.Arrays;
+import java.util.Random;
+import java.util.SplittableRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RangeBitmap;
 import org.roaringbitmap.RoaringBitmap;
@@ -7,21 +12,16 @@ import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.RoaringBitmapSliceIndex;
 
-import java.util.Arrays;
-import java.util.Random;
-import java.util.SplittableRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.function.LongSupplier;
-
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @BenchmarkMode(Mode.AverageTime)
-@Fork(value = 1, jvmArgsPrepend =
-    {
-        "-XX:-TieredCompilation",
-        "-XX:+UseSerialGC",
-        "-mx2G",
-        "-ms2G",
-        "-XX:+AlwaysPreTouch"
+@Fork(
+    value = 1,
+    jvmArgsPrepend = {
+      "-XX:-TieredCompilation",
+      "-XX:+UseSerialGC",
+      "-mx2G",
+      "-ms2G",
+      "-XX:+AlwaysPreTouch"
     })
 @State(Scope.Benchmark)
 public class RangeBitmapBenchmark {
@@ -51,7 +51,8 @@ public class RangeBitmapBenchmark {
       maxValue = Math.max(values[i], maxValue);
     }
     bsi = new RoaringBitmapSliceIndex();
-    Base2ReferenceImplementation.Builder referenceImplementationBuilder = Base2ReferenceImplementation.builder();
+    Base2ReferenceImplementation.Builder referenceImplementationBuilder =
+        Base2ReferenceImplementation.builder();
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     int lz = Long.numberOfLeadingZeros(maxValue);
     long mask = (1L << lz) - 1;
@@ -59,7 +60,7 @@ public class RangeBitmapBenchmark {
     for (long value : values) {
       referenceImplementationBuilder.add(value);
       appender.add(value);
-      bsi.setValue(rid++, (int)(value & mask));
+      bsi.setValue(rid++, (int) (value & mask));
     }
     this.referenceImplementation = referenceImplementationBuilder.seal();
     this.rangeBitmap = appender.build();
@@ -75,7 +76,7 @@ public class RangeBitmapBenchmark {
   @Benchmark
   public RoaringBitmap bsi() {
     // this is about as good as a user can do from outside the library
-    return bsi.compare(BitmapSliceIndex.Operation.LE, (int)threshold, 0, null);
+    return bsi.compare(BitmapSliceIndex.Operation.LE, (int) threshold, 0, null);
   }
 
   @Benchmark
@@ -202,12 +203,12 @@ public class RangeBitmapBenchmark {
     public static LongSupplier parse(long seed, String spec) {
       int paramsStart = spec.indexOf('(');
       int paramsEnd = spec.indexOf(')');
-      double[] params = Arrays.stream(spec.substring(paramsStart + 1, paramsEnd).split(","))
-          .mapToDouble(s -> Double.parseDouble(s.trim()))
-          .toArray();
+      double[] params =
+          Arrays.stream(spec.substring(paramsStart + 1, paramsEnd).split(","))
+              .mapToDouble(s -> Double.parseDouble(s.trim()))
+              .toArray();
       String dist = spec.substring(0, paramsStart).toUpperCase();
       return Distribution.valueOf(dist).of(seed, params);
     }
   }
-
 }

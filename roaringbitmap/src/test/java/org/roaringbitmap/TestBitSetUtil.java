@@ -1,18 +1,16 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestBitSetUtil {
-  private static BitSet appendRandomBitset(final Random random, final int offset,
-      final BitSet bitset, final int nbits) {
+  private static BitSet appendRandomBitset(
+      final Random random, final int offset, final BitSet bitset, final int nbits) {
     for (int i = 0; i < nbits; i++) {
       final boolean b = random.nextBoolean();
       bitset.set(offset + i, b);
@@ -25,16 +23,18 @@ public class TestBitSetUtil {
     return appendRandomBitset(random, offset, bitset, length);
   }
 
-
   private void assertEqualBitsets(final BitSet bitset, final RoaringBitmap bitmap) {
     assertTrue(BitSetUtil.equals(bitset, bitmap), "bitset and bitmap do not match");
     assertEquals(bitset, BitSetUtil.bitsetOf(bitmap), "bitsetOf doesn't match");
-    assertEquals(bitset, BitSetUtil.bitsetOfWithoutCopy(bitmap), "bitsetOfWithoutCopy doesn't match");
-    assertEquals(bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
+    assertEquals(
+        bitset, BitSetUtil.bitsetOfWithoutCopy(bitmap), "bitsetOfWithoutCopy doesn't match");
+    assertEquals(
+        bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
 
     RoaringBitmap runBitmap = bitmap.clone();
     runBitmap.runOptimize();
-    assertEquals(bitset, BitSetUtil.bitsetOf(runBitmap), "bitsetOf doesn't match for run optimized bitmap");
+    assertEquals(
+        bitset, BitSetUtil.bitsetOf(runBitmap), "bitsetOf doesn't match for run optimized bitmap");
   }
 
   @Test
@@ -145,8 +145,8 @@ public class TestBitSetUtil {
   }
 
   /*
-    The ByteBuffer->RoaringBitmap just replicate similar tests written for BitSet/long[]->RoaringBitmap
-   */
+   The ByteBuffer->RoaringBitmap just replicate similar tests written for BitSet/long[]->RoaringBitmap
+  */
 
   @Test
   public void testEmptyByteBuffer() {
@@ -211,7 +211,7 @@ public class TestBitSetUtil {
     final Random random = new Random(8934);
     final int runs = 100;
     final int maxNbits = 500000;
-    for (int i = 0;i < runs; ++i) {
+    for (int i = 0; i < runs; ++i) {
       final int offset = random.nextInt(maxNbits) & Integer.MAX_VALUE;
       final BitSet bitset = randomBitset(random, offset, random.nextInt(maxNbits));
       final RoaringBitmap bitmap = BitSetUtil.bitmapOf(toByteBuffer(bitset), false);
@@ -247,9 +247,12 @@ public class TestBitSetUtil {
   public void testBitmapOfNegative() {
     final RoaringBitmap bitmap = new RoaringBitmap();
     bitmap.add(-1);
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      BitSetUtil.bitsetOf(bitmap);
-    });
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              BitSetUtil.bitsetOf(bitmap);
+            });
     assertEquals("bitmap has negative bits set", exception.getMessage());
   }
 

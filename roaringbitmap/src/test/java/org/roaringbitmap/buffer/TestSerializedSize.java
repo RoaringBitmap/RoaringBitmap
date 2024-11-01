@@ -1,12 +1,10 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
 
 public class TestSerializedSize {
-
 
   @Test
   public void testEmpty() {
@@ -18,8 +16,6 @@ public class TestSerializedSize {
     long rac = rb.serializedSizeInBytes();
     assertTrue(rac <= c);
   }
-
-
 
   @Test
   public void testOne() {
@@ -35,7 +31,6 @@ public class TestSerializedSize {
     }
   }
 
-
   @Test
   public void testRange() {
     for (int k = 0; k < 100000; k += 100) {
@@ -50,7 +45,6 @@ public class TestSerializedSize {
     }
   }
 
-
   @Test
   public void testLarge() {
     for (long scale = 15; scale < 2048; scale *= 15) {
@@ -59,8 +53,7 @@ public class TestSerializedSize {
       int universe_size = 0;
       for (int k = 0; k < N; ++k) {
         int val = (int) (scale * k);
-        if (val > universe_size)
-          universe_size = val;
+        if (val > universe_size) universe_size = val;
         rb.add((int) (scale * k));
       }
       universe_size++;
@@ -83,10 +76,9 @@ public class TestSerializedSize {
         for (int i = 0; i < step; ++i) {
           final int maxv = i * (1 << 16) + stepsize;
           rb.add(i * (1L << 16), i * (1L << 16) + stepsize);
-          if (maxv > universe_size)
-            universe_size = maxv;
+          if (maxv > universe_size) universe_size = maxv;
         }
-        long c = MutableRoaringBitmap.maximumSerializedSize(rb.getCardinality(),universe_size);
+        long c = MutableRoaringBitmap.maximumSerializedSize(rb.getCardinality(), universe_size);
         long ac = rb.serializedSizeInBytes();
         assertTrue(ac <= c);
         rb.runOptimize();
@@ -94,5 +86,4 @@ public class TestSerializedSize {
         assertTrue(rac <= c);
       }
   }
-
 }

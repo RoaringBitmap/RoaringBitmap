@@ -38,9 +38,8 @@ import java.util.stream.IntStream;
  */
 public class ParallelAggregation {
 
-  private static final Collector<Map.Entry<Character, List<Container>>,
-          RoaringArray, RoaringBitmap>
-          XOR = new ContainerCollector(ParallelAggregation::xor);
+  private static final Collector<Map.Entry<Character, List<Container>>, RoaringArray, RoaringBitmap>
+      XOR = new ContainerCollector(ParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
 
@@ -48,8 +47,8 @@ public class ParallelAggregation {
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
    */
-  public static class ContainerCollector implements
-          Collector<Map.Entry<Character, List<Container>>, RoaringArray, RoaringBitmap> {
+  public static class ContainerCollector
+      implements Collector<Map.Entry<Character, List<Container>>, RoaringArray, RoaringBitmap> {
 
     private final Function<List<Container>, Container> reducer;
 
@@ -100,8 +99,7 @@ public class ParallelAggregation {
   /**
    * Collects a list of containers into a single container.
    */
-  public static class OrCollector
-          implements Collector<List<Container>, Container, Container> {
+  public static class OrCollector implements Collector<List<Container>, Container, Container> {
 
     @Override
     public Supplier<Container> supplier() {
@@ -152,7 +150,6 @@ public class ParallelAggregation {
     return new TreeMap<>(grouped);
   }
 
-
   /**
    * Computes the bitwise union of the input bitmaps
    * @param bitmaps the input bitmaps
@@ -169,8 +166,8 @@ public class ParallelAggregation {
       slices.add(slice.getValue());
     }
     IntStream.range(0, i)
-             .parallel()
-             .forEach(position -> values[position] = or(slices.get(position)));
+        .parallel()
+        .forEach(position -> values[position] = or(slices.get(position)));
     return new RoaringBitmap(new RoaringArray(keys, values, i));
   }
 
@@ -180,10 +177,7 @@ public class ParallelAggregation {
    * @return the symmetric difference of the bitmaps
    */
   public static RoaringBitmap xor(RoaringBitmap... bitmaps) {
-    return groupByKey(bitmaps)
-            .entrySet()
-            .parallelStream()
-            .collect(XOR);
+    return groupByKey(bitmaps).entrySet().parallelStream().collect(XOR);
   }
 
   private static Container xor(List<Container> containers) {
@@ -216,16 +210,17 @@ public class ParallelAggregation {
     int mod = Math.floorMod(containers.size(), parallelism);
     // we have an enormous slice (probably skewed), parallelise it
     return IntStream.range(0, parallelism)
-            .parallel()
-            .mapToObj(i -> containers.subList(i * step + Math.min(i, mod),
-                    (i + 1) * step + Math.min(i + 1, mod)))
-            .collect(OR);
+        .parallel()
+        .mapToObj(
+            i ->
+                containers.subList(
+                    i * step + Math.min(i, mod), (i + 1) * step + Math.min(i + 1, mod)))
+        .collect(OR);
   }
 
   private static int availableParallelism() {
     return ForkJoinTask.inForkJoinPool()
-            ? ForkJoinTask.getPool().getParallelism()
-            : ForkJoinPool.getCommonPoolParallelism();
+        ? ForkJoinTask.getPool().getParallelism()
+        : ForkJoinPool.getCommonPoolParallelism();
   }
-
 }

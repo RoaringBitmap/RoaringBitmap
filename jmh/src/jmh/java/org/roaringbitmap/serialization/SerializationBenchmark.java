@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -20,17 +19,16 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class SerializationBenchmark {
-
 
   @BenchmarkMode(Mode.AverageTime)
   @Benchmark
   public int testDeserialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.presoutbb.rewind();
-    try(ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
+    try (ByteBufferBackedInputStream in =
+        new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
       benchmarkState.bitmap_b.deserialize(new DataInputStream(in));
     }
     return benchmarkState.presoutbb.limit();
@@ -40,34 +38,34 @@ public class SerializationBenchmark {
   @Benchmark
   public int testMutableDeserializeMutable(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.presoutbb.rewind();
-    try(ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
+    try (ByteBufferBackedInputStream in =
+        new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
       benchmarkState.bitmap_br.deserialize(new DataInputStream(in));
     }
     return benchmarkState.presoutbb.limit();
   }
 
-
   @BenchmarkMode(Mode.AverageTime)
   @Benchmark
   public int testSerialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.outbb.rewind();
-    try(ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
+    try (ByteBufferBackedOutputStream out =
+        new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
       benchmarkState.bitmap_a.serialize(new DataOutputStream(out));
     }
     return benchmarkState.outbb.limit();
   }
 
-
   @BenchmarkMode(Mode.AverageTime)
   @Benchmark
   public int testMutableSerialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.outbb.rewind();
-    try(ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
+    try (ByteBufferBackedOutputStream out =
+        new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
       benchmarkState.bitmap_ar.serialize(new DataOutputStream(out));
     }
     return benchmarkState.outbb.limit();
   }
-
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
@@ -83,7 +81,6 @@ public class SerializationBenchmark {
     final ByteBuffer outbb;
 
     final ByteBuffer presoutbb;
-
 
     public BenchmarkState() {
 
@@ -130,9 +127,7 @@ public class SerializationBenchmark {
       return ints;
     }
   }
-
 }
-
 
 class ByteBufferBackedInputStream extends InputStream {
 
@@ -182,7 +177,6 @@ class ByteBufferBackedInputStream extends InputStream {
   }
 }
 
-
 class ByteBufferBackedOutputStream extends OutputStream {
   ByteBuffer buf;
 
@@ -204,7 +198,4 @@ class ByteBufferBackedOutputStream extends OutputStream {
   public synchronized void write(byte[] bytes, int off, int len) throws IOException {
     buf.put(bytes, off, len);
   }
-
 }
-
-

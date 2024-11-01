@@ -1,6 +1,8 @@
 package org.roaringbitmap.iteration;
 
-
+import java.nio.LongBuffer;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
@@ -9,16 +11,11 @@ import org.roaringbitmap.PeekableCharIterator;
 import org.roaringbitmap.buffer.MappeableBitmapContainer;
 import org.roaringbitmap.buffer.MappeableContainer;
 
-import java.nio.LongBuffer;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 @Fork(jvmArgsPrepend = "-XX:-TieredCompilation")
 public class BitmapIteratorBenchmark {
-
 
   @Param({"0.1", "0.2", "0.3", "0.4", "0.5"})
   double density;
@@ -30,7 +27,7 @@ public class BitmapIteratorBenchmark {
   public void init() {
     long[] bitmap = new long[1024];
     int cardinality = 0;
-    int targetCardinality = (int)(density * 65536);
+    int targetCardinality = (int) (density * 65536);
     ThreadLocalRandom random = ThreadLocalRandom.current();
     while (cardinality < targetCardinality) {
       int index = random.nextInt(65536);

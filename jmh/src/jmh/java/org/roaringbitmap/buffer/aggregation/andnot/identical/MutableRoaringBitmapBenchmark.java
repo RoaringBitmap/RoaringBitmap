@@ -1,7 +1,6 @@
 package org.roaringbitmap.buffer.aggregation.andnot.identical;
 
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -50,5 +49,4 @@ public class MutableRoaringBitmapBenchmark {
   public MutableRoaringBitmap justclone() {
     return bitmap1.clone();
   }
-
 }

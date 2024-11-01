@@ -8,8 +8,8 @@ import org.roaringbitmap.longlong.LongUtils;
 
 public class LeafNode extends Node {
 
-  //key are saved as the lazy expanding logic,here we only care about the
-  //high 48 bit data,so only the high 48 bit is valuable
+  // key are saved as the lazy expanding logic,here we only care about the
+  // high 48 bit data,so only the high 48 bit is valuable
   private long key;
   long containerIdx;
   public static final int LEAF_NODE_KEY_LENGTH_IN_BYTES = 6;

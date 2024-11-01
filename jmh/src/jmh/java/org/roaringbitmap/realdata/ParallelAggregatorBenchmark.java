@@ -1,7 +1,12 @@
 package org.roaringbitmap.realdata;
 
+import static org.roaringbitmap.RealDataset.*;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.ParallelAggregation;
@@ -12,25 +17,27 @@ import org.roaringbitmap.buffer.BufferParallelAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
-
-import static org.roaringbitmap.RealDataset.*;
-
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class ParallelAggregatorBenchmark {
 
   private static final Cache<String, RoaringBitmap[]> DATASET_CACHE =
-          CacheBuilder.newBuilder().maximumSize(1).build();
+      CacheBuilder.newBuilder().maximumSize(1).build();
 
-  @Param({// putting the data sets in alpha. order
-          CENSUS_INCOME, CENSUS1881, DIMENSION_008,
-          DIMENSION_003, DIMENSION_033, USCENSUS2000,
-          WEATHER_SEPT_85, WIKILEAKS_NOQUOTES, CENSUS_INCOME_SRT, CENSUS1881_SRT, WEATHER_SEPT_85_SRT,
-          WIKILEAKS_NOQUOTES_SRT
+  @Param({ // putting the data sets in alpha. order
+    CENSUS_INCOME,
+    CENSUS1881,
+    DIMENSION_008,
+    DIMENSION_003,
+    DIMENSION_033,
+    USCENSUS2000,
+    WEATHER_SEPT_85,
+    WIKILEAKS_NOQUOTES,
+    CENSUS_INCOME_SRT,
+    CENSUS1881_SRT,
+    WEATHER_SEPT_85_SRT,
+    WIKILEAKS_NOQUOTES_SRT
   })
   public String dataset;
 
@@ -39,14 +46,19 @@ public class ParallelAggregatorBenchmark {
 
   @Setup(Level.Trial)
   public void setup() throws Exception {
-    bitmaps = DATASET_CACHE.get(dataset, () -> {
-      System.out.println("Loading" + dataset);
-      ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
-      return StreamSupport.stream(dataRetriever.fetchBitPositions().spliterator(), false)
-              .map(RoaringBitmap::bitmapOf)
-              .toArray(RoaringBitmap[]::new);
-    });
-    immutableRoaringBitmaps = Arrays.stream(bitmaps).map(RoaringBitmap::toMutableRoaringBitmap)
+    bitmaps =
+        DATASET_CACHE.get(
+            dataset,
+            () -> {
+              System.out.println("Loading" + dataset);
+              ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
+              return StreamSupport.stream(dataRetriever.fetchBitPositions().spliterator(), false)
+                  .map(RoaringBitmap::bitmapOf)
+                  .toArray(RoaringBitmap[]::new);
+            });
+    immutableRoaringBitmaps =
+        Arrays.stream(bitmaps)
+            .map(RoaringBitmap::toMutableRoaringBitmap)
             .toArray(ImmutableRoaringBitmap[]::new);
   }
 
@@ -80,7 +92,6 @@ public class ParallelAggregatorBenchmark {
     return FastAggregation.xor(bitmaps);
   }
 
-
   @Benchmark
   public MutableRoaringBitmap bufferParallelOr() {
     return BufferParallelAggregation.or(immutableRoaringBitmaps);
@@ -105,5 +116,4 @@ public class ParallelAggregatorBenchmark {
   public MutableRoaringBitmap bufferFastXor() {
     return BufferFastAggregation.xor(immutableRoaringBitmaps);
   }
-
 }

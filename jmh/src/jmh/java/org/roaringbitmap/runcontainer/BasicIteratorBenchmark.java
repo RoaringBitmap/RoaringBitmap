@@ -2,7 +2,6 @@ package org.roaringbitmap.runcontainer;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -16,7 +15,6 @@ import org.roaringbitmap.RunContainer;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-
 public class BasicIteratorBenchmark {
 
   @Benchmark
@@ -25,8 +23,7 @@ public class BasicIteratorBenchmark {
       throw new RuntimeException("Can't expect run containers to win if they are larger.");
     CharIterator si = benchmarkState.rc2.getCharIterator();
     int answer = 0;
-    while (si.hasNext())
-      answer += si.next() & 0xFFFF;
+    while (si.hasNext()) answer += si.next() & 0xFFFF;
     return answer;
   }
 
@@ -34,8 +31,7 @@ public class BasicIteratorBenchmark {
   public int iteratorBitmapContainer(BenchmarkState benchmarkState) {
     CharIterator si = benchmarkState.ac2.getCharIterator();
     int answer = 0;
-    while (si.hasNext())
-      answer += si.next() & 0xFFFF;
+    while (si.hasNext()) answer += si.next() & 0xFFFF;
     return answer;
   }
 
@@ -51,20 +47,13 @@ public class BasicIteratorBenchmark {
       final int howmanywords = (1 << 16) / 64;
       int[] values2 = RandomUtil.generateUniformHash(rand, bitsetperword2 * howmanywords, max);
 
-
-
       rc2 = new RunContainer();
       rc2 = RandomUtil.fillMeUp(rc2, values2);
-
 
       ac2 = new ArrayContainer();
       ac2 = RandomUtil.fillMeUp(ac2, values2);
 
-
-      if (!rc2.equals(ac2))
-        throw new RuntimeException("second containers do not match");
-
+      if (!rc2.equals(ac2)) throw new RuntimeException("second containers do not match");
     }
   }
-
 }

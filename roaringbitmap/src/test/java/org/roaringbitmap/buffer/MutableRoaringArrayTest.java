@@ -1,12 +1,10 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import org.junit.jupiter.api.Test;
 
 public class MutableRoaringArrayTest {
-
 
   @Test
   public void resizeOnlyIfNecessary() {

@@ -1,9 +1,8 @@
 package org.roaringbitmap;
 
+import static org.roaringbitmap.Util.*;
 
 import java.util.function.Supplier;
-
-import static org.roaringbitmap.Util.*;
 
 /**
  * This class can be used to write quickly values to a bitmap.
@@ -29,10 +28,9 @@ import static org.roaringbitmap.Util.*;
  * }
  * </pre>
  */
-public class ContainerAppender<C extends WordStorage<C>,
-        T extends BitmapDataProvider & AppendableStorage<C>>
-        implements RoaringBitmapWriter<T> {
-
+public class ContainerAppender<
+        C extends WordStorage<C>, T extends BitmapDataProvider & AppendableStorage<C>>
+    implements RoaringBitmapWriter<T> {
 
   private final boolean doPartialSort;
   private final boolean runCompress;
@@ -46,10 +44,11 @@ public class ContainerAppender<C extends WordStorage<C>,
    * Initialize an ContainerAppender with a receiving bitmap
    *
    */
-  ContainerAppender(boolean doPartialSort,
-                    boolean runCompress,
-                    Supplier<T> newUnderlying,
-                    Supplier<C> newContainer) {
+  ContainerAppender(
+      boolean doPartialSort,
+      boolean runCompress,
+      Supplier<T> newUnderlying,
+      Supplier<C> newContainer) {
     this.doPartialSort = doPartialSort;
     this.runCompress = runCompress;
     this.newUnderlying = newUnderlying;
@@ -96,7 +95,7 @@ public class ContainerAppender<C extends WordStorage<C>,
   public void add(long min, long max) {
     appendToUnderlying();
     underlying.add(min, max);
-    int mark = (int)((max >>> 16) + 1);
+    int mark = (int) ((max >>> 16) + 1);
     if (currentKey < mark) {
       currentKey = mark;
     }
@@ -130,8 +129,7 @@ public class ContainerAppender<C extends WordStorage<C>,
   private int appendToUnderlying() {
     if (!container.isEmpty()) {
       assert currentKey <= 0xFFFF;
-      underlying.append((char) currentKey,
-              runCompress ? container.runOptimize() : container);
+      underlying.append((char) currentKey, runCompress ? container.runOptimize() : container);
       container = newContainer.get();
       return 1;
     }

@@ -32,8 +32,7 @@ public class RoaringBitSetTest {
 
       // Make sure each bit is set appropriately
       for (int x = 0; x < highestPossibleSetBit; x++) {
-        if (testSet.get(x) != history.contains(Integer.valueOf(x)))
-          failCount++;
+        if (testSet.get(x) != history.contains(Integer.valueOf(x))) failCount++;
       }
 
       // Clear the bits
@@ -44,11 +43,8 @@ public class RoaringBitSetTest {
       }
 
       // Verify they were cleared
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        if (testSet.get(x))
-          failCount++;
-      if (testSet.length() != 0)
-        failCount++;
+      for (int x = 0; x < highestPossibleSetBit; x++) if (testSet.get(x)) failCount++;
+      if (testSet.length() != 0) failCount++;
 
       // Set them with set(int, boolean)
       setBitIterator = history.iterator();
@@ -59,8 +55,7 @@ public class RoaringBitSetTest {
 
       // Make sure each bit is set appropriately
       for (int x = 0; x < highestPossibleSetBit; x++) {
-        if (testSet.get(x) != history.contains(Integer.valueOf(x)))
-          failCount++;
+        if (testSet.get(x) != history.contains(Integer.valueOf(x))) failCount++;
       }
 
       // Clear them with set(int, boolean)
@@ -71,11 +66,8 @@ public class RoaringBitSetTest {
       }
 
       // Verify they were cleared
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        if (testSet.get(x))
-          failCount++;
-      if (testSet.length() != 0)
-        failCount++;
+      for (int x = 0; x < highestPossibleSetBit; x++) if (testSet.get(x)) failCount++;
+      if (testSet.length() != 0) failCount++;
 
       // Flip them on
       setBitIterator = history.iterator();
@@ -86,8 +78,7 @@ public class RoaringBitSetTest {
 
       // Verify they were flipped
       for (int x = 0; x < highestPossibleSetBit; x++) {
-        if (testSet.get(x) != history.contains(Integer.valueOf(x)))
-          failCount++;
+        if (testSet.get(x) != history.contains(Integer.valueOf(x))) failCount++;
       }
 
       // Flip them off
@@ -98,11 +89,8 @@ public class RoaringBitSetTest {
       }
 
       // Verify they were flipped
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        if (testSet.get(x))
-          failCount++;
-      if (testSet.length() != 0)
-        failCount++;
+      for (int x = 0; x < highestPossibleSetBit; x++) if (testSet.get(x)) failCount++;
+      if (testSet.length() != 0) failCount++;
 
       checkSanity(testSet);
     }
@@ -121,8 +109,7 @@ public class RoaringBitSetTest {
       int numberOfSetBits = generator.nextInt(100) + 1;
       int highestPossibleSetBit = generator.nextInt(1000) + 1;
 
-      for (int x = 0; x < numberOfSetBits; x++)
-        b1.set(generator.nextInt(highestPossibleSetBit));
+      for (int x = 0; x < numberOfSetBits; x++) b1.set(generator.nextInt(highestPossibleSetBit));
 
       RoaringBitSet b2 = (RoaringBitSet) b1.clone();
 
@@ -134,8 +121,7 @@ public class RoaringBitSetTest {
       b1.clear(rangeStart, rangeEnd);
 
       // Use a loop on b2
-      for (int x = rangeStart; x < rangeEnd; x++)
-        b2.clear(x);
+      for (int x = rangeStart; x < rangeEnd; x++) b2.clear(x);
 
       // Verify their equality
       if (!b1.equals(b2)) {
@@ -158,8 +144,7 @@ public class RoaringBitSetTest {
       int numberOfSetBits = generator.nextInt(100) + 1;
       int highestPossibleSetBit = generator.nextInt(1000) + 1;
 
-      for (int x = 0; x < numberOfSetBits; x++)
-        b1.set(generator.nextInt(highestPossibleSetBit));
+      for (int x = 0; x < numberOfSetBits; x++) b1.set(generator.nextInt(highestPossibleSetBit));
 
       RoaringBitSet b2 = (RoaringBitSet) b1.clone();
 
@@ -171,12 +156,10 @@ public class RoaringBitSetTest {
       b1.flip(rangeStart, rangeEnd);
 
       // Use a loop on b2
-      for (int x = rangeStart; x < rangeEnd; x++)
-        b2.flip(x);
+      for (int x = rangeStart; x < rangeEnd; x++) b2.flip(x);
 
       // Verify their equality
-      if (!b1.equals(b2))
-        failCount++;
+      if (!b1.equals(b2)) failCount++;
       checkEquality(b1, b2);
     }
 
@@ -195,8 +178,7 @@ public class RoaringBitSetTest {
       int numberOfSetBits = generator.nextInt(100) + 1;
       int highestPossibleSetBit = generator.nextInt(1000) + 1;
 
-      for (int x = 0; x < numberOfSetBits; x++)
-        b1.set(generator.nextInt(highestPossibleSetBit));
+      for (int x = 0; x < numberOfSetBits; x++) b1.set(generator.nextInt(highestPossibleSetBit));
 
       RoaringBitSet b2 = (RoaringBitSet) b1.clone();
 
@@ -208,8 +190,7 @@ public class RoaringBitSetTest {
       b1.set(rangeStart, rangeEnd);
 
       // Use a loop on b2
-      for (int x = rangeStart; x < rangeEnd; x++)
-        b2.set(x);
+      for (int x = rangeStart; x < rangeEnd; x++) b2.set(x);
 
       // Verify their equality
       if (!b1.equals(b2)) {
@@ -226,8 +207,7 @@ public class RoaringBitSetTest {
       int numberOfSetBits = generator.nextInt(100) + 1;
       int highestPossibleSetBit = generator.nextInt(1000) + 1;
 
-      for (int x = 0; x < numberOfSetBits; x++)
-        b1.set(generator.nextInt(highestPossibleSetBit));
+      for (int x = 0; x < numberOfSetBits; x++) b1.set(generator.nextInt(highestPossibleSetBit));
 
       RoaringBitSet b2 = (RoaringBitSet) b1.clone();
       boolean setOrClear = generator.nextBoolean();
@@ -240,8 +220,7 @@ public class RoaringBitSetTest {
       b1.set(rangeStart, rangeEnd, setOrClear);
 
       // Use a loop on b2
-      for (int x = rangeStart; x < rangeEnd; x++)
-        b2.set(x, setOrClear);
+      for (int x = rangeStart; x < rangeEnd; x++) b2.set(x, setOrClear);
 
       // Verify their equality
       if (!b1.equals(b2)) {
@@ -264,8 +243,7 @@ public class RoaringBitSetTest {
       int numberOfSetBits = generator.nextInt(100) + 1;
       int highestPossibleSetBit = generator.nextInt(1000) + 1;
 
-      for (int x = 0; x < numberOfSetBits; x++)
-        b1.set(generator.nextInt(highestPossibleSetBit));
+      for (int x = 0; x < numberOfSetBits; x++) b1.set(generator.nextInt(highestPossibleSetBit));
 
       // Get a new set from a random range
       int rangeStart = generator.nextInt(100);
@@ -274,8 +252,7 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = (RoaringBitSet) b1.get(rangeStart, rangeEnd);
 
       RoaringBitSet b3 = new RoaringBitSet();
-      for (int x = rangeStart; x < rangeEnd; x++)
-        b3.set(x - rangeStart, b1.get(x));
+      for (int x = rangeStart; x < rangeEnd; x++) b3.set(x - rangeStart, b1.get(x));
 
       // Verify their equality
       if (!b2.equals(b3)) {
@@ -296,12 +273,10 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      for (int x = 0; x < 10; x++)
-        b1.set(generator.nextInt(255));
+      for (int x = 0; x < 10; x++) b1.set(generator.nextInt(255));
 
       // Set some random bits in second set and remember them
-      for (int x = 10; x < 20; x++)
-        b2.set(generator.nextInt(255));
+      for (int x = 10; x < 20; x++) b2.set(generator.nextInt(255));
 
       // andNot the sets together
       RoaringBitSet b3 = (RoaringBitSet) b1.clone();
@@ -312,8 +287,7 @@ public class RoaringBitSetTest {
         boolean bit1 = b1.get(x);
         boolean bit2 = b2.get(x);
         boolean bit3 = b3.get(x);
-        if (!(bit3 == (bit1 & (!bit2))))
-          failCount++;
+        if (!(bit3 == (bit1 & (!bit2)))) failCount++;
       }
       checkSanity(b1, b2, b3);
     }
@@ -329,12 +303,10 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      for (int x = 0; x < 10; x++)
-        b1.set(generator.nextInt(255));
+      for (int x = 0; x < 10; x++) b1.set(generator.nextInt(255));
 
       // Set more random bits in second set and remember them
-      for (int x = 10; x < 20; x++)
-        b2.set(generator.nextInt(255));
+      for (int x = 10; x < 20; x++) b2.set(generator.nextInt(255));
 
       // And the sets together
       RoaringBitSet b3 = (RoaringBitSet) b1.clone();
@@ -345,8 +317,7 @@ public class RoaringBitSetTest {
         boolean bit1 = b1.get(x);
         boolean bit2 = b2.get(x);
         boolean bit3 = b3.get(x);
-        if (!(bit3 == (bit1 & bit2)))
-          failCount++;
+        if (!(bit3 == (bit1 & bit2))) failCount++;
       }
       checkSanity(b1, b2, b3);
     }
@@ -355,8 +326,7 @@ public class RoaringBitSetTest {
     RoaringBitSet b4 = makeSet(2, 127);
     b4.and(makeSet(2, 64));
     checkSanity(b4);
-    if (!(b4.equals(makeSet(2))))
-      failCount++;
+    if (!(b4.equals(makeSet(2)))) failCount++;
 
     Assertions.assertEquals(failCount, 0);
   }
@@ -391,8 +361,7 @@ public class RoaringBitSetTest {
 
       // Verify the set bits of b3 from the history
       for (int x = 0; x < 20; x++) {
-        if (!b3.get(history[x]))
-          failCount++;
+        if (!b3.get(history[x])) failCount++;
       }
 
       // Examine each bit of b3 for errors
@@ -400,8 +369,7 @@ public class RoaringBitSetTest {
         boolean bit1 = b1.get(x);
         boolean bit2 = b2.get(x);
         boolean bit3 = b3.get(x);
-        if (!(bit3 == (bit1 | bit2)))
-          failCount++;
+        if (!(bit3 == (bit1 | bit2))) failCount++;
       }
       checkSanity(b1, b2, b3);
     }
@@ -417,12 +385,10 @@ public class RoaringBitSetTest {
       RoaringBitSet b2 = new RoaringBitSet();
 
       // Set some random bits in first set and remember them
-      for (int x = 0; x < 10; x++)
-        b1.set(generator.nextInt(255));
+      for (int x = 0; x < 10; x++) b1.set(generator.nextInt(255));
 
       // Set more random bits in second set and remember them
-      for (int x = 10; x < 20; x++)
-        b2.set(generator.nextInt(255));
+      for (int x = 10; x < 20; x++) b2.set(generator.nextInt(255));
 
       // Xor the sets together
       RoaringBitSet b3 = (RoaringBitSet) b1.clone();
@@ -433,8 +399,7 @@ public class RoaringBitSetTest {
         boolean bit1 = b1.get(x);
         boolean bit2 = b2.get(x);
         boolean bit3 = b3.get(x);
-        if (!(bit3 == (bit1 ^ bit2)))
-          failCount++;
+        if (!(bit3 == (bit1 ^ bit2))) failCount++;
       }
       checkSanity(b1, b2, b3);
       b3.xor(b3);
@@ -445,8 +410,7 @@ public class RoaringBitSetTest {
     RoaringBitSet b4 = makeSet(2, 64, 127);
     b4.xor(makeSet(64, 127));
     checkSanity(b4);
-    if (!(b4.equals(makeSet(2))))
-      failCount++;
+    if (!(b4.equals(makeSet(2)))) failCount++;
 
     Assertions.assertEquals(failCount, 0);
   }
@@ -462,11 +426,9 @@ public class RoaringBitSetTest {
 
       for (int x = 0; x < 100; x++) {
         int nextBitToSet = generator.nextInt(255);
-        if (nextBitToSet > highestSetBit)
-          highestSetBit = nextBitToSet;
+        if (nextBitToSet > highestSetBit) highestSetBit = nextBitToSet;
         b1.set(nextBitToSet);
-        if (b1.length() != highestSetBit + 1)
-          failCount++;
+        if (b1.length() != highestSetBit + 1) failCount++;
       }
       checkSanity(b1);
     }
@@ -480,12 +442,10 @@ public class RoaringBitSetTest {
         int rangeEnd = rangeStart + generator.nextInt(100);
         b1.flip(rangeStart);
         b1.flip(rangeStart);
-        if (b1.length() != 0)
-          failCount++;
+        if (b1.length() != 0) failCount++;
         b1.flip(rangeStart, rangeEnd);
         b1.flip(rangeStart, rangeEnd);
-        if (b1.length() != 0)
-          failCount++;
+        if (b1.length() != 0) failCount++;
       }
       checkSanity(b1);
     }
@@ -500,8 +460,7 @@ public class RoaringBitSetTest {
       b1.set(bit1);
       b2.set(bit2);
       b1.or(b2);
-      if (b1.length() != highestSetBit + 1)
-        failCount++;
+      if (b1.length() != highestSetBit + 1) failCount++;
       checkSanity(b1, b2);
     }
     Assertions.assertEquals(failCount, 0);
@@ -525,8 +484,7 @@ public class RoaringBitSetTest {
       }
 
       // Verify their equality despite different storage sizes
-      if (!b1.equals(b2))
-        failCount++;
+      if (!b1.equals(b2)) failCount++;
       checkEquality(b1, b2);
     }
     Assertions.assertEquals(failCount, 0);
@@ -552,8 +510,7 @@ public class RoaringBitSetTest {
       // Verify their retrieval using nextSetBit()
       int historyIndex = 0;
       for (int x = testSet.nextSetBit(0); x >= 0; x = testSet.nextSetBit(x + 1)) {
-        if (x != history[historyIndex++])
-          failCount++;
+        if (x != history[historyIndex++]) failCount++;
       }
 
       checkSanity(testSet);
@@ -571,8 +528,7 @@ public class RoaringBitSetTest {
       int[] history = new int[10];
 
       // Set all the bits
-      for (int x = 0; x < 256; x++)
-        b.set(x);
+      for (int x = 0; x < 256; x++) b.set(x);
 
       // Clear some random bits and remember them
       int nextBitToClear = 0;
@@ -585,8 +541,7 @@ public class RoaringBitSetTest {
       // Verify their retrieval using nextClearBit()
       int historyIndex = 0;
       for (int x = b.nextClearBit(0); x < 256; x = b.nextClearBit(x + 1)) {
-        if (x != history[historyIndex++])
-          failCount++;
+        if (x != history[historyIndex++]) failCount++;
       }
 
       checkSanity(b);
@@ -594,12 +549,10 @@ public class RoaringBitSetTest {
 
     // regression test for 4350178
     RoaringBitSet bs = new RoaringBitSet();
-    if (bs.nextClearBit(0) != 0)
-      failCount++;
+    if (bs.nextClearBit(0) != 0) failCount++;
     for (int i = 0; i < 64; i++) {
       bs.set(i);
-      if (bs.nextClearBit(0) != i + 1)
-        failCount++;
+      if (bs.nextClearBit(0) != i + 1) failCount++;
     }
 
     checkSanity(bs);
@@ -632,15 +585,13 @@ public class RoaringBitSetTest {
       b1.set(nextBitToSet);
       b2.set(nextBitToSet);
 
-      if (!b1.intersects(b2))
-        failCount++;
+      if (!b1.intersects(b2)) failCount++;
 
       // Remove the common set bits
       b1.andNot(b2);
 
       // Make sure they don't intersect
-      if (b1.intersects(b2))
-        failCount++;
+      if (b1.intersects(b2)) failCount++;
 
       checkSanity(b1, b2);
     }
@@ -678,8 +629,7 @@ public class RoaringBitSetTest {
     int failCount = 0;
 
     RoaringBitSet b1 = new RoaringBitSet();
-    if (!b1.isEmpty())
-      failCount++;
+    if (!b1.isEmpty()) failCount++;
 
     int nextBitToSet = 0;
     int numberOfSetBits = generator.nextInt(100) + 1;
@@ -687,11 +637,9 @@ public class RoaringBitSetTest {
     for (int x = 0; x < numberOfSetBits; x++) {
       nextBitToSet = generator.nextInt(highestPossibleSetBit);
       b1.set(nextBitToSet);
-      if (b1.isEmpty())
-        failCount++;
+      if (b1.isEmpty()) failCount++;
       b1.clear(nextBitToSet);
-      if (!b1.isEmpty())
-        failCount++;
+      if (!b1.isEmpty()) failCount++;
     }
 
     Assertions.assertEquals(failCount, 0);
@@ -816,10 +764,8 @@ public class RoaringBitSetTest {
       }
       b1.or(b2);
       b3.and(b4);
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        b3.flip(x);
-      if (!b1.equals(b3))
-        failCount++;
+      for (int x = 0; x < highestPossibleSetBit; x++) b3.flip(x);
+      if (!b1.equals(b3)) failCount++;
       checkSanity(b1, b2, b3, b4);
     }
 
@@ -842,16 +788,13 @@ public class RoaringBitSetTest {
       RoaringBitSet b5 = (RoaringBitSet) b1.clone();
       RoaringBitSet b6 = (RoaringBitSet) b2.clone();
 
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        b2.flip(x);
+      for (int x = 0; x < highestPossibleSetBit; x++) b2.flip(x);
       b1.and(b2);
-      for (int x = 0; x < highestPossibleSetBit; x++)
-        b3.flip(x);
+      for (int x = 0; x < highestPossibleSetBit; x++) b3.flip(x);
       b3.and(b4);
       b1.or(b3);
       b5.xor(b6);
-      if (!b1.equals(b5))
-        failCount++;
+      if (!b1.equals(b5)) failCount++;
       checkSanity(b1, b2, b3, b4, b5, b6);
     }
     Assertions.assertEquals(failCount, 0);
@@ -886,8 +829,7 @@ public class RoaringBitSetTest {
 
   private static RoaringBitSet makeSet(int... elts) {
     RoaringBitSet s = new RoaringBitSet();
-    for (int elt : elts)
-      s.set(elt);
+    for (int elt : elts) s.set(elt);
     return s;
   }
 

@@ -45,7 +45,7 @@ public class BatchIntIterator implements IntIterator {
   @Override
   public IntIterator clone() {
     try {
-      BatchIntIterator it = (BatchIntIterator)super.clone();
+      BatchIntIterator it = (BatchIntIterator) super.clone();
       it.delegate = delegate.clone();
       it.buffer = buffer.clone();
       return it;

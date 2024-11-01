@@ -1,12 +1,10 @@
 package org.roaringbitmap;
 
-
-import org.junit.jupiter.api.Test;
-
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+
+import java.util.Random;
+import org.junit.jupiter.api.Test;
 
 public class TestRankIteratorsOfContainers {
   private void testContainerRanksOnNext(Container c) {
@@ -82,7 +80,7 @@ public class TestRankIteratorsOfContainers {
       container.add((char) (16384 + rnd.nextInt(1 << 10)));
     }
 
-    assertSame(empty, container,"bad test -- container was changed");
+    assertSame(empty, container, "bad test -- container was changed");
   }
 
   private void fillRange(Container container, int begin, int end) {
@@ -119,7 +117,6 @@ public class TestRankIteratorsOfContainers {
 
     testContainerIterators(container);
   }
-
 
   @Test
   public void testBitmapContainer4() {

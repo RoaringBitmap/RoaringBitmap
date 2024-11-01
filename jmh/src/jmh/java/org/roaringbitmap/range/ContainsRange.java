@@ -1,23 +1,22 @@
 package org.roaringbitmap.range;
 
-
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RandomData;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
 
-import java.util.concurrent.TimeUnit;
-
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @BenchmarkMode(Mode.AverageTime)
-@Fork(value = 1, jvmArgsPrepend =
-        {
-                "-XX:-TieredCompilation",
-                "-XX:+UseSerialGC",
-                "-mx2G",
-                "-ms2G",
-                "-XX:+AlwaysPreTouch"
-        })
+@Fork(
+    value = 1,
+    jvmArgsPrepend = {
+      "-XX:-TieredCompilation",
+      "-XX:+UseSerialGC",
+      "-mx2G",
+      "-ms2G",
+      "-XX:+AlwaysPreTouch"
+    })
 @State(Scope.Benchmark)
 public class ContainsRange {
 
@@ -53,7 +52,9 @@ public class ContainsRange {
         return Util.toUnsignedLong(bitmap.last()) - 1;
       }
     };
+
     abstract long getMin(RoaringBitmap bitmap);
+
     abstract long getSup(RoaringBitmap bitmap);
   }
 
@@ -61,7 +62,6 @@ public class ContainsRange {
 
   private long min;
   private long sup;
-
 
   @Setup(Level.Trial)
   public void init() {
@@ -71,7 +71,7 @@ public class ContainsRange {
     if (match) {
       bitmap.add(min, sup);
     } else if (bitmap.contains(min, sup)) {
-      bitmap.flip((int)((min + sup) / 2));
+      bitmap.flip((int) ((min + sup) / 2));
       assert !bitmap.contains(min, sup);
     }
   }
@@ -83,13 +83,11 @@ public class ContainsRange {
 
   @Benchmark
   public boolean containsViaRank() {
-    if (!bitmap.contains((int)min) || ! bitmap.contains((int)(sup - 1))) {
+    if (!bitmap.contains((int) min) || !bitmap.contains((int) (sup - 1))) {
       return false;
     }
-    int startRank = bitmap.rank((int)min);
-    int endRank = bitmap.rank((int)(sup - 1));
+    int startRank = bitmap.rank((int) min);
+    int endRank = bitmap.rank((int) (sup - 1));
     return endRank - startRank + 1 == sup - min;
   }
-
-
 }

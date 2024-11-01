@@ -1,9 +1,7 @@
 package org.roaringbitmap.needwork;
 
-
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -25,14 +23,12 @@ public class SlowORaggregate1 {
     return answer;
   }
 
-
-
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    @Param({// putting the data sets in alpha. order
-        "wikileaks-noquotes",})
+    @Param({ // putting the data sets in alpha. order
+      "wikileaks-noquotes",
+    })
     String dataset;
-
 
     ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
 
@@ -51,6 +47,5 @@ public class SlowORaggregate1 {
       }
       System.out.println("loaded " + rc.size() + " bitmaps");
     }
-
   }
 }

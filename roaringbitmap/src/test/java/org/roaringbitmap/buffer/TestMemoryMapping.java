@@ -4,11 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RoaringBitmap;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -20,9 +16,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 class ByteBufferBackedInputStream extends InputStream {
 
@@ -72,7 +70,6 @@ class ByteBufferBackedInputStream extends InputStream {
   }
 }
 
-
 class ByteBufferBackedOutputStream extends OutputStream {
   ByteBuffer buf;
 
@@ -94,9 +91,7 @@ class ByteBufferBackedOutputStream extends OutputStream {
   public synchronized void write(int b) throws IOException {
     buf.put((byte) b);
   }
-
 }
-
 
 @SuppressWarnings({"static-method"})
 public class TestMemoryMapping {
@@ -217,8 +212,11 @@ public class TestMemoryMapping {
           rb2.serialize(dos);
           long paft = fos.getChannel().position();
           if (paft - pbef != rb2.serializedSizeInBytes()) {
-            throw new RuntimeException("wrong serializedSizeInBytes:: paft-pbef = " + (paft - pbef)
-                + ", serializedSize = " + rb2.serializedSizeInBytes());
+            throw new RuntimeException(
+                "wrong serializedSizeInBytes:: paft-pbef = "
+                    + (paft - pbef)
+                    + ", serializedSize = "
+                    + rb2.serializedSizeInBytes());
           }
           dos.flush();
           rambitmaps.add(rb2);
@@ -249,7 +247,9 @@ public class TestMemoryMapping {
         ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
         if (newbitmap.serializedSizeInBytes() != rambitmaps.get(k).serializedSizeInBytes()) {
           throw new RuntimeException(
-              "faulty reported serialization size " + newbitmap.serializedSizeInBytes() + " "
+              "faulty reported serialization size "
+                  + newbitmap.serializedSizeInBytes()
+                  + " "
                   + rambitmaps.get(k).serializedSizeInBytes());
         }
         if (!newbitmap.equals(rambitmaps.get(k))) {
@@ -262,8 +262,12 @@ public class TestMemoryMapping {
         }
       }
       final long aft = System.currentTimeMillis();
-      System.out.println("[TestMemoryMapping] Mapped " + (offsets.size() - 1) + " bitmaps in "
-          + (aft - bef) + "ms");
+      System.out.println(
+          "[TestMemoryMapping] Mapped "
+              + (offsets.size() - 1)
+              + " bitmaps in "
+              + (aft - bef)
+              + "ms");
     } finally {
       memoryMappedFile.close();
     }
@@ -349,10 +353,18 @@ public class TestMemoryMapping {
     }
 
     for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-      final MutableRoaringBitmap rb = BufferFastAggregation.and(mappedbitmaps.get(k),
-          mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
-      final MutableRoaringBitmap rbram = BufferFastAggregation.and(rambitmaps.get(k),
-          rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
+      final MutableRoaringBitmap rb =
+          BufferFastAggregation.and(
+              mappedbitmaps.get(k),
+              mappedbitmaps.get(k + 1),
+              mappedbitmaps.get(k + 3),
+              mappedbitmaps.get(k + 4));
+      final MutableRoaringBitmap rbram =
+          BufferFastAggregation.and(
+              rambitmaps.get(k),
+              rambitmaps.get(k + 1),
+              rambitmaps.get(k + 3),
+              rambitmaps.get(k + 4));
       assertTrue(rb.equals(rbram));
     }
   }
@@ -384,27 +396,28 @@ public class TestMemoryMapping {
 
     for (int i = 0; i < numThreads; i++) {
       final int ti = i;
-      executorService.execute(new Runnable() {
+      executorService.execute(
+          new Runnable() {
 
-        @Override
-        public void run() {
-          ready.countDown();
-          try {
-            ready.await();
-            final int elementToCheck = Short.MAX_VALUE * ti;
-            for (int j = 0; j < 10000000; j++) {
+            @Override
+            public void run() {
+              ready.countDown();
               try {
-                assertTrue(rrback1.contains(elementToCheck));
-              } catch (Throwable t) {
-                errors[ti] = t;
+                ready.await();
+                final int elementToCheck = Short.MAX_VALUE * ti;
+                for (int j = 0; j < 10000000; j++) {
+                  try {
+                    assertTrue(rrback1.contains(elementToCheck));
+                  } catch (Throwable t) {
+                    errors[ti] = t;
+                  }
+                }
+              } catch (Throwable e) {
+                errors[ti] = e;
               }
+              finished.countDown();
             }
-          } catch (Throwable e) {
-            errors[ti] = e;
-          }
-          finished.countDown();
-        }
-      });
+          });
     }
     finished.await(5, TimeUnit.SECONDS);
     for (int i = 0; i < numThreads; i++) {
@@ -415,18 +428,14 @@ public class TestMemoryMapping {
     }
   }
 
-
   @Test
-  public void containsTest() throws IOException  {
+  public void containsTest() throws IOException {
     System.out.println("[containsTest]");
-    for(int z = 0; z < 100; ++z) {
+    for (int z = 0; z < 100; ++z) {
       final MutableRoaringBitmap rr1 = new MutableRoaringBitmap();
-      for(int k = 0; k < 100; k+=10)
-        rr1.add(k + z);
-      for(int k = 100000; k < 200000; k+=2)
-        rr1.add(k + z);
-      for(int k = 400000; k < 500000; k++)
-        rr1.add(k + z);
+      for (int k = 0; k < 100; k += 10) rr1.add(k + z);
+      for (int k = 100000; k < 200000; k += 2) rr1.add(k + z);
+      for (int k = 400000; k < 500000; k++) rr1.add(k + z);
       rr1.runOptimize();
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
       DataOutputStream dos = new DataOutputStream(bos);
@@ -436,12 +445,11 @@ public class TestMemoryMapping {
       final ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
       assertEquals(rrback1.getLongSizeInBytes(), rr1.getLongSizeInBytes());
       assertEquals(rrback1.serializedSizeInBytes(), rr1.serializedSizeInBytes());
-      for(int k = 0; k < 1000000; k += 100) {
+      for (int k = 0; k < 1000000; k += 100) {
         assertEquals(rrback1.contains(k), rr1.contains(k));
       }
     }
   }
-
 
   @Test
   public void oneFormat() throws IOException {
@@ -462,11 +470,10 @@ public class TestMemoryMapping {
       arr = null;
       RoaringBitmap rrasroaring = rr.toRoaringBitmap();
       assertEquals(newr, rrasroaring);
-      System.out
-          .println("[TestMemoryMapping] testing compat. bitmap " + k + " out of " + ms + ". ok.");
+      System.out.println(
+          "[TestMemoryMapping] testing compat. bitmap " + k + " out of " + ms + ". ok.");
     }
     System.out.println("[TestMemoryMapping] Format compatibility ok");
-
   }
 
   @Test
@@ -535,7 +542,6 @@ public class TestMemoryMapping {
     assertEquals(rr1.hashCode(), rrback1c.hashCode());
     assertEquals(rr2.hashCode(), rrback2.hashCode());
     assertEquals(rr2.hashCode(), rrback2c.hashCode());
-
   }
 
   @Test
@@ -544,8 +550,11 @@ public class TestMemoryMapping {
     final int ms = mappedbitmaps.size();
     System.out.println("We first test in-memory (RoaringBitmap) iterators.");
     for (int k = 0; k < ms; ++k) {
-      System.out.println("[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
-          + k + " out of " + ms);
+      System.out.println(
+          "[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
+              + k
+              + " out of "
+              + ms);
       final RoaringBitmap target = mappedbitmaps.get(k).toRoaringBitmap();
       final int truecard = target.getCardinality();
       System.out.println("Cardinality = " + truecard);
@@ -577,8 +586,12 @@ public class TestMemoryMapping {
       long t4 = System.nanoTime();
       System.out.println(" iterator two ns/ops = " + (t4 - t3) * 1.0 / truecard);
       assertEquals(truecard, card2);
-      System.out.println("[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
-          + k + " out of " + ms + " ok");
+      System.out.println(
+          "[TestMemoryMapping] testing copy via iterators using RoaringBitmap copy "
+              + k
+              + " out of "
+              + ms
+              + " ok");
     }
 
     System.out.println("Next, we test mapped (ImmutableRoaringBitmap) iterators.");
@@ -617,8 +630,8 @@ public class TestMemoryMapping {
       long t4 = System.nanoTime();
       System.out.println(" iterator two ns/ops = " + (t4 - t3) * 1.0 / truecard);
       assertEquals(truecard, card2);
-      System.out
-          .println("[TestMemoryMapping] testing copy via iterators " + k + " out of " + ms + " ok");
+      System.out.println(
+          "[TestMemoryMapping] testing copy via iterators " + k + " out of " + ms + " ok");
     }
     System.out.println("[TestMemoryMapping] testing a custom iterator copy  ");
 
@@ -647,10 +660,18 @@ public class TestMemoryMapping {
   public void unions() {
     System.out.println("[TestMemoryMapping] testing Unions");
     for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-      final MutableRoaringBitmap rb = BufferFastAggregation.or(mappedbitmaps.get(k),
-          mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
-      final MutableRoaringBitmap rbram = BufferFastAggregation.or(rambitmaps.get(k),
-          rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
+      final MutableRoaringBitmap rb =
+          BufferFastAggregation.or(
+              mappedbitmaps.get(k),
+              mappedbitmaps.get(k + 1),
+              mappedbitmaps.get(k + 3),
+              mappedbitmaps.get(k + 4));
+      final MutableRoaringBitmap rbram =
+          BufferFastAggregation.or(
+              rambitmaps.get(k),
+              rambitmaps.get(k + 1),
+              rambitmaps.get(k + 3),
+              rambitmaps.get(k + 4));
       assertTrue(rb.equals(rbram));
     }
   }
@@ -659,10 +680,18 @@ public class TestMemoryMapping {
   public void XORs() {
     System.out.println("[TestMemoryMapping] testing XORs");
     for (int k = 0; k < mappedbitmaps.size() - 4; k += 4) {
-      final MutableRoaringBitmap rb = BufferFastAggregation.xor(mappedbitmaps.get(k),
-          mappedbitmaps.get(k + 1), mappedbitmaps.get(k + 3), mappedbitmaps.get(k + 4));
-      final MutableRoaringBitmap rbram = BufferFastAggregation.xor(rambitmaps.get(k),
-          rambitmaps.get(k + 1), rambitmaps.get(k + 3), rambitmaps.get(k + 4));
+      final MutableRoaringBitmap rb =
+          BufferFastAggregation.xor(
+              mappedbitmaps.get(k),
+              mappedbitmaps.get(k + 1),
+              mappedbitmaps.get(k + 3),
+              mappedbitmaps.get(k + 4));
+      final MutableRoaringBitmap rbram =
+          BufferFastAggregation.xor(
+              rambitmaps.get(k),
+              rambitmaps.get(k + 1),
+              rambitmaps.get(k + 3),
+              rambitmaps.get(k + 4));
       assertTrue(rb.equals(rbram));
     }
   }

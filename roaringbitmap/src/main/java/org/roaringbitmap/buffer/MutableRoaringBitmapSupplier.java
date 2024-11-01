@@ -19,5 +19,4 @@ public class MutableRoaringBitmapSupplier implements BitmapDataProviderSupplier 
   public BitmapDataProvider newEmpty() {
     return new MutableRoaringBitmap();
   }
-
 }

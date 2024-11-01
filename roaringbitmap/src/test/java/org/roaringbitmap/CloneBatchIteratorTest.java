@@ -1,13 +1,12 @@
 package org.roaringbitmap;
 
-import com.google.common.primitives.Ints;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
+
+import com.google.common.primitives.Ints;
+import java.util.Arrays;
+import org.junit.jupiter.api.Test;
 
 public class CloneBatchIteratorTest {
 
@@ -31,8 +30,8 @@ public class CloneBatchIteratorTest {
 
   @Test
   public void testIndependenceOfClones2() {
-    int[] c1 = new int[]{1, 10, 20};
-    int[] c2 = new int[]{65560, 70000};
+    int[] c1 = new int[] {1, 10, 20};
+    int[] c2 = new int[] {65560, 70000};
     RoaringBitmap bitmap = new RoaringBitmap();
     for (int x : Ints.concat(c1, c2)) {
       bitmap.add(x);

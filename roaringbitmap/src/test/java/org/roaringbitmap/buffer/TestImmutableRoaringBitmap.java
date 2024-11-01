@@ -4,13 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.roaringbitmap.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.Util.toUnsignedLong;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -18,9 +13,12 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.IntStream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.Util.toUnsignedLong;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.roaringbitmap.*;
 
 /**
  * Generic testing of the roaring bitmaps
@@ -32,30 +30,31 @@ public class TestImmutableRoaringBitmap {
   static ByteBuffer serializeRoaring(ImmutableRoaringBitmap mrb) throws IOException {
     byte[] backingArray = new byte[mrb.serializedSizeInBytes() + 1024];
     ByteBuffer outbb = ByteBuffer.wrap(backingArray, 1024, mrb.serializedSizeInBytes()).slice();
-    DataOutputStream dos = new DataOutputStream(new OutputStream() {
-      ByteBuffer mBB;
+    DataOutputStream dos =
+        new DataOutputStream(
+            new OutputStream() {
+              ByteBuffer mBB;
 
-      OutputStream init(ByteBuffer mbb) {
-        mBB = mbb;
-        return this;
-      }
+              OutputStream init(ByteBuffer mbb) {
+                mBB = mbb;
+                return this;
+              }
 
-      @Override
-      public void write(byte[] b) {}
+              @Override
+              public void write(byte[] b) {}
 
-      @Override
-      public void write(byte[] b, int off, int l) {
-        mBB.put(b, off, l);
-      }
+              @Override
+              public void write(byte[] b, int off, int l) {
+                mBB.put(b, off, l);
+              }
 
-      @Override
-      public void write(int b) {
-        mBB.put((byte) b);
-      }
-    }.init(outbb));
+              @Override
+              public void write(int b) {
+                mBB.put((byte) b);
+              }
+            }.init(outbb));
     mrb.serialize(dos);
     dos.close();
-
 
     return outbb;
   }
@@ -108,9 +107,7 @@ public class TestImmutableRoaringBitmap {
     rr.andNot(rr2);
     assertEquals(correct, rr);
     assertEquals(correct.hashCode(), rr.hashCode());
-
   }
-
 
   @Test
   public void andnottest4() {
@@ -134,8 +131,6 @@ public class TestImmutableRoaringBitmap {
     rb2.andNot(rb);
     assertEquals(rb2, off);
   }
-
-
 
   @Test
   public void andnottest4A() {
@@ -162,8 +157,6 @@ public class TestImmutableRoaringBitmap {
     rb2.andNot(rb);
     assertEquals(rb2, off);
   }
-
-
 
   @Test
   public void ANDNOTtestA() {
@@ -217,9 +210,7 @@ public class TestImmutableRoaringBitmap {
     rr.andNot(rr2);
     assertEquals(correct, rr);
     assertEquals(correct.hashCode(), rr.hashCode());
-
   }
-
 
   @Test
   public void ANDNOTtestB() {
@@ -272,10 +263,7 @@ public class TestImmutableRoaringBitmap {
     rr.andNot(rr2);
     assertEquals(correct, rr);
     assertEquals(correct.hashCode(), rr.hashCode());
-
   }
-
-
 
   @Test
   public void ANDNOTtestC() {
@@ -330,7 +318,6 @@ public class TestImmutableRoaringBitmap {
     assertEquals(correct.hashCode(), rr.hashCode());
   }
 
-
   @Test
   public void fliptest1() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
@@ -343,8 +330,6 @@ public class TestImmutableRoaringBitmap {
     assertEquals(result, rb2);
   }
 
-
-
   @Test
   public void fliptest2() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
@@ -356,8 +341,6 @@ public class TestImmutableRoaringBitmap {
 
     assertEquals(result, rb2);
   }
-
-
 
   @Test
   public void MappeableContainersAccessTest() throws IOException {
@@ -437,14 +420,16 @@ public class TestImmutableRoaringBitmap {
         (mr2.getMappeableRoaringArray().getContainerAtIndex(0)) instanceof MappeableArrayContainer);
     assertTrue(
         (mr2.getMappeableRoaringArray().getContainerAtIndex(1)) instanceof MappeableArrayContainer);
-    assertTrue((mr2.getMappeableRoaringArray()
-        .getContainerAtIndex(2)) instanceof MappeableBitmapContainer);
+    assertTrue(
+        (mr2.getMappeableRoaringArray().getContainerAtIndex(2))
+            instanceof MappeableBitmapContainer);
     assertTrue(
         (mr2.getMappeableRoaringArray().getContainerAtIndex(3)) instanceof MappeableArrayContainer);
     assertTrue(
         (mr2.getMappeableRoaringArray().getContainerAtIndex(4)) instanceof MappeableArrayContainer);
-    assertTrue((mr2.getMappeableRoaringArray()
-        .getContainerAtIndex(5)) instanceof MappeableBitmapContainer);
+    assertTrue(
+        (mr2.getMappeableRoaringArray().getContainerAtIndex(5))
+            instanceof MappeableBitmapContainer);
 
     assertEquals(256, mr2.getMappeableRoaringArray().getContainerAtIndex(0).getCardinality());
     assertEquals(4000, mr2.getMappeableRoaringArray().getContainerAtIndex(1).getCardinality());
@@ -568,7 +553,6 @@ public class TestImmutableRoaringBitmap {
     assertEquals(0, mr3.getCardinality());
   }
 
-
   @Test
   public void testContains() throws IOException {
     System.out.println("test contains");
@@ -606,7 +590,6 @@ public class TestImmutableRoaringBitmap {
     }
   }
 
-
   @Test
   public void testHash() {
     MutableRoaringBitmap rbm1 = new MutableRoaringBitmap();
@@ -618,10 +601,8 @@ public class TestImmutableRoaringBitmap {
     assertEquals(rbm1.hashCode(), rbm2.hashCode());
   }
 
-
-
   @SuppressWarnings("resource")
-@Test
+  @Test
   public void testHighBits() throws IOException {
     // version without any runcontainers (earlier serialization version)
     for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
@@ -634,35 +615,37 @@ public class TestImmutableRoaringBitmap {
       }
       int[] array = rb.toArray();
       ByteBuffer b = ByteBuffer.allocate(rb.serializedSizeInBytes());
-      rb.serialize(new DataOutputStream(new OutputStream() {
-        ByteBuffer mBB;
+      rb.serialize(
+          new DataOutputStream(
+              new OutputStream() {
+                ByteBuffer mBB;
 
-        @Override
-        public void close() {}
+                @Override
+                public void close() {}
 
-        @Override
-        public void flush() {}
+                @Override
+                public void flush() {}
 
-        OutputStream init(final ByteBuffer mbb) {
-          mBB = mbb;
-          return this;
-        }
+                OutputStream init(final ByteBuffer mbb) {
+                  mBB = mbb;
+                  return this;
+                }
 
-        @Override
-        public void write(final byte[] b) {
-          mBB.put(b);
-        }
+                @Override
+                public void write(final byte[] b) {
+                  mBB.put(b);
+                }
 
-        @Override
-        public void write(final byte[] b, final int off, final int l) {
-          mBB.put(b, off, l);
-        }
+                @Override
+                public void write(final byte[] b, final int off, final int l) {
+                  mBB.put(b, off, l);
+                }
 
-        @Override
-        public void write(final int b) {
-          mBB.put((byte) b);
-        }
-      }.init(b)));
+                @Override
+                public void write(final int b) {
+                  mBB.put((byte) b);
+                }
+              }.init(b)));
       b.flip();
       ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
       assertEquals(irb, rb);
@@ -707,35 +690,37 @@ public class TestImmutableRoaringBitmap {
       // }
       // assertTrue(pos+runlength == array.length);
       ByteBuffer b = ByteBuffer.allocate(rb.serializedSizeInBytes());
-      rb.serialize(new DataOutputStream(new OutputStream() {
-        ByteBuffer mBB;
+      rb.serialize(
+          new DataOutputStream(
+              new OutputStream() {
+                ByteBuffer mBB;
 
-        @Override
-        public void close() {}
+                @Override
+                public void close() {}
 
-        @Override
-        public void flush() {}
+                @Override
+                public void flush() {}
 
-        OutputStream init(final ByteBuffer mbb) {
-          mBB = mbb;
-          return this;
-        }
+                OutputStream init(final ByteBuffer mbb) {
+                  mBB = mbb;
+                  return this;
+                }
 
-        @Override
-        public void write(final byte[] b) {
-          mBB.put(b);
-        }
+                @Override
+                public void write(final byte[] b) {
+                  mBB.put(b);
+                }
 
-        @Override
-        public void write(final byte[] b, final int off, final int l) {
-          mBB.put(b, off, l);
-        }
+                @Override
+                public void write(final byte[] b, final int off, final int l) {
+                  mBB.put(b, off, l);
+                }
 
-        @Override
-        public void write(final int b) {
-          mBB.put((byte) b);
-        }
-      }.init(b)));
+                @Override
+                public void write(final int b) {
+                  mBB.put((byte) b);
+                }
+              }.init(b)));
       b.flip();
       ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
       assertEquals(irb, rb);
@@ -755,8 +740,6 @@ public class TestImmutableRoaringBitmap {
     }
   }
 
-
-
   @SuppressWarnings("resource")
   @Test
   public void testProperSerialization() throws IOException {
@@ -770,35 +753,37 @@ public class TestImmutableRoaringBitmap {
         }
       }
       ByteBuffer b = ByteBuffer.allocate(r.serializedSizeInBytes());
-      r.serialize(new DataOutputStream(new OutputStream() {
-        ByteBuffer mBB;
+      r.serialize(
+          new DataOutputStream(
+              new OutputStream() {
+                ByteBuffer mBB;
 
-        @Override
-        public void close() {}
+                @Override
+                public void close() {}
 
-        @Override
-        public void flush() {}
+                @Override
+                public void flush() {}
 
-        OutputStream init(final ByteBuffer mbb) {
-          mBB = mbb;
-          return this;
-        }
+                OutputStream init(final ByteBuffer mbb) {
+                  mBB = mbb;
+                  return this;
+                }
 
-        @Override
-        public void write(final byte[] b) {
-          mBB.put(b);
-        }
+                @Override
+                public void write(final byte[] b) {
+                  mBB.put(b);
+                }
 
-        @Override
-        public void write(final byte[] b, final int off, final int l) {
-          mBB.put(b, off, l);
-        }
+                @Override
+                public void write(final byte[] b, final int off, final int l) {
+                  mBB.put(b, off, l);
+                }
 
-        @Override
-        public void write(final int b) {
-          mBB.put((byte) b);
-        }
-      }.init(b)));
+                @Override
+                public void write(final int b) {
+                  mBB.put((byte) b);
+                }
+              }.init(b)));
       b.flip();
       ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
       assertEquals(irb, r);
@@ -822,35 +807,37 @@ public class TestImmutableRoaringBitmap {
       }
       r.runOptimize();
       ByteBuffer b = ByteBuffer.allocate(r.serializedSizeInBytes());
-      r.serialize(new DataOutputStream(new OutputStream() {
-        ByteBuffer mBB;
+      r.serialize(
+          new DataOutputStream(
+              new OutputStream() {
+                ByteBuffer mBB;
 
-        @Override
-        public void close() {}
+                @Override
+                public void close() {}
 
-        @Override
-        public void flush() {}
+                @Override
+                public void flush() {}
 
-        OutputStream init(final ByteBuffer mbb) {
-          mBB = mbb;
-          return this;
-        }
+                OutputStream init(final ByteBuffer mbb) {
+                  mBB = mbb;
+                  return this;
+                }
 
-        @Override
-        public void write(final byte[] b) {
-          mBB.put(b);
-        }
+                @Override
+                public void write(final byte[] b) {
+                  mBB.put(b);
+                }
 
-        @Override
-        public void write(final byte[] b, final int off, final int l) {
-          mBB.put(b, off, l);
-        }
+                @Override
+                public void write(final byte[] b, final int off, final int l) {
+                  mBB.put(b, off, l);
+                }
 
-        @Override
-        public void write(final int b) {
-          mBB.put((byte) b);
-        }
-      }.init(b)));
+                @Override
+                public void write(final int b) {
+                  mBB.put((byte) b);
+                }
+              }.init(b)));
       b.flip();
       ImmutableRoaringBitmap irb = new ImmutableRoaringBitmap(b);
       assertEquals(irb.hashCode(), r.hashCode());
@@ -895,14 +882,11 @@ public class TestImmutableRoaringBitmap {
     }
   }
 
-
-
-
   @Test
   public void testRangedOr() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random(1234);// please use deterministic tests
+    Random random = new Random(1234); // please use deterministic tests
     for (int test = 0; test < 50; ++test) {
       final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
       final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
@@ -925,12 +909,12 @@ public class TestImmutableRoaringBitmap {
       for (int iter = 0; iter < NUM_ITER; iter++) {
         long rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        long rangeLength = random.nextInt(length - (int)rangeStart) + 1;
+        long rangeLength = random.nextInt(length - (int) rangeStart) + 1;
         long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
-        for (int i = (int)rangeStart; i < rangeEnd; i++) {
+        for (int i = (int) rangeStart; i < rangeEnd; i++) {
           if (unionSet.contains(i)) {
-            expectedResultSet.add((int)i);
+            expectedResultSet.add((int) i);
           }
         }
         List<ImmutableRoaringBitmap> list = new ArrayList<>();
@@ -952,7 +936,7 @@ public class TestImmutableRoaringBitmap {
   public void testRangedAnd() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random(1234);// please use deterministic tests
+    Random random = new Random(1234); // please use deterministic tests
     for (int test = 0; test < 50; ++test) {
       final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
       final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
@@ -1001,7 +985,7 @@ public class TestImmutableRoaringBitmap {
   public void testRangedXor() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random(1234);// please use deterministic tests
+    Random random = new Random(1234); // please use deterministic tests
     for (int test = 0; test < 50; ++test) {
       final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
       final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
@@ -1028,10 +1012,10 @@ public class TestImmutableRoaringBitmap {
       for (int iter = 0; iter < NUM_ITER; iter++) {
         long rangeStart = random.nextInt(length - 1);
         // +1 to ensure rangeEnd >rangeStart, may
-        long rangeLength = random.nextInt(length - (int)rangeStart) + 1;
+        long rangeLength = random.nextInt(length - (int) rangeStart) + 1;
         long rangeEnd = rangeStart + rangeLength;
         Set<Integer> expectedResultSet = new TreeSet<>();
-        for (int i = (int)rangeStart; i < rangeEnd; i++) {
+        for (int i = (int) rangeStart; i < rangeEnd; i++) {
           if (xorSet.contains(i)) {
             expectedResultSet.add(i);
           }
@@ -1055,7 +1039,7 @@ public class TestImmutableRoaringBitmap {
   public void testRangedAndNot() {
     int length = 1000;
     int NUM_ITER = 10;
-    Random random = new Random(1234);// please use deterministic tests
+    Random random = new Random(1234); // please use deterministic tests
     for (int test = 0; test < 50; ++test) {
       final MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
       final MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
@@ -1101,126 +1085,118 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorAnd() {
 
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
 
-      List<MutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<MutableRoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full overlap is on 300000 to 399999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full overlap is on 300000 to 399999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.and(list.iterator(), 350000L,  450000L);
-      MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.and(list.iterator(), 350000,  450000);
+    MutableRoaringBitmap result = ImmutableRoaringBitmap.and(list.iterator(), 350000L, 450000L);
+    MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.and(list.iterator(), 350000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(50000, result.getCardinality());
+    assertEquals(50000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = ImmutableRoaringBitmap.and(list.iterator(), 300000, 200000);
-      result = ImmutableRoaringBitmap.and(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = ImmutableRoaringBitmap.and(list.iterator(), 300000, 200000);
+    result = ImmutableRoaringBitmap.and(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorOr() {
 
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
 
-      List<MutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<MutableRoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full union is 200000 to 499999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full union is 200000 to 499999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.or(list.iterator(), 250000L,  550000L);
-      MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.or(list.iterator(), 250000,  550000);
-
+    MutableRoaringBitmap result = ImmutableRoaringBitmap.or(list.iterator(), 250000L, 550000L);
+    MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.or(list.iterator(), 250000, 550000);
 
     assertEquals(result, resultInt);
-      assertEquals(250000, result.getCardinality());
+    assertEquals(250000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = ImmutableRoaringBitmap.or(list.iterator(), 300000, 200000);
-      result = ImmutableRoaringBitmap.or(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = ImmutableRoaringBitmap.or(list.iterator(), 300000, 200000);
+    result = ImmutableRoaringBitmap.or(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorAndNot() {
 
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
 
-      List<MutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<MutableRoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full andNOToverlap is on 200000 to 299999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full andNOToverlap is on 200000 to 299999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000L,  450000L);
-      MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000,  450000);
+    MutableRoaringBitmap result = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000L, 450000L);
+    MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 250000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(50000, result.getCardinality());
+    assertEquals(50000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000, 200000);
-      result = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000, 200000);
+    result = ImmutableRoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorXor() {
 
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
 
-      List<MutableRoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<MutableRoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full XOR is 200000 to 299999, 400000-4999999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full XOR is 200000 to 299999, 400000-4999999
 
-      MutableRoaringBitmap result = ImmutableRoaringBitmap.xor(list.iterator(), 250000L,  450000L);
-      MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 250000,  450000);
+    MutableRoaringBitmap result = ImmutableRoaringBitmap.xor(list.iterator(), 250000L, 450000L);
+    MutableRoaringBitmap resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 250000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(100000, result.getCardinality());
+    assertEquals(100000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 300000, 200000);
-      result = ImmutableRoaringBitmap.xor(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = ImmutableRoaringBitmap.xor(list.iterator(), 300000, 200000);
+    result = ImmutableRoaringBitmap.xor(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
   @Test
   public void testFirstLast_CreateSparseContainersAfterRun() {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(1L, 1 << 14);
-    for(int i = 18; i < 31; ++i) {
+    for (int i = 18; i < 31; ++i) {
       int x = 1 << i;
       rb.add(x);
       assertEquals(1, rb.toImmutableRoaringBitmap().first());
@@ -1231,12 +1207,16 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testEmptyFirst() {
-    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().toImmutableRoaringBitmap().first());
+    assertThrows(
+        NoSuchElementException.class,
+        () -> new MutableRoaringBitmap().toImmutableRoaringBitmap().first());
   }
 
   @Test
   public void testEmptyLast() {
-    assertThrows(NoSuchElementException.class, () -> new MutableRoaringBitmap().toImmutableRoaringBitmap().last());
+    assertThrows(
+        NoSuchElementException.class,
+        () -> new MutableRoaringBitmap().toImmutableRoaringBitmap().last());
   }
 
   @Test
@@ -1253,7 +1233,7 @@ public class TestImmutableRoaringBitmap {
     assertEquals(2, rb.toImmutableRoaringBitmap().first());
     assertEquals((1 << 14) - 1, rb.toImmutableRoaringBitmap().last());
 
-    rb.add(1L<< 15, 1L << 30);
+    rb.add(1L << 15, 1L << 30);
     assertEquals(2, rb.toImmutableRoaringBitmap().first());
     assertEquals((1L << 30) - 1, rb.toImmutableRoaringBitmap().last());
   }
@@ -1282,8 +1262,8 @@ public class TestImmutableRoaringBitmap {
     big.add(1, 2, 3, 4);
     big.add(1L << 17, 1L << 30);
     big.flip((1 << 17) | (1 << 16));
-    for(int i = 1 << 18; i < 1 << 19; ++i) {
-      if(i % 3 == 0) {
+    for (int i = 1 << 18; i < 1 << 19; ++i) {
+      if (i % 3 == 0) {
         big.flip(i);
       }
     }
@@ -1295,8 +1275,8 @@ public class TestImmutableRoaringBitmap {
   @Test
   public void testHammingSimilarity_Shifted() {
     ImmutableRoaringBitmap baseline = ImmutableRoaringBitmap.bitmapOf(1, 2, 3, 4);
-    ImmutableRoaringBitmap shifted = ImmutableRoaringBitmap.bitmapOf((1 << 17) + 1, (1 << 17) + 2,
-            (1 << 17) + 3, (1 << 17) + 4);
+    ImmutableRoaringBitmap shifted =
+        ImmutableRoaringBitmap.bitmapOf((1 << 17) + 1, (1 << 17) + 2, (1 << 17) + 3, (1 << 17) + 4);
     assertFalse(baseline.isHammingSimilar(shifted, 0));
   }
 
@@ -1374,11 +1354,279 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testAndNotCardinality_648() {
-    ImmutableRoaringBitmap s1 = ImmutableRoaringBitmap.bitmapOf(-1388308580, 236217409, -805382570, 612285977, 1389629939, 851442526, 375756307, 61533603, 1908301308, 2097309572, 204769050, 703198559, -545810986, 2090296816, -87319453, 158018332, -685188145, -566739002, -1446363859, -372441875, -957637004, -1144076256, -1248859542, -160225853, 14707613, 866274329, 1550526350, 877999004, -1784269953, 1274953255, 1490490469, -1340013077, 2067958239, 51232349, 2060711699, -1802459974, 2039829040, -2079650027, -278950425, 1145674649, 298101576, 1687655442, 1209489632, -762136131, 399832491, 1077638711, -635674559, -1643781464, -1067907341, 144525399, 651571848, 1893053071, -2058528151, 1592871441, 84583235, 374119809, -867104416, -1941224259, 787356209, 1972857336, -720703901, -1310021857, -1831922816, 181898740, 600942551, -1745822849, -856908487, 2060184086, -1217485514, -1680395029, 1539735915, 2042390564, -1539856946, 1824974207, 1695025297, 1908431629, -395090370, -1688185468, 570601902, -701368853, -1211735380, -825285093, 788089714, -857723909, 1400502194, 285106906, -1450842998, -2125215206, 1451519492, -1559357910, 1157633452, -387704829, 2036134025, 1051239778, -1542956455, 357879569, 1962230155, -1994777800, 672516512, 174507423, -299175291, 821891018, 1062886766, -1313955904, 1732661804, -767116537, 1352149580, 2001322279, 1698147357, 40451458, 996819026, 1904959950, 2058544757, 1514282221, 234242255, -1364505429, 1498471146, 1134429786, -918860049, 1430732385, 644983298, 793600316, -1726956640, -538511147, -1945670935, 291567421, 1033590420, -1831809482, 985031287, -773476240, 1724734191, -1364525376, 1208307142, -2126741265, -1851759120, 1083333467, 185208087, -375950074, 48210573, -843304856, -295266615, -843941360, -524390895, -102924717, 836117637, 683196001, -1824825594, -1470017798, -1554712054, 291236023, -907874606, 2068945326, -899352179, -1488751007, -449279886, -1085935420, -2094131785, -474243782, 1306756671, 1353254318, 86944198, 1148225154, 487252515, -229770314, -1484325603, 109043190, -252122045, 1431750974, 1667547537, -1775516477, -512978266, -216545450, -486550865, -1193721685, -1108677522, -628326149, -1568065979, -675571394);
-    ImmutableRoaringBitmap s2 = ImmutableRoaringBitmap.bitmapOf(2060184086, 704452713, 1236293943, -178539376, 2037977331, -78910667, -587409880, 204769050, -854426111, 90628341, -1411939301, -927754519, -211274987, 998450197, -1515133464, -1652963250, 499001553, 383696025, -2019580769, 1583380373, -79264832, 1065614902, 1243463658, 424214238, 1124141647, 271662535, 1415634429, 1893053071, -1624960757, -1933550809, -1170233109, -542340662, -1681838238, 292656484, 1587781520, -1463647396, -124042559, -162307067, 1411905814, -1524651941, 1935844108, 1992426746, 422443777, 679395872, -764857187, -401706366, -2007177999, 1044794027, -1561188953, 1627034126, -401273669, -123973748, -694963705, 838892817, -1640102435, 852253834, -23120023, -2072644924, 1140820264, -550227319, -1692730465, 1491150291, 1607642920, -1015774573, -1801713682, -752796152, -439281693, -792361100, -188208805, 808883165, -1364525376, 896915854, -1672522244, -1718572341);
-    ImmutableRoaringBitmap s3 = ImmutableRoaringBitmap.bitmapOf(-30718004, -1652963250, -762136131, -1552606582, -1933550809, -1230616126, 736584428, -2136360654, 1097548480, 192408815, -295266615);
+    ImmutableRoaringBitmap s1 =
+        ImmutableRoaringBitmap.bitmapOf(
+            -1388308580,
+            236217409,
+            -805382570,
+            612285977,
+            1389629939,
+            851442526,
+            375756307,
+            61533603,
+            1908301308,
+            2097309572,
+            204769050,
+            703198559,
+            -545810986,
+            2090296816,
+            -87319453,
+            158018332,
+            -685188145,
+            -566739002,
+            -1446363859,
+            -372441875,
+            -957637004,
+            -1144076256,
+            -1248859542,
+            -160225853,
+            14707613,
+            866274329,
+            1550526350,
+            877999004,
+            -1784269953,
+            1274953255,
+            1490490469,
+            -1340013077,
+            2067958239,
+            51232349,
+            2060711699,
+            -1802459974,
+            2039829040,
+            -2079650027,
+            -278950425,
+            1145674649,
+            298101576,
+            1687655442,
+            1209489632,
+            -762136131,
+            399832491,
+            1077638711,
+            -635674559,
+            -1643781464,
+            -1067907341,
+            144525399,
+            651571848,
+            1893053071,
+            -2058528151,
+            1592871441,
+            84583235,
+            374119809,
+            -867104416,
+            -1941224259,
+            787356209,
+            1972857336,
+            -720703901,
+            -1310021857,
+            -1831922816,
+            181898740,
+            600942551,
+            -1745822849,
+            -856908487,
+            2060184086,
+            -1217485514,
+            -1680395029,
+            1539735915,
+            2042390564,
+            -1539856946,
+            1824974207,
+            1695025297,
+            1908431629,
+            -395090370,
+            -1688185468,
+            570601902,
+            -701368853,
+            -1211735380,
+            -825285093,
+            788089714,
+            -857723909,
+            1400502194,
+            285106906,
+            -1450842998,
+            -2125215206,
+            1451519492,
+            -1559357910,
+            1157633452,
+            -387704829,
+            2036134025,
+            1051239778,
+            -1542956455,
+            357879569,
+            1962230155,
+            -1994777800,
+            672516512,
+            174507423,
+            -299175291,
+            821891018,
+            1062886766,
+            -1313955904,
+            1732661804,
+            -767116537,
+            1352149580,
+            2001322279,
+            1698147357,
+            40451458,
+            996819026,
+            1904959950,
+            2058544757,
+            1514282221,
+            234242255,
+            -1364505429,
+            1498471146,
+            1134429786,
+            -918860049,
+            1430732385,
+            644983298,
+            793600316,
+            -1726956640,
+            -538511147,
+            -1945670935,
+            291567421,
+            1033590420,
+            -1831809482,
+            985031287,
+            -773476240,
+            1724734191,
+            -1364525376,
+            1208307142,
+            -2126741265,
+            -1851759120,
+            1083333467,
+            185208087,
+            -375950074,
+            48210573,
+            -843304856,
+            -295266615,
+            -843941360,
+            -524390895,
+            -102924717,
+            836117637,
+            683196001,
+            -1824825594,
+            -1470017798,
+            -1554712054,
+            291236023,
+            -907874606,
+            2068945326,
+            -899352179,
+            -1488751007,
+            -449279886,
+            -1085935420,
+            -2094131785,
+            -474243782,
+            1306756671,
+            1353254318,
+            86944198,
+            1148225154,
+            487252515,
+            -229770314,
+            -1484325603,
+            109043190,
+            -252122045,
+            1431750974,
+            1667547537,
+            -1775516477,
+            -512978266,
+            -216545450,
+            -486550865,
+            -1193721685,
+            -1108677522,
+            -628326149,
+            -1568065979,
+            -675571394);
+    ImmutableRoaringBitmap s2 =
+        ImmutableRoaringBitmap.bitmapOf(
+            2060184086,
+            704452713,
+            1236293943,
+            -178539376,
+            2037977331,
+            -78910667,
+            -587409880,
+            204769050,
+            -854426111,
+            90628341,
+            -1411939301,
+            -927754519,
+            -211274987,
+            998450197,
+            -1515133464,
+            -1652963250,
+            499001553,
+            383696025,
+            -2019580769,
+            1583380373,
+            -79264832,
+            1065614902,
+            1243463658,
+            424214238,
+            1124141647,
+            271662535,
+            1415634429,
+            1893053071,
+            -1624960757,
+            -1933550809,
+            -1170233109,
+            -542340662,
+            -1681838238,
+            292656484,
+            1587781520,
+            -1463647396,
+            -124042559,
+            -162307067,
+            1411905814,
+            -1524651941,
+            1935844108,
+            1992426746,
+            422443777,
+            679395872,
+            -764857187,
+            -401706366,
+            -2007177999,
+            1044794027,
+            -1561188953,
+            1627034126,
+            -401273669,
+            -123973748,
+            -694963705,
+            838892817,
+            -1640102435,
+            852253834,
+            -23120023,
+            -2072644924,
+            1140820264,
+            -550227319,
+            -1692730465,
+            1491150291,
+            1607642920,
+            -1015774573,
+            -1801713682,
+            -752796152,
+            -439281693,
+            -792361100,
+            -188208805,
+            808883165,
+            -1364525376,
+            896915854,
+            -1672522244,
+            -1718572341);
+    ImmutableRoaringBitmap s3 =
+        ImmutableRoaringBitmap.bitmapOf(
+            -30718004,
+            -1652963250,
+            -762136131,
+            -1552606582,
+            -1933550809,
+            -1230616126,
+            736584428,
+            -2136360654,
+            1097548480,
+            192408815,
+            -295266615);
     ImmutableRoaringBitmap s1AndS2 = ImmutableRoaringBitmap.and(s1, s2);
-    assertEquals(ImmutableRoaringBitmap.andNot(s1AndS2, s3).getCardinality(), ImmutableRoaringBitmap.andNotCardinality(s1AndS2, s3));
+    assertEquals(
+        ImmutableRoaringBitmap.andNot(s1AndS2, s3).getCardinality(),
+        ImmutableRoaringBitmap.andNotCardinality(s1AndS2, s3));
   }
 
   @Test
@@ -1387,7 +1635,6 @@ public class TestImmutableRoaringBitmap {
     assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65537));
     assertEquals(1, ImmutableRoaringBitmap.bitmapOf(65537).rank(65538));
   }
-
 
   @Test
   public void testNegativeAdd() {
@@ -1466,22 +1713,22 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testContainsRange_DirtyBitmap() {
-    RoaringBitmapWriter<MutableRoaringBitmap> writer = RoaringBitmapWriter.bufferWriter().constantMemory().get();
-    IntStream.range(0, 1_000_000)
-            .map(i -> i * 2)
-            .forEach(writer::add);
+    RoaringBitmapWriter<MutableRoaringBitmap> writer =
+        RoaringBitmapWriter.bufferWriter().constantMemory().get();
+    IntStream.range(0, 1_000_000).map(i -> i * 2).forEach(writer::add);
     writer.flush();
     MutableRoaringBitmap bitmap = writer.getUnderlying();
     assertFalse(bitmap.contains(0L, 2_000_000L));
     assertFalse(bitmap.contains(0L, 2L));
     assertTrue(bitmap.contains(0L, 1L));
-    assertTrue(bitmap.contains(1L << 10, 1| (1L << 10)));
+    assertTrue(bitmap.contains(1L << 10, 1 | (1L << 10)));
     assertFalse(bitmap.contains(1L << 31, 1L << 32));
   }
 
   @Test
   public void testNextValue() {
-    ImmutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
+    ImmutableRoaringBitmap bitmap =
+        SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
@@ -1496,7 +1743,7 @@ public class TestImmutableRoaringBitmap {
     long b1 = 0;
     int b2 = 0;
     while (b1 >= 0 && b2 >= 0) {
-      b1 = bitmap.nextValue((int)b1 + 1);
+      b1 = bitmap.nextValue((int) b1 + 1);
       b2 = bitset.nextSetBit(b2 + 1);
       assertEquals(b1, b2);
     }
@@ -1504,14 +1751,16 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void testPreviousValue() {
-    MutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
+    MutableRoaringBitmap bitmap =
+        SeededTestData.TestDataSet.testCase()
             .withRunAt(0)
             .withBitmapAt(1)
             .withArrayAt(2)
             .withRunAt(3)
             .withBitmapAt(4)
             .withArrayAt(5)
-            .build().toMutableRoaringBitmap();
+            .build()
+            .toMutableRoaringBitmap();
 
     BitSet bitset = new BitSet();
     bitmap.forEach((IntConsumer) bitset::set);
@@ -1552,14 +1801,14 @@ public class TestImmutableRoaringBitmap {
     assertEquals(1, r.rangeCardinality(60000, 70000));
   }
 
-
   @Test
   public void testAbsentBits() {
     int count = 50;
     List<Integer> offsets = Arrays.asList(0, 1, -1, 10, -10, 100, -100);
 
     for (int i = 0; i < count; i++) {
-      ImmutableRoaringBitmap bitmap = SeededTestData.TestDataSet.testCase()
+      ImmutableRoaringBitmap bitmap =
+          SeededTestData.TestDataSet.testCase()
               .withRunAt(0)
               .withBitmapAt(1)
               .withArrayAt(2)
@@ -1586,13 +1835,16 @@ public class TestImmutableRoaringBitmap {
 
   @Test
   public void invalidCookie() {
-    assertThrows(InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
+    assertThrows(
+        InvalidRoaringFormat.class, () -> new ImmutableRoaringBitmap(ByteBuffer.allocate(8)));
   }
+
   @Test
   public void testContainerSizeRoaringBitmapMultiple() {
     ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1, 1000000);
     assertEquals(2, r.getContainerCount());
   }
+
   @Test
   public void testContainerSizeRoaringBitmapSingle() {
     ImmutableRoaringBitmap r = ImmutableRoaringBitmap.bitmapOf(1);

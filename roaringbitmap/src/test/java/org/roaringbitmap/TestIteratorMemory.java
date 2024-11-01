@@ -1,9 +1,7 @@
 package org.roaringbitmap;
 
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -13,9 +11,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 @Disabled("makes no meaningful assertions")
 public class TestIteratorMemory {
@@ -27,19 +25,16 @@ public class TestIteratorMemory {
   final RoaringBitmap bitmap_a;
   final RoaringBitmap bitmap_b;
   final RoaringBitmap bitmap_c;
-  {
 
+  {
     final int[] data = takeSortedAndDistinct(new Random(0xcb000a2b9b5bdfb6L), 100000);
     bitmap_a = RoaringBitmap.bitmapOf(data);
 
     bitmap_b = new RoaringBitmap();
-    for (int k = 0; k < (1 << 30); k += 32)
-      bitmap_b.add(k);
+    for (int k = 0; k < (1 << 30); k += 32) bitmap_b.add(k);
 
     bitmap_c = new RoaringBitmap();
-    for (int k = 0; k < (1 << 30); k += 3)
-      bitmap_c.add(k);
-
+    for (int k = 0; k < (1 << 30); k += 3) bitmap_c.add(k);
   }
 
   private int[] takeSortedAndDistinct(Random source, int count) {
@@ -70,13 +65,20 @@ public class TestIteratorMemory {
   protected static final ThreadMXBean THREAD_MBEAN = ManagementFactory.getThreadMXBean();
 
   public static boolean isThreadAllocatedMemorySupported(ThreadMXBean threadMbean) {
-    if (threadMbean != null && Stream.of(threadMbean.getClass().getInterfaces())
-        .anyMatch(c -> c.getName().equals("com.sun.management.ThreadMXBean"))) {
+    if (threadMbean != null
+        && Stream.of(threadMbean.getClass().getInterfaces())
+            .anyMatch(c -> c.getName().equals("com.sun.management.ThreadMXBean"))) {
       try {
-        return (Boolean) Class.forName("com.sun.management.ThreadMXBean")
-            .getMethod("isThreadAllocatedMemorySupported").invoke(threadMbean);
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-          | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+        return (Boolean)
+            Class.forName("com.sun.management.ThreadMXBean")
+                .getMethod("isThreadAllocatedMemorySupported")
+                .invoke(threadMbean);
+      } catch (IllegalAccessException
+          | IllegalArgumentException
+          | InvocationTargetException
+          | NoSuchMethodException
+          | SecurityException
+          | ClassNotFoundException e) {
         return false;
       }
     } else {
@@ -87,10 +89,16 @@ public class TestIteratorMemory {
   public static long getThreadAllocatedBytes(ThreadMXBean threadMbean, long l) {
     if (isThreadAllocatedMemorySupported(threadMbean)) {
       try {
-        return (Long) Class.forName("com.sun.management.ThreadMXBean")
-            .getMethod("getThreadAllocatedBytes", long.class).invoke(threadMbean, l);
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-          | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+        return (Long)
+            Class.forName("com.sun.management.ThreadMXBean")
+                .getMethod("getThreadAllocatedBytes", long.class)
+                .invoke(threadMbean, l);
+      } catch (IllegalAccessException
+          | IllegalArgumentException
+          | InvocationTargetException
+          | NoSuchMethodException
+          | SecurityException
+          | ClassNotFoundException e) {
         return -1L;
       }
     } else {
@@ -112,7 +120,6 @@ public class TestIteratorMemory {
       long result = 0;
       while (intIterator.hasNext()) {
         result += intIterator.next();
-
       }
       // A small check for iterator consistency
       assertEquals(407, result % 1024);
@@ -131,7 +138,6 @@ public class TestIteratorMemory {
       long result = 0;
       while (intIterator.hasNext()) {
         result += intIterator.next();
-
       }
       // A small check for iterator consistency
       assertEquals(407, result % 1024);
@@ -152,7 +158,6 @@ public class TestIteratorMemory {
       long result = 0;
       while (intIterator.hasNext()) {
         result += intIterator.next();
-
       }
       // A small check for iterator consistency
       assertEquals(407, result % 1024);
@@ -161,5 +166,4 @@ public class TestIteratorMemory {
       System.out.println("FlyWeight Iteration allocated: " + (after - before));
     }
   }
-
 }

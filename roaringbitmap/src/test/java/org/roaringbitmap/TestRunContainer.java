@@ -1,37 +1,36 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.ArrayContainer.DEFAULT_MAX_SIZE;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestRunContainer {
   @Test
   public void testRunOpti() {
     RoaringBitmap mrb = new RoaringBitmap();
-    for(int r = 0; r< 100000; r+=3 ) {
+    for (int r = 0; r < 100000; r += 3) {
       mrb.add(r);
     }
     mrb.add(1000000);
-    for(int r = 2000000; r < 3000000; ++r) {
+    for (int r = 2000000; r < 3000000; ++r) {
       mrb.add(r);
     }
     RoaringBitmap m2 = mrb.clone();
     m2.runOptimize();
     IntIterator x = m2.getReverseIntIterator();
     int count = 0;
-    while(x.hasNext()) {
+    while (x.hasNext()) {
       x.next();
       count++;
     }
@@ -78,8 +77,8 @@ public class TestRunContainer {
     return ans;
   }
 
-  private static void getSetOfRunContainers(ArrayList<RunContainer> set,
-      ArrayList<Container> setb) {
+  private static void getSetOfRunContainers(
+      ArrayList<RunContainer> set, ArrayList<Container> setb) {
     RunContainer r1 = new RunContainer();
     r1 = (RunContainer) r1.iadd(0, (1 << 16));
     Container b1 = new ArrayContainer();
@@ -139,7 +138,6 @@ public class TestRunContainer {
     set.add(r6);
     setb.add(b6);
 
-
     RunContainer r7 = new RunContainer();
     Container b7 = new ArrayContainer();
     for (int k = 0; k + 1 < 65536; k += 11) {
@@ -149,7 +147,6 @@ public class TestRunContainer {
     assertEquals(r7, b7);
     set.add(r7);
     setb.add(b7);
-
   }
 
   /**
@@ -578,7 +575,6 @@ public class TestRunContainer {
     assertEquals(ac, ar);
   }
 
-
   @Test
   public void fillLeastSignificantBits() {
     Container rc = new RunContainer();
@@ -593,8 +589,6 @@ public class TestRunContainer {
     assertEquals(12, array[3]);
   }
 
-
-
   @Test
   public void flip() {
     RunContainer rc = new RunContainer();
@@ -604,23 +598,24 @@ public class TestRunContainer {
     assertFalse(rc.contains((char) 1));
   }
 
-
   @Test
   public void iaddInvalidRange1() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container rc = new RunContainer();
-      rc.iadd(10, 9);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container rc = new RunContainer();
+          rc.iadd(10, 9);
+        });
   }
-
-
 
   @Test
   public void iaddInvalidRange2() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container rc = new RunContainer();
-      rc.iadd(0, 1 << 20);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container rc = new RunContainer();
+          rc.iadd(0, 1 << 20);
+        });
   }
 
   @Test
@@ -878,7 +873,6 @@ public class TestRunContainer {
     assertEquals(16, rc.getSizeInBytes());
   }
 
-
   @Test
   public void iaddRange8() {
     Container rc = new RunContainer();
@@ -902,8 +896,6 @@ public class TestRunContainer {
     assertEquals(12, rc.getSizeInBytes());
   }
 
-
-
   @Test
   public void iaddRangeAndFuseWithPreviousValueLength() {
     RunContainer container = new RunContainer();
@@ -917,7 +909,6 @@ public class TestRunContainer {
     }
     assertEquals(8, container.getSizeInBytes());
   }
-
 
   @Test
   public void iaddRangeOnNonEmptyContainerAndFuse() {
@@ -934,7 +925,6 @@ public class TestRunContainer {
       assertTrue(container.contains(i));
     }
   }
-
 
   @Test
   public void iaddRangeWithinSetBounds() {
@@ -1042,8 +1032,6 @@ public class TestRunContainer {
     }
   }
 
-
-
   @Test
   public void inot13() {
     RunContainer container = new RunContainer();
@@ -1099,7 +1087,6 @@ public class TestRunContainer {
     for (int i = 0; i < 65536; ++i) {
       assertFalse(result.contains((char) i) ^ checker.get(i));
     }
-
   }
 
   @Test
@@ -1146,8 +1133,6 @@ public class TestRunContainer {
     }
   }
 
-
-
   @Test
   public void inot4() {
     RunContainer container = new RunContainer();
@@ -1164,7 +1149,6 @@ public class TestRunContainer {
       assertTrue(result.contains(i));
     }
   }
-
 
   @Test
   public void inot5() {
@@ -1199,7 +1183,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void inot7() {
     RunContainer container = new RunContainer();
@@ -1209,7 +1192,6 @@ public class TestRunContainer {
     container.add((char) 503);
     container.add((char) 504);
     container.add((char) 505);
-
 
     // one run, spans the range
     Container result = container.inot(502, 504);
@@ -1334,6 +1316,7 @@ public class TestRunContainer {
     rc.ior(ac);
     assertEquals(512, rc.getCardinality());
   }
+
   @Test
   public void iorNot() {
     Container rc1 = new RunContainer();
@@ -1482,7 +1465,6 @@ public class TestRunContainer {
 
       assertFalse(iterator.hasNext());
     }
-
   }
 
   @Test
@@ -1750,18 +1732,22 @@ public class TestRunContainer {
 
   @Test
   public void iremoveInvalidRange1() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container rc = new RunContainer();
-      rc.iremove(10, 9);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container rc = new RunContainer();
+          rc.iremove(10, 9);
+        });
   }
 
   @Test
   public void iremoveInvalidRange2() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container rc = new RunContainer();
-      rc.remove(0, 1 << 20);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container rc = new RunContainer();
+          rc.remove(0, 1 << 20);
+        });
   }
 
   @Test
@@ -1802,7 +1788,7 @@ public class TestRunContainer {
   public void iremoveEmptyRange() {
     RunContainer container = new RunContainer();
     assertEquals(0, container.getCardinality());
-    container.iremove(0,0);
+    container.iremove(0, 0);
     assertEquals(0, container.getCardinality());
   }
 
@@ -1941,7 +1927,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void not12() {
     RunContainer container = new RunContainer();
@@ -1964,7 +1949,6 @@ public class TestRunContainer {
       assertTrue(result.contains(i));
     }
   }
-
 
   @Test
   public void not12A() {
@@ -1999,7 +1983,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void not14() {
     not14once(10, 1);
@@ -2013,7 +1996,6 @@ public class TestRunContainer {
       not14once(50000, 100);
     }
   }
-
 
   private void not14once(int num, int rangeSize) {
     RunContainer container = new RunContainer();
@@ -2037,9 +2019,7 @@ public class TestRunContainer {
     for (int i = 0; i < 65536; ++i) {
       assertFalse(result.contains((char) i) ^ checker.get(i));
     }
-
   }
-
 
   @Test
   public void not15() {
@@ -2058,7 +2038,6 @@ public class TestRunContainer {
     assertTrue(result instanceof RunContainer);
   }
 
-
   @Test
   public void not2() {
     RunContainer container = new RunContainer();
@@ -2074,7 +2053,6 @@ public class TestRunContainer {
       assertTrue(result.contains(i));
     }
   }
-
 
   @Test
   public void not3() {
@@ -2104,7 +2082,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void not5() {
     RunContainer container = new RunContainer();
@@ -2121,8 +2098,6 @@ public class TestRunContainer {
       assertTrue(result.contains(i));
     }
   }
-
-
 
   @Test
   public void not6() {
@@ -2150,7 +2125,6 @@ public class TestRunContainer {
     container.add((char) 504);
     container.add((char) 505);
 
-
     // one run, spans the range
     Container result = container.not(502, 504);
 
@@ -2159,8 +2133,6 @@ public class TestRunContainer {
       assertTrue(result.contains(i));
     }
   }
-
-
 
   @Test
   public void not8() {
@@ -2182,8 +2154,6 @@ public class TestRunContainer {
     }
   }
 
-
-
   @Test
   public void not9() {
     RunContainer container = new RunContainer();
@@ -2203,8 +2173,6 @@ public class TestRunContainer {
     }
   }
 
-
-
   @Test
   public void randomFun() {
     final int bitsetperword1 = 32;
@@ -2216,7 +2184,6 @@ public class TestRunContainer {
     final int howmanywords = (1 << 16) / 64;
     int[] values1 = generateUniformHash(rand, bitsetperword1 * howmanywords, max);
     int[] values2 = generateUniformHash(rand, bitsetperword2 * howmanywords, max);
-
 
     rc1 = new RunContainer();
     rc1 = fillMeUp(rc1, values1);
@@ -2253,7 +2220,6 @@ public class TestRunContainer {
     if (!rc1.xor(rc2).equals(ac1.xor(ac2))) {
       throw new RuntimeException("xors do not match");
     }
-
   }
 
   @Test
@@ -2280,7 +2246,6 @@ public class TestRunContainer {
     assertEquals(16, container.rank((char) 32));
   }
 
-
   @Test
   public void remove() {
     Container rc = new RunContainer();
@@ -2288,8 +2253,6 @@ public class TestRunContainer {
     Container newContainer = rc.remove(1, 2);
     assertEquals(0, newContainer.getCardinality());
   }
-
-
 
   @Test
   public void RunContainerArg_ArrayAND() {
@@ -2314,8 +2277,6 @@ public class TestRunContainer {
     }
     assertTrue(atLeastOneArray);
   }
-
-
 
   @Test
   public void RunContainerArg_ArrayANDNOT() {
@@ -2345,22 +2306,24 @@ public class TestRunContainer {
 
   @Test
   public void RunContainerArg_ArrayANDNOT2() {
-    ArrayContainer ac = new ArrayContainer(12, new char[]{0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, (char)-2});
-    RunContainer rc = new RunContainer(new char[]{7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, (char)-3, 2}, 7);
-    assertEquals(new ArrayContainer(8, new char[]{0, 2, 4, 15, 16, 48, 50, 80}), ac.andNot(rc));
+    ArrayContainer ac =
+        new ArrayContainer(12, new char[] {0, 2, 4, 8, 10, 15, 16, 48, 50, 61, 80, (char) -2});
+    RunContainer rc =
+        new RunContainer(new char[] {7, 3, 17, 2, 20, 3, 30, 3, 36, 6, 60, 5, (char) -3, 2}, 7);
+    assertEquals(new ArrayContainer(8, new char[] {0, 2, 4, 15, 16, 48, 50, 80}), ac.andNot(rc));
   }
 
   @Test
   public void FullRunContainerArg_ArrayANDNOT2() {
-    ArrayContainer ac = new ArrayContainer(1, new char[]{3});
+    ArrayContainer ac = new ArrayContainer(1, new char[] {3});
     Container rc = RunContainer.full();
     assertEquals(new ArrayContainer(), ac.andNot(rc));
   }
 
   @Test
   public void RunContainerArg_ArrayANDNOT3() {
-    ArrayContainer ac = new ArrayContainer(1, new char[]{5});
-    Container rc = new RunContainer(new char[]{3, 10}, 1);
+    ArrayContainer ac = new ArrayContainer(1, new char[] {5});
+    Container rc = new RunContainer(new char[] {3, 10}, 1);
     assertEquals(new ArrayContainer(), ac.andNot(rc));
   }
 
@@ -2415,7 +2378,6 @@ public class TestRunContainer {
     assertTrue(atLeastOneArray);
   }
 
-
   @Test
   public void RunContainerFromBitmap() {
     Container rc = new RunContainer();
@@ -2445,12 +2407,10 @@ public class TestRunContainer {
     assertEquals(rc, rc2);
   }
 
-
   @Test
   public void RunContainerFromBitmap1() {
     Container rc = new RunContainer();
     Container bc = new BitmapContainer();
-
 
     rc = rc.add((char) 2);
     bc = bc.add((char) 2);
@@ -2477,7 +2437,6 @@ public class TestRunContainer {
     RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer) rc).nbrruns);
     assertEquals(rc, rc2);
   }
-
 
   @Test
   public void RunContainerFromBitmap2() {
@@ -2508,11 +2467,9 @@ public class TestRunContainer {
     rc = rc.add((char) 65535);
     bc = bc.add((char) 65535);
 
-
     RunContainer rc2 = new RunContainer((BitmapContainer) bc, ((RunContainer) rc).nbrruns);
     assertEquals(rc, rc2);
   }
-
 
   @Test
   public void RunContainerFromBitmap3() {
@@ -2563,7 +2520,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void RunContainerVSRunContainerANDNOT() {
     ArrayList<RunContainer> set = new ArrayList<RunContainer>();
@@ -2579,8 +2535,6 @@ public class TestRunContainer {
       }
     }
   }
-
-
 
   @Test
   public void RunContainerVSRunContainerOR() {
@@ -2613,8 +2567,6 @@ public class TestRunContainer {
       }
     }
   }
-
-
 
   @Test
   public void safeor() {
@@ -2681,8 +2633,6 @@ public class TestRunContainer {
     assertEquals(container.serializedSizeInBytes(), newContainer.serializedSizeInBytes());
   }
 
-
-
   @Test
   public void select() {
     RunContainer container = new RunContainer();
@@ -2700,13 +2650,15 @@ public class TestRunContainer {
 
   @Test
   public void select2() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      RunContainer container = new RunContainer();
-      container.add((char) 0);
-      container.add((char) 3);
-      container.add((char) 118);
-      container.select(666);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          RunContainer container = new RunContainer();
+          container.add((char) 0);
+          container.add((char) 3);
+          container.add((char) 118);
+          container.select(666);
+        });
   }
 
   @Test
@@ -2723,11 +2675,12 @@ public class TestRunContainer {
     assertFalse(i.hasNext());
   }
 
-
   @Test
   public void testAndNot() {
-    int[] array1 = {39173, 39174, 39175, 39176, 39177, 39178, 39179, 39180, 39181, 39182, 39183,
-        39184, 39185, 39186, 39187, 39188};
+    int[] array1 = {
+      39173, 39174, 39175, 39176, 39177, 39178, 39179, 39180, 39181, 39182, 39183, 39184, 39185,
+      39186, 39187, 39188
+    };
     int[] array2 = {14205};
     RoaringBitmap rb1 = RoaringBitmap.bitmapOf(array1);
     rb1.runOptimize();
@@ -2735,8 +2688,6 @@ public class TestRunContainer {
     RoaringBitmap answer = RoaringBitmap.andNot(rb1, rb2);
     assertEquals(answer.getCardinality(), array1.length);
   }
-
-
 
   @Test
   public void testRoaringWithOptimize() {
@@ -2754,7 +2705,6 @@ public class TestRunContainer {
     }
     assertEquals(1, setWithOptimize.size());
   }
-
 
   @Test
   public void testRoaringWithoutOptimize() {
@@ -2809,7 +2759,6 @@ public class TestRunContainer {
     assertEquals(100, rc.getCardinality());
   }
 
-
   @Test
   public void union2() {
     System.out.println("union2");
@@ -2828,7 +2777,6 @@ public class TestRunContainer {
     assertEquals(100, ac.getCardinality());
     assertEquals(100, rc.getCardinality());
   }
-
 
   @Test
   public void xor() {
@@ -2850,7 +2798,6 @@ public class TestRunContainer {
     assertEquals(4 * DEFAULT_MAX_SIZE, rc.getCardinality());
   }
 
-
   @Test
   public void xor_array() {
     Container bc = new ArrayContainer();
@@ -2870,8 +2817,6 @@ public class TestRunContainer {
     assertEquals(4 * DEFAULT_MAX_SIZE, bc.getCardinality());
     assertEquals(4 * DEFAULT_MAX_SIZE, rc.getCardinality());
   }
-
-
 
   @Test
   public void xor_array_largecase_runcontainer_best() {
@@ -2912,7 +2857,6 @@ public class TestRunContainer {
       assertTrue(result.contains((char) (k * 100 + 99)));
     }
   }
-
 
   @Test
   public void xor_array_mediumcase() {
@@ -2961,7 +2905,6 @@ public class TestRunContainer {
     }
   }
 
-
   @Test
   public void xor_array_smallcase() {
     Container bc = new ArrayContainer();
@@ -2982,7 +2925,6 @@ public class TestRunContainer {
     int rcSize = rc.getCardinality();
     int bcSize = bc.getCardinality();
 
-
     Container result = rc.xor(bc);
 
     // input containers should not change (just check card)
@@ -2992,7 +2934,6 @@ public class TestRunContainer {
     assertEquals(rcSize - 3, result.getCardinality());
     assertTrue(result.contains((char) 5));
     assertTrue(result.contains((char) 0));
-
 
     for (int k = 1; k < DEFAULT_MAX_SIZE / 3; ++k) {
       for (int i = 0; i < 5; ++i) {
@@ -3021,7 +2962,6 @@ public class TestRunContainer {
     assertTrue(result.contains((char) 1));
   }
 
-
   @Test
   public void xor2() {
     Container bc = new BitmapContainer();
@@ -3031,7 +2971,6 @@ public class TestRunContainer {
     assertEquals(1, result.getCardinality());
     assertTrue(result.contains((char) 1));
   }
-
 
   @Test
   public void xor2a() {
@@ -3043,7 +2982,6 @@ public class TestRunContainer {
     assertTrue(result.contains((char) 1));
   }
 
-
   @Test
   public void xor3() {
     Container bc = new BitmapContainer();
@@ -3054,8 +2992,6 @@ public class TestRunContainer {
     assertEquals(0, result.getCardinality());
   }
 
-
-
   @Test
   public void xor3a() {
     Container bc = new ArrayContainer();
@@ -3065,8 +3001,6 @@ public class TestRunContainer {
     Container result = rc.xor(bc);
     assertEquals(0, result.getCardinality());
   }
-
-
 
   @Test
   public void xor4() {
@@ -3111,12 +3045,12 @@ public class TestRunContainer {
     assertFalse(ac.intersects(rc));
 
     rc = rc.remove((char) 1000);
-    rc = rc.add(100,200);
-    rc = rc.add(300,500);
+    rc = rc.add(100, 200);
+    rc = rc.add(300, 500);
     assertFalse(rc.intersects(ac));
     assertFalse(ac.intersects(rc));
 
-    rc = rc.add(500,1000);
+    rc = rc.add(500, 1000);
     assertTrue(rc.intersects(ac));
     assertTrue(ac.intersects(rc));
   }
@@ -3155,7 +3089,7 @@ public class TestRunContainer {
 
   @Test
   public void constructor1() {
-    assertThrows(RuntimeException.class, () -> new RunContainer(new char[]{1, 2, 10, 3}, 5));
+    assertThrows(RuntimeException.class, () -> new RunContainer(new char[] {1, 2, 10, 3}, 5));
   }
 
   @Test
@@ -3171,7 +3105,7 @@ public class TestRunContainer {
   @Test
   public void testToString() {
     Container rc = new RunContainer(32200, 35000);
-    rc.add((char)-1);
+    rc.add((char) -1);
     assertEquals("[32200,34999][65535,65535]", rc.toString());
   }
 
@@ -3190,9 +3124,9 @@ public class TestRunContainer {
     assertEquals(13, rc.getCardinality());
 
     rc = new RunContainer();
-    rc = rc.add(0, 1<<16);
+    rc = rc.add(0, 1 << 16);
     rc = rc.lazyIOR(ac);
-    assertEquals(1<<16, rc.getCardinality());
+    assertEquals(1 << 16, rc.getCardinality());
   }
 
   @Test
@@ -3210,9 +3144,9 @@ public class TestRunContainer {
     assertEquals(13, rc.getCardinality());
 
     rc = new RunContainer();
-    rc = rc.add(0, 1<<16);
+    rc = rc.add(0, 1 << 16);
     rc = rc.lazyOR(ac);
-    assertEquals(1<<16, rc.getCardinality());
+    assertEquals(1 << 16, rc.getCardinality());
   }
 
   @Test
@@ -3250,7 +3184,7 @@ public class TestRunContainer {
   @Test
   public void testRangeCardinality() {
     BitmapContainer bc = TestBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     Container result = rc.or(bc);
     assertEquals(8677, result.getCardinality());
   }
@@ -3258,9 +3192,9 @@ public class TestRunContainer {
   @Test
   public void testRangeCardinality2() {
     BitmapContainer bc = TestBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    bc.add((char)22345); //important case to have greater element than run container
-    bc.add((char)Short.MAX_VALUE);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 18000}, 3);
+    bc.add((char) 22345); // important case to have greater element than run container
+    bc.add((char) Short.MAX_VALUE);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 18000}, 3);
     assertTrue(rc.getCardinality() > ArrayContainer.DEFAULT_MAX_SIZE);
     Container result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
@@ -3269,7 +3203,7 @@ public class TestRunContainer {
   @Test
   public void testRangeCardinality3() {
     BitmapContainer bc = TestBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 5200}, 3);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 5200}, 3);
     BitmapContainer result = (BitmapContainer) rc.and(bc);
     assertEquals(5046, result.getCardinality());
   }
@@ -3277,7 +3211,7 @@ public class TestRunContainer {
   @Test
   public void testRangeCardinality4() {
     BitmapContainer bc = TestBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     BitmapContainer result = (BitmapContainer) rc.xor(bc);
     assertEquals(6031, result.getCardinality());
   }
@@ -3322,50 +3256,49 @@ public class TestRunContainer {
 
   @Test
   public void testContainsBitmapContainer_IncludeProperSubset() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new BitmapContainer().add(0,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(0, 9);
     assertTrue(rc.contains(subset));
   }
 
-
   @Test
   public void testContainsBitmapContainer_IncludeProperSubsetDifferentStart() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new BitmapContainer().add(1,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(1, 9);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_IncludeProperSubsetMultiWordRun() {
-    Container rc = new RunContainer().add(0,80);
-    Container subset = new BitmapContainer().add(0,79);
+    Container rc = new RunContainer().add(0, 80);
+    Container subset = new BitmapContainer().add(0, 79);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeShiftedSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new BitmapContainer().add(2,12);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(2, 12);
     assertFalse(rc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_IncludeSelf() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new BitmapContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(0, 10);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeSuperSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container superset = new BitmapContainer().add(0,20);
+    Container rc = new RunContainer().add(0, 10);
+    Container superset = new BitmapContainer().add(0, 20);
     assertFalse(rc.contains(superset));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeDisJointSet() {
-    Container rc = new RunContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
     Container disjoint = new BitmapContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
@@ -3373,15 +3306,15 @@ public class TestRunContainer {
 
   @Test
   public void testContainsBitmapContainer_Issue721Case1() {
-    Container rc = new RunContainer().add(0,60).add(63,64).add(66,67);
-    Container subset = new BitmapContainer().add(63,64);
+    Container rc = new RunContainer().add(0, 60).add(63, 64).add(66, 67);
+    Container subset = new BitmapContainer().add(63, 64);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_Issue721Case2() {
-    Container rc = new RunContainer().add(0,10).add(12,13);
-    Container disjoint = new BitmapContainer().add(11,12);
+    Container rc = new RunContainer().add(0, 10).add(12, 13);
+    Container disjoint = new BitmapContainer().add(11, 12);
     assertFalse(rc.contains(disjoint));
   }
 
@@ -3401,42 +3334,42 @@ public class TestRunContainer {
 
   @Test
   public void testContainsRunContainer_IncludeProperSubset() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new RunContainer().add(0,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new RunContainer().add(0, 9);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_IncludeSelf() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new RunContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new RunContainer().add(0, 10);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeSuperSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container superset = new RunContainer().add(0,20);
+    Container rc = new RunContainer().add(0, 10);
+    Container superset = new RunContainer().add(0, 20);
     assertFalse(rc.contains(superset));
   }
 
   @Test
   public void testContainsRunContainer_IncludeProperSubsetDifferentStart() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new RunContainer().add(1,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new RunContainer().add(1, 9);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeShiftedSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new RunContainer().add(2,12);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new RunContainer().add(2, 12);
     assertFalse(rc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeDisJointSet() {
-    Container rc = new RunContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
     Container disjoint = new RunContainer().add(20, 40);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
@@ -3451,36 +3384,36 @@ public class TestRunContainer {
 
   @Test
   public void testContainsArrayContainer_IncludeProperSubset() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new ArrayContainer().add(0,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(0, 9);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_IncludeProperSubsetDifferentStart() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new ArrayContainer().add(2,9);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(2, 9);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_ExcludeShiftedSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container shifted = new ArrayContainer().add(2,12);
+    Container rc = new RunContainer().add(0, 10);
+    Container shifted = new ArrayContainer().add(2, 12);
     assertFalse(rc.contains(shifted));
   }
 
   @Test
   public void testContainsArrayContainer_IncludeSelf() {
-    Container rc = new RunContainer().add(0,10);
-    Container subset = new ArrayContainer().add(0,10);
+    Container rc = new RunContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(0, 10);
     assertTrue(rc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_ExcludeSuperSet() {
-    Container rc = new RunContainer().add(0,10);
-    Container superset = new ArrayContainer().add(0,20);
+    Container rc = new RunContainer().add(0, 10);
+    Container superset = new ArrayContainer().add(0, 20);
     assertFalse(rc.contains(superset));
   }
 
@@ -3491,20 +3424,17 @@ public class TestRunContainer {
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
 
-    disjoint = new ArrayContainer().add((char)512);
+    disjoint = new ArrayContainer().add((char) 512);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
 
-    rc = rc.add(12,14).add(16,18).add(20,22);
+    rc = rc.add(12, 14).add(16, 18).add(20, 22);
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
 
     rc.trim();
     assertFalse(rc.contains(disjoint));
     assertFalse(disjoint.contains(rc));
-
-
-
   }
 
   @Test
@@ -3543,7 +3473,7 @@ public class TestRunContainer {
   public void testEqualsArrayContainer_NotEqual_ArrayDiscontiguous() {
     Container rc = new RunContainer().add(0, 10);
     Container ac = new ArrayContainer().add(0, 11);
-    ac.flip((char)9);
+    ac.flip((char) 9);
     assertNotEquals(rc, ac);
     assertNotEquals(ac, rc);
   }
@@ -3603,17 +3533,15 @@ public class TestRunContainer {
     assertFalse(container.intersects(11, 1 << 16));
   }
 
-
   @Test
   public void testIntersectsWithRangeUnsigned() {
     Container container = new RunContainer().add(lower16Bits(-50), lower16Bits(-10));
     assertFalse(container.intersects(0, 1));
     assertTrue(container.intersects(0, lower16Bits(-40)));
     assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
-    //assertFalse(container.intersects(-9, 1 << 16)); // forbidden
+    // assertFalse(container.intersects(-9, 1 << 16)); // forbidden
     assertTrue(container.intersects(11, 1 << 16));
   }
-
 
   @Test
   public void testIntersectsWithRangeManyRuns() {
@@ -3631,7 +3559,7 @@ public class TestRunContainer {
   @Test
   public void testContainsFull() {
     assertTrue(RunContainer.full().contains(0, 1 << 16));
-    assertFalse(RunContainer.full().flip((char)(1 << 15)).contains(0, 1 << 16));
+    assertFalse(RunContainer.full().flip((char) (1 << 15)).contains(0, 1 << 16));
   }
 
   @Test
@@ -3654,11 +3582,8 @@ public class TestRunContainer {
 
   @Test
   public void testContainsRange3() {
-    Container rc = new RunContainer().add(1, 100)
-            .add(300, 300)
-            .add(400, 500)
-            .add(502, 600)
-            .add(700, 10000);
+    Container rc =
+        new RunContainer().add(1, 100).add(300, 300).add(400, 500).add(502, 600).add(700, 10000);
     assertFalse(rc.contains(0, 100));
     assertFalse(rc.contains(500, 600));
     assertFalse(rc.contains(501, 600));
@@ -3670,135 +3595,139 @@ public class TestRunContainer {
 
   @Test
   public void testNextValue() {
-    RunContainer container = new RunContainer(new char[] { 64, 64 }, 1);
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(-1, container.nextValue((char)129));
+    RunContainer container = new RunContainer(new char[] {64, 64}, 1);
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(-1, container.nextValue((char) 129));
   }
 
   @Test
   public void testNextValueBetweenRuns() {
-    RunContainer container = new RunContainer(new char[] { 64, 64, 256, 64 }, 2);
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(256, container.nextValue((char)129));
-    assertEquals(-1, container.nextValue((char)512));
+    RunContainer container = new RunContainer(new char[] {64, 64, 256, 64}, 2);
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(256, container.nextValue((char) 129));
+    assertEquals(-1, container.nextValue((char) 512));
   }
 
   @Test
   public void testNextValue2() {
-    RunContainer container = new RunContainer(new char[] { 64, 64, 200, 300, 5000, 200 }, 3);
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)63));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(200, container.nextValue((char)129));
-    assertEquals(200, container.nextValue((char)199));
-    assertEquals(200, container.nextValue((char)200));
-    assertEquals(250, container.nextValue((char)250));
-    assertEquals(5000, container.nextValue((char)2500));
-    assertEquals(5000, container.nextValue((char)5000));
-    assertEquals(5200, container.nextValue((char)5200));
-    assertEquals(-1, container.nextValue((char)5201));
+    RunContainer container = new RunContainer(new char[] {64, 64, 200, 300, 5000, 200}, 3);
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 63));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(200, container.nextValue((char) 129));
+    assertEquals(200, container.nextValue((char) 199));
+    assertEquals(200, container.nextValue((char) 200));
+    assertEquals(250, container.nextValue((char) 250));
+    assertEquals(5000, container.nextValue((char) 2500));
+    assertEquals(5000, container.nextValue((char) 5000));
+    assertEquals(5200, container.nextValue((char) 5200));
+    assertEquals(-1, container.nextValue((char) 5201));
   }
 
   @Test
   public void testPreviousValue1() {
-    RunContainer container = new RunContainer(new char[] { 64, 64 }, 1);
-    assertEquals(-1, container.previousValue((char)0));
-    assertEquals(-1, container.previousValue((char)63));
-    assertEquals(64, container.previousValue((char)64));
-    assertEquals(65, container.previousValue((char)65));
-    assertEquals(128, container.previousValue((char)128));
-    assertEquals(128, container.previousValue((char)129));
+    RunContainer container = new RunContainer(new char[] {64, 64}, 1);
+    assertEquals(-1, container.previousValue((char) 0));
+    assertEquals(-1, container.previousValue((char) 63));
+    assertEquals(64, container.previousValue((char) 64));
+    assertEquals(65, container.previousValue((char) 65));
+    assertEquals(128, container.previousValue((char) 128));
+    assertEquals(128, container.previousValue((char) 129));
   }
 
   @Test
   public void testPreviousValue2() {
-    RunContainer container = new RunContainer(new char[] { 64, 64, 200, 300, 5000, 200 }, 3);
-    assertEquals(-1, container.previousValue((char)0));
-    assertEquals(-1, container.previousValue((char)63));
-    assertEquals(64, container.previousValue((char)64));
-    assertEquals(65, container.previousValue((char)65));
-    assertEquals(128, container.previousValue((char)128));
-    assertEquals(128, container.previousValue((char)129));
-    assertEquals(128, container.previousValue((char)199));
-    assertEquals(200, container.previousValue((char)200));
-    assertEquals(250, container.previousValue((char)250));
-    assertEquals(500, container.previousValue((char)2500));
-    assertEquals(5000, container.previousValue((char)5000));
-    assertEquals(5200, container.previousValue((char)5200));
+    RunContainer container = new RunContainer(new char[] {64, 64, 200, 300, 5000, 200}, 3);
+    assertEquals(-1, container.previousValue((char) 0));
+    assertEquals(-1, container.previousValue((char) 63));
+    assertEquals(64, container.previousValue((char) 64));
+    assertEquals(65, container.previousValue((char) 65));
+    assertEquals(128, container.previousValue((char) 128));
+    assertEquals(128, container.previousValue((char) 129));
+    assertEquals(128, container.previousValue((char) 199));
+    assertEquals(200, container.previousValue((char) 200));
+    assertEquals(250, container.previousValue((char) 250));
+    assertEquals(500, container.previousValue((char) 2500));
+    assertEquals(5000, container.previousValue((char) 5000));
+    assertEquals(5200, container.previousValue((char) 5200));
   }
 
   @Test
   public void testPreviousValueUnsigned() {
-    RunContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), (char)0, (char)((1 << 15) | 7), (char)0}, 2);
-    assertEquals(-1, container.previousValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 8)));
+    RunContainer container =
+        new RunContainer(
+            new char[] {(char) ((1 << 15) | 5), (char) 0, (char) ((1 << 15) | 7), (char) 0}, 2);
+    assertEquals(-1, container.previousValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char) ((1 << 15) | 8)));
   }
 
   @Test
   public void testNextValueUnsigned() {
-    RunContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), (char)0, (char)((1 << 15) | 7), (char)0}, 2);
-    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 7)));
-    assertEquals(-1, container.nextValue((char)((1 << 15) | 8)));
+    RunContainer container =
+        new RunContainer(
+            new char[] {(char) ((1 << 15) | 5), (char) 0, (char) ((1 << 15) | 7), (char) 0}, 2);
+    assertEquals(((1 << 15) | 5), container.nextValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.nextValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char) ((1 << 15) | 7)));
+    assertEquals(-1, container.nextValue((char) ((1 << 15) | 8)));
   }
 
   @Test
   public void testPreviousAbsentValue1() {
     Container container = new RunContainer().iadd(64, 129);
-    assertEquals(0, container.previousAbsentValue((char)0));
-    assertEquals(63, container.previousAbsentValue((char)63));
-    assertEquals(63, container.previousAbsentValue((char)64));
-    assertEquals(63, container.previousAbsentValue((char)65));
-    assertEquals(63, container.previousAbsentValue((char)128));
-    assertEquals(129, container.previousAbsentValue((char)129));
+    assertEquals(0, container.previousAbsentValue((char) 0));
+    assertEquals(63, container.previousAbsentValue((char) 63));
+    assertEquals(63, container.previousAbsentValue((char) 64));
+    assertEquals(63, container.previousAbsentValue((char) 65));
+    assertEquals(63, container.previousAbsentValue((char) 128));
+    assertEquals(129, container.previousAbsentValue((char) 129));
   }
 
   @Test
   public void testPreviousAbsentValue2() {
     Container container = new RunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
-    assertEquals(0, container.previousAbsentValue((char)0));
-    assertEquals(63, container.previousAbsentValue((char)63));
-    assertEquals(63, container.previousAbsentValue((char)64));
-    assertEquals(63, container.previousAbsentValue((char)65));
-    assertEquals(63, container.previousAbsentValue((char)128));
-    assertEquals(129, container.previousAbsentValue((char)129));
-    assertEquals(199, container.previousAbsentValue((char)199));
-    assertEquals(199, container.previousAbsentValue((char)200));
-    assertEquals(199, container.previousAbsentValue((char)250));
-    assertEquals(2500, container.previousAbsentValue((char)2500));
-    assertEquals(4999, container.previousAbsentValue((char)5000));
-    assertEquals(4999, container.previousAbsentValue((char)5200));
+    assertEquals(0, container.previousAbsentValue((char) 0));
+    assertEquals(63, container.previousAbsentValue((char) 63));
+    assertEquals(63, container.previousAbsentValue((char) 64));
+    assertEquals(63, container.previousAbsentValue((char) 65));
+    assertEquals(63, container.previousAbsentValue((char) 128));
+    assertEquals(129, container.previousAbsentValue((char) 129));
+    assertEquals(199, container.previousAbsentValue((char) 199));
+    assertEquals(199, container.previousAbsentValue((char) 200));
+    assertEquals(199, container.previousAbsentValue((char) 250));
+    assertEquals(2500, container.previousAbsentValue((char) 2500));
+    assertEquals(4999, container.previousAbsentValue((char) 5000));
+    assertEquals(4999, container.previousAbsentValue((char) 5200));
   }
 
   @Test
   public void testPreviousAbsentValueEmpty() {
     RunContainer container = new RunContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.previousAbsentValue((char)i));
+      assertEquals(i, container.previousAbsentValue((char) i));
     }
   }
 
   @Test
   public void testPreviousAbsentValueSparse() {
-    RunContainer container = new RunContainer(new char[] { 10, 0, 20, 0, 30, 0}, 3);
-    assertEquals(9, container.previousAbsentValue((char)9));
-    assertEquals(9, container.previousAbsentValue((char)10));
-    assertEquals(11, container.previousAbsentValue((char)11));
-    assertEquals(21, container.previousAbsentValue((char)21));
-    assertEquals(29, container.previousAbsentValue((char)30));
+    RunContainer container = new RunContainer(new char[] {10, 0, 20, 0, 30, 0}, 3);
+    assertEquals(9, container.previousAbsentValue((char) 9));
+    assertEquals(9, container.previousAbsentValue((char) 10));
+    assertEquals(11, container.previousAbsentValue((char) 11));
+    assertEquals(21, container.previousAbsentValue((char) 21));
+    assertEquals(29, container.previousAbsentValue((char) 30));
   }
 
   @Test
@@ -3810,67 +3739,67 @@ public class TestRunContainer {
     }
 
     RunContainer container = new RunContainer(evenBits, 1 << 14);
-    for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i - 1, container.previousAbsentValue((char)i));
-      assertEquals(i + 1, container.previousAbsentValue((char)(i+1)));
+    for (int i = 0; i < 1 << 10; i += 2) {
+      assertEquals(i - 1, container.previousAbsentValue((char) i));
+      assertEquals(i + 1, container.previousAbsentValue((char) (i + 1)));
     }
   }
 
   @Test
   public void testPreviousAbsentValueUnsigned() {
-    RunContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), 0, (char)((1 << 15) | 7), 0}, 2);
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char)((1 << 15) | 8)));
+    RunContainer container =
+        new RunContainer(new char[] {(char) ((1 << 15) | 5), 0, (char) ((1 << 15) | 7), 0}, 2);
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char) ((1 << 15) | 8)));
   }
-
 
   @Test
   public void testNextAbsentValue1() {
     Container container = new RunContainer().iadd(64, 129);
-    assertEquals(0, container.nextAbsentValue((char)0));
-    assertEquals(63, container.nextAbsentValue((char)63));
-    assertEquals(129, container.nextAbsentValue((char)64));
-    assertEquals(129, container.nextAbsentValue((char)65));
-    assertEquals(129, container.nextAbsentValue((char)128));
-    assertEquals(129, container.nextAbsentValue((char)129));
+    assertEquals(0, container.nextAbsentValue((char) 0));
+    assertEquals(63, container.nextAbsentValue((char) 63));
+    assertEquals(129, container.nextAbsentValue((char) 64));
+    assertEquals(129, container.nextAbsentValue((char) 65));
+    assertEquals(129, container.nextAbsentValue((char) 128));
+    assertEquals(129, container.nextAbsentValue((char) 129));
   }
 
   @Test
   public void testNextAbsentValue2() {
     Container container = new RunContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201);
-    assertEquals(0, container.nextAbsentValue((char)0));
-    assertEquals(63, container.nextAbsentValue((char)63));
-    assertEquals(129, container.nextAbsentValue((char)64));
-    assertEquals(129, container.nextAbsentValue((char)65));
-    assertEquals(129, container.nextAbsentValue((char)128));
-    assertEquals(129, container.nextAbsentValue((char)129));
-    assertEquals(199, container.nextAbsentValue((char)199));
-    assertEquals(501, container.nextAbsentValue((char)200));
-    assertEquals(501, container.nextAbsentValue((char)250));
-    assertEquals(2500, container.nextAbsentValue((char)2500));
-    assertEquals(5201, container.nextAbsentValue((char)5000));
-    assertEquals(5201, container.nextAbsentValue((char)5200));
+    assertEquals(0, container.nextAbsentValue((char) 0));
+    assertEquals(63, container.nextAbsentValue((char) 63));
+    assertEquals(129, container.nextAbsentValue((char) 64));
+    assertEquals(129, container.nextAbsentValue((char) 65));
+    assertEquals(129, container.nextAbsentValue((char) 128));
+    assertEquals(129, container.nextAbsentValue((char) 129));
+    assertEquals(199, container.nextAbsentValue((char) 199));
+    assertEquals(501, container.nextAbsentValue((char) 200));
+    assertEquals(501, container.nextAbsentValue((char) 250));
+    assertEquals(2500, container.nextAbsentValue((char) 2500));
+    assertEquals(5201, container.nextAbsentValue((char) 5000));
+    assertEquals(5201, container.nextAbsentValue((char) 5200));
   }
 
   @Test
   public void testNextAbsentValueEmpty() {
     RunContainer container = new RunContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.nextAbsentValue((char)i));
+      assertEquals(i, container.nextAbsentValue((char) i));
     }
   }
 
   @Test
   public void testNextAbsentValueSparse() {
-    Container container = new RunContainer(new char[] { 10, 0, 20, 0, 30, 0}, 3);
-    assertEquals(9, container.nextAbsentValue((char)9));
-    assertEquals(11, container.nextAbsentValue((char)10));
-    assertEquals(11, container.nextAbsentValue((char)11));
-    assertEquals(21, container.nextAbsentValue((char)21));
-    assertEquals(31, container.nextAbsentValue((char)30));
+    Container container = new RunContainer(new char[] {10, 0, 20, 0, 30, 0}, 3);
+    assertEquals(9, container.nextAbsentValue((char) 9));
+    assertEquals(11, container.nextAbsentValue((char) 10));
+    assertEquals(11, container.nextAbsentValue((char) 11));
+    assertEquals(21, container.nextAbsentValue((char) 21));
+    assertEquals(31, container.nextAbsentValue((char) 30));
   }
 
   @Test
@@ -3882,31 +3811,38 @@ public class TestRunContainer {
     }
 
     RunContainer container = new RunContainer(evenBits, 1 << 14);
-    for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i + 1, container.nextAbsentValue((char)i));
-      assertEquals(i + 1, container.nextAbsentValue((char)(i+1)));
+    for (int i = 0; i < 1 << 10; i += 2) {
+      assertEquals(i + 1, container.nextAbsentValue((char) i));
+      assertEquals(i + 1, container.nextAbsentValue((char) (i + 1)));
     }
   }
 
   @Test
   public void testNextAbsentValueUnsigned() {
-    RunContainer container = new RunContainer(new char[] { (char)((1 << 15) | 5), 0, (char)((1 << 15) | 7), 0}, 2);
-    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+    RunContainer container =
+        new RunContainer(new char[] {(char) ((1 << 15) | 5), 0, (char) ((1 << 15) | 7), 0}, 2);
+    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char) ((1 << 15) | 8)));
   }
 
   @Test
   public void testContains() {
-    RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+    RunContainer rc = new RunContainer(new char[] {23, 24}, 1);
     assertFalse(rc.contains(48, 49));
   }
 
   @Test
   public void testIntersects() {
-    RunContainer rc = new RunContainer(new char[]{41, 15, 215, 0, 217, 2790, 3065, 170, 3269, 422, 3733, 43, 3833, 16, 3852, 7, 3662, 3, 3901, 2}, 10);
+    RunContainer rc =
+        new RunContainer(
+            new char[] {
+              41, 15, 215, 0, 217, 2790, 3065, 170, 3269, 422, 3733, 43, 3833, 16, 3852, 7, 3662, 3,
+              3901, 2
+            },
+            10);
     assertFalse(rc.intersects(57, 215));
   }
 
@@ -3920,43 +3856,52 @@ public class TestRunContainer {
     container.add((char) 65530);
     container.iadd(65534, 65536);
 
-    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
-    });
+    ValidationRangeConsumer consumer =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {
+              ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT,
+              PRESENT
+            });
     container.forAllUntil(0, (char) 11, consumer);
     assertEquals(11, consumer.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
-    });
+    ValidationRangeConsumer consumer2 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {PRESENT, ABSENT, ABSENT, PRESENT, PRESENT});
     container.forAllInRange((char) 4, (char) 9, consumer2);
     assertEquals(5, consumer2.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
-    });
+    ValidationRangeConsumer consumer3 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {
+              PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
+            });
     container.forAllFrom((char) 65530, consumer3);
     assertEquals(6, consumer3.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer4 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer4 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer4);
     consumer4.assertAllAbsentExcept(entries, 0);
 
-    ValidationRangeConsumer consumer5 = ValidationRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer5 =
+        ValidationRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
     consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
 
     // Completely Empty
     container = new RunContainer();
-    ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer6 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer6);
     consumer6.assertAllAbsent();
 
     // Completely Full
     container = new RunContainer();
     container.iadd(0, BitmapContainer.MAX_CAPACITY);
-    ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer7 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer7);
     consumer7.assertAllPresent();
 
@@ -3977,14 +3922,14 @@ public class TestRunContainer {
 
   @Test
   public void iorWithFullContainer() {
-    Container container = new ArrayContainer(new char[] {1, 3, 4, (char)-1});
+    Container container = new ArrayContainer(new char[] {1, 3, 4, (char) -1});
     container = container.ior(RunContainer.full());
     assertEquals(RunContainer.full(), container);
   }
 
   @Test
   public void toBitmapContainer() {
-    Container rc = new RunContainer().add((char)1).add(5, 7).add(10, 21);
+    Container rc = new RunContainer().add((char) 1).add(5, 7).add(10, 21);
     BitmapContainer bitmapContainer = rc.toBitmapContainer();
 
     assertTrue(bitmapContainer.contains((char) 1));
@@ -3995,6 +3940,6 @@ public class TestRunContainer {
   }
 
   private static int lower16Bits(int x) {
-    return ((char)x) & 0xFFFF;
+    return ((char) x) & 0xFFFF;
   }
 }

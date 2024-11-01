@@ -1,11 +1,10 @@
 package org.roaringbitmap.runcontainer;
 
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
-
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -54,10 +53,18 @@ public class GetCardinalityMappeableContainerBenchmark {
       mc3 = new MappeableRunContainer();
       mc4 = new MappeableRunContainer();
 
-      for (int i : values1) { mc1.add((char) i); }
-      for (int i : values2) { mc2.add((char) i); }
-      for (int i : values3) { mc3.add((char) i); }
-      for (int i : values4) { mc4.add((char) i); }
+      for (int i : values1) {
+        mc1.add((char) i);
+      }
+      for (int i : values2) {
+        mc2.add((char) i);
+      }
+      for (int i : values3) {
+        mc3.add((char) i);
+      }
+      for (int i : values4) {
+        mc4.add((char) i);
+      }
     }
   }
 }

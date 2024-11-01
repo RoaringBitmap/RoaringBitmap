@@ -1,9 +1,9 @@
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.MappeableArrayContainer;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
-import org.roaringbitmap.buffer.MappeableRunContainer;
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static org.roaringbitmap.Util.cardinalityInBitmapRange;
+import static org.roaringbitmap.Util.resetBitmapRange;
+import static org.roaringbitmap.Util.setBitmapRange;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -11,11 +11,10 @@ import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-
-import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.cardinalityInBitmapRange;
-import static org.roaringbitmap.Util.resetBitmapRange;
-import static org.roaringbitmap.Util.setBitmapRange;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
 
 /**
  * A 2D bitmap which associates values with a row index and can perform range queries.
@@ -36,9 +35,8 @@ public final class RangeBitmap {
    * @param bufferSupplier provides ByteBuffers.
    * @return an appender.
    */
-  public static Appender appender(long maxValue,
-                                  IntFunction<ByteBuffer> bufferSupplier,
-                                  Consumer<ByteBuffer> cleaner) {
+  public static Appender appender(
+      long maxValue, IntFunction<ByteBuffer> bufferSupplier, Consumer<ByteBuffer> cleaner) {
     return new Appender(maxValue, bufferSupplier, cleaner);
   }
 
@@ -50,9 +48,8 @@ public final class RangeBitmap {
    * @return an appender.
    */
   public static Appender appender(long maxValue) {
-    return appender(maxValue,
-        capacity -> ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN), b -> {
-        });
+    return appender(
+        maxValue, capacity -> ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN), b -> {});
   }
 
   /**
@@ -66,8 +63,8 @@ public final class RangeBitmap {
     ByteBuffer source = buffer.slice().order(LITTLE_ENDIAN);
     int cookie = source.getChar();
     if (cookie != COOKIE) {
-      throw new InvalidRoaringFormat("invalid cookie for range bitmap (expected "
-          + COOKIE + " but got " + cookie + ")");
+      throw new InvalidRoaringFormat(
+          "invalid cookie for range bitmap (expected " + COOKIE + " but got " + cookie + ")");
     }
     int base = source.get() & 0xFF;
     if (base != 2) {
@@ -80,8 +77,13 @@ public final class RangeBitmap {
     long maxRid = source.getInt() & 0xFFFFFFFFL;
     int masksOffset = source.position();
     int containersOffset = masksOffset + maxKey * bytesPerMask;
-    return new RangeBitmap(mask, maxRid, (ByteBuffer) source.position(buffer.position()),
-        masksOffset, containersOffset, bytesPerMask);
+    return new RangeBitmap(
+        mask,
+        maxRid,
+        (ByteBuffer) source.position(buffer.position()),
+        masksOffset,
+        containersOffset,
+        bytesPerMask);
   }
 
   private final ByteBuffer buffer;
@@ -91,8 +93,13 @@ public final class RangeBitmap {
   private final long max;
   private final byte bytesPerMask;
 
-  RangeBitmap(long mask, long max, ByteBuffer buffer, int masksOffset, int containersOffset,
-              byte bytesPerMask) {
+  RangeBitmap(
+      long mask,
+      long max,
+      ByteBuffer buffer,
+      int masksOffset,
+      int containersOffset,
+      byte bytesPerMask) {
     this.mask = mask;
     this.max = max;
     this.buffer = buffer;
@@ -477,13 +484,14 @@ public final class RangeBitmap {
             empty = false;
           }
           if (!empty) {
-            Container toAppend = new BitmapContainer(bits, -1)
+            Container toAppend =
+                new BitmapContainer(bits, -1)
                     .iand(contextArray.values[contextPos])
                     .repairAfterLazy()
                     .runOptimize();
             if (!toAppend.isEmpty()) {
-              output.append((char) prefix,
-                      toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+              output.append(
+                  (char) prefix, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
             }
           }
           contextPos++;
@@ -600,13 +608,14 @@ public final class RangeBitmap {
             empty = false;
           }
           if (!empty) {
-            Container toAppend = new BitmapContainer(bits, -1)
-                .iand(contextArray.values[contextPos])
-                .repairAfterLazy()
-                .runOptimize();
+            Container toAppend =
+                new BitmapContainer(bits, -1)
+                    .iand(contextArray.values[contextPos])
+                    .repairAfterLazy()
+                    .runOptimize();
             if (!toAppend.isEmpty()) {
-              output.append((char) prefix,
-                  toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+              output.append(
+                  (char) prefix, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
             }
           }
           contextPos++;
@@ -656,9 +665,12 @@ public final class RangeBitmap {
         } else {
           evaluateHorizontalSliceRange(remaining, threshold, containerMask);
           Container container = contextArray.values[contextPos];
-          int cardinality = upper
-              ? container.andCardinality(new BitmapContainer(bits, -1))
-              : container.andNot(new BitmapContainer(bits, -1).repairAfterLazy()).getCardinality();
+          int cardinality =
+              upper
+                  ? container.andCardinality(new BitmapContainer(bits, -1))
+                  : container
+                      .andNot(new BitmapContainer(bits, -1).repairAfterLazy())
+                      .getCardinality();
           count += cardinality;
           contextPos++;
         }
@@ -775,35 +787,40 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.andInto(bits);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.andInto(bits);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.andInto(bits);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            array.andInto(bits);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            bitmap.andInto(bits);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            run.andInto(bits);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -813,35 +830,40 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.orInto(bits);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.orInto(bits);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.orInto(bits);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            array.orInto(bits);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            bitmap.orInto(bits);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            run.orInto(bits);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -851,35 +873,40 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-                  .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          array.removeFrom(bits);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-                  .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          bitmap.removeFrom(bits);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-                  .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          run.removeFrom(bits);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            array.removeFrom(bits);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            bitmap.removeFrom(bits);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            run.removeFrom(bits);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-                  + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1013,8 +1040,8 @@ public final class RangeBitmap {
       return count;
     }
 
-    private void evaluateHorizontalSlice(long containerMask, long remaining, long lower,
-                                         long upper) {
+    private void evaluateHorizontalSlice(
+        long containerMask, long remaining, long lower, long upper) {
       // most significant absent bit in the threshold for which there is no container;
       // everything before this is wasted work, so we just skip over the containers
       int skipLow = 64 - Long.numberOfLeadingZeros((~(lower | containerMask) & mask));
@@ -1081,38 +1108,43 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.or(array);
-          high.or(array);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.or(bitmap);
-          high.or(bitmap);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.or(run);
-          high.or(run);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            low.or(array);
+            high.or(array);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            low.or(bitmap);
+            high.or(bitmap);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            low.or(run);
+            high.or(run);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1122,38 +1154,43 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.or(array);
-          high.and(array);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.or(bitmap);
-          high.and(bitmap);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.or(run);
-          high.and(run);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            low.or(array);
+            high.and(array);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            low.or(bitmap);
+            high.and(bitmap);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            low.or(run);
+            high.and(run);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1163,38 +1200,43 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.and(array);
-          high.or(array);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.and(bitmap);
-          high.or(bitmap);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.and(run);
-          high.or(run);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            low.and(array);
+            high.or(array);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            low.and(bitmap);
+            high.or(bitmap);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            low.and(run);
+            high.or(run);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1204,38 +1246,43 @@ public final class RangeBitmap {
       int size = buffer.getChar(position) & 0xFFFF;
       position += Character.BYTES;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
-          low.and(array);
-          high.and(array);
-          position += skip;
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer()
-              .limit(1024);
-          MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
-          low.and(bitmap);
-          high.and(bitmap);
-          position += BITMAP_SIZE;
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position)).asCharBuffer()
-              .limit(skip >>> 1);
-          MappeableRunContainer run = new MappeableRunContainer(cb, size);
-          low.and(run);
-          high.and(run);
-          position += skip;
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableArrayContainer array = new MappeableArrayContainer(cb, size);
+            low.and(array);
+            high.and(array);
+            position += skip;
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer) ((ByteBuffer) buffer.position(position)).asLongBuffer().limit(1024);
+            MappeableBitmapContainer bitmap = new MappeableBitmapContainer(lb, size);
+            low.and(bitmap);
+            high.and(bitmap);
+            position += BITMAP_SIZE;
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position)).asCharBuffer().limit(skip >>> 1);
+            MappeableRunContainer run = new MappeableRunContainer(cb, size);
+            low.and(run);
+            high.and(run);
+            position += skip;
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1243,29 +1290,35 @@ public final class RangeBitmap {
       int type = buffer.get(position);
       int size = buffer.getChar(position + 1) & 0xFFFF;
       switch (type) {
-        case ARRAY: {
-          int skip = size << 1;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
-              .limit(skip >>> 1);
-          bits.or(new MappeableArrayContainer(cb, size));
-        }
-        break;
-        case BITMAP: {
-          LongBuffer lb = (LongBuffer) ((ByteBuffer) buffer.position(position + 3)).asLongBuffer()
-              .limit(1024);
-          bits.or(new MappeableBitmapContainer(lb, size));
-        }
-        break;
-        case RUN: {
-          int skip = size << 2;
-          CharBuffer cb = (CharBuffer) ((ByteBuffer) buffer.position(position + 3)).asCharBuffer()
-              .limit(skip >>> 1);
-          bits.or(new MappeableRunContainer(cb, size));
-        }
-        break;
+        case ARRAY:
+          {
+            int skip = size << 1;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position + 3)).asCharBuffer().limit(skip >>> 1);
+            bits.or(new MappeableArrayContainer(cb, size));
+          }
+          break;
+        case BITMAP:
+          {
+            LongBuffer lb =
+                (LongBuffer)
+                    ((ByteBuffer) buffer.position(position + 3)).asLongBuffer().limit(1024);
+            bits.or(new MappeableBitmapContainer(lb, size));
+          }
+          break;
+        case RUN:
+          {
+            int skip = size << 2;
+            CharBuffer cb =
+                (CharBuffer)
+                    ((ByteBuffer) buffer.position(position + 3)).asCharBuffer().limit(skip >>> 1);
+            bits.or(new MappeableRunContainer(cb, size));
+          }
+          break;
         default:
-          throw new IllegalStateException("Unknown type " + type
-              + " (this is a bug, please report it.)");
+          throw new IllegalStateException(
+              "Unknown type " + type + " (this is a bug, please report it.)");
       }
     }
 
@@ -1356,8 +1409,8 @@ public final class RangeBitmap {
     }
   }
 
-  private static long getContainerMask(ByteBuffer buffer, int position, long mask,
-                                       int bytesPerMask) {
+  private static long getContainerMask(
+      ByteBuffer buffer, int position, long mask, int bytesPerMask) {
     switch (bytesPerMask) {
       case 0:
       case 1:
@@ -1462,11 +1515,7 @@ public final class RangeBitmap {
       int slicesSize = 1;
       int maxKeySize = 2;
       int maxRidSize = 4;
-      int headerSize = cookieSize
-          + baseSize
-          + slicesSize
-          + maxKeySize
-          + maxRidSize;
+      int headerSize = cookieSize + baseSize + slicesSize + maxKeySize + maxRidSize;
       int keysSize = key * bytesPerMask;
       return headerSize + keysSize + serializedContainerSize;
     }
@@ -1485,19 +1534,17 @@ public final class RangeBitmap {
         throw new IllegalStateException(
             "Attempted to serialize without calling serializedSizeInBytes first");
       }
-      ByteBuffer target = buffer.order() == LITTLE_ENDIAN
-          ? buffer
-          : buffer.slice().order(LITTLE_ENDIAN);
+      ByteBuffer target =
+          buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
       target.putChar((char) COOKIE);
       target.put((byte) 2);
       target.put((byte) Long.bitCount(rangeMask));
       target.putChar((char) key);
       target.putInt(rid);
       int spaceForKeys = key * bytesPerMask;
-      target.put(((ByteBuffer) maskBuffer.slice()
-          .order(LITTLE_ENDIAN).limit(spaceForKeys)));
-      target.put(((ByteBuffer) containers.slice()
-          .order(LITTLE_ENDIAN).limit(serializedContainerSize)));
+      target.put(((ByteBuffer) maskBuffer.slice().order(LITTLE_ENDIAN).limit(spaceForKeys)));
+      target.put(
+          ((ByteBuffer) containers.slice().order(LITTLE_ENDIAN).limit(serializedContainerSize)));
       if (buffer != target) {
         buffer.position(target.position());
       }
@@ -1551,9 +1598,10 @@ public final class RangeBitmap {
         if (!container.isEmpty()) {
           Container toSerialize = container.runOptimize();
           int serializedSize = toSerialize.serializedSizeInBytes();
-          int type = (toSerialize instanceof BitmapContainer)
-              ? BITMAP
-              : (toSerialize instanceof RunContainer) ? RUN : ARRAY;
+          int type =
+              (toSerialize instanceof BitmapContainer)
+                  ? BITMAP
+                  : (toSerialize instanceof RunContainer) ? RUN : ARRAY;
           int required = serializedSize + (type == BITMAP ? 3 : 1);
           if (containers.capacity() - serializedContainerSize < required) {
             int growthFactor = 8192 * slice.length;

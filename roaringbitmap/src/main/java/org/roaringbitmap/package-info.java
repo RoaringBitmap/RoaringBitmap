@@ -2,8 +2,6 @@
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
 
-
-
 /**
  * The org.roaringbitmap package  provides
  * one class ({@link org.roaringbitmap.RoaringBitmap}) that   users
@@ -34,4 +32,3 @@
  *
  */
 package org.roaringbitmap;
-

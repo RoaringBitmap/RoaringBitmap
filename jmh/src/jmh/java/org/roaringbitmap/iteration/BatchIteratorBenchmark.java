@@ -1,16 +1,13 @@
 package org.roaringbitmap.iteration;
 
-
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.*;
-
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
 public class BatchIteratorBenchmark {
-
 
   @Param({"64", "128", "256", "512"})
   int bufferSize;
@@ -65,5 +62,4 @@ public class BatchIteratorBenchmark {
     }
     return blackhole;
   }
-
 }

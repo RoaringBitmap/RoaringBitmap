@@ -49,7 +49,7 @@ public class ContainersTest {
       if (i == 0) {
         long currentContainerIdx = containerIterator.getCurrentContainerIdx();
         Assertions.assertEquals(cidx0, currentContainerIdx);
-        RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+        RunContainer rc = new RunContainer(new char[] {23, 24}, 1);
         containerIterator.replace(rc);
       }
       i++;
@@ -57,7 +57,7 @@ public class ContainersTest {
     Assertions.assertTrue(i == 3);
     Container replacedContainer = containers.getContainer(cidx0);
     Assertions.assertEquals(23, replacedContainer.select(0));
-    ArrayContainer arrayContainer1 = new ArrayContainer(new char[]{10, 20, 30});
+    ArrayContainer arrayContainer1 = new ArrayContainer(new char[] {10, 20, 30});
     containers.replace(cidx1, arrayContainer1);
     replacedContainer = containers.getContainer(cidx1);
     Assertions.assertTrue(replacedContainer == arrayContainer1);
@@ -77,8 +77,8 @@ public class ContainersTest {
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     containers.serialize(dataOutputStream);
     Containers deseredOne = new Containers();
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-        byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     deseredOne.deserialize(dataInputStream);
     long containerSize = deseredOne.getContainerSize();

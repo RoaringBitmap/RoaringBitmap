@@ -13,5 +13,4 @@ public interface AppendableStorage<T> {
    * @param container the data to append
    */
   void append(char key, T container);
-
 }

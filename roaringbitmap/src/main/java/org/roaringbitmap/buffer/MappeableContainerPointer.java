@@ -78,6 +78,4 @@ public interface MappeableContainerPointer
    * Move to the previous container
    */
   void previous();
-
-
 }

@@ -1,7 +1,5 @@
 package org.roaringbitmap.longlong;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.roaringbitmap.Util.toUnsignedLong;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -22,13 +22,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
-
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ValidationRangeConsumer;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
@@ -98,7 +96,7 @@ public class TestRoaring64Bitmap {
       i++;
     }
     Assertions.assertEquals(source.size(), i);
-    //test all kind of nodes's serialization/deserialization
+    // test all kind of nodes's serialization/deserialization
     long sizeL = roaring64Bitmap.serializedSizeInBytes();
     if (sizeL > Integer.MAX_VALUE) {
       return;
@@ -108,8 +106,8 @@ public class TestRoaring64Bitmap {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInt);
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     roaring64Bitmap.serialize(dataOutputStream);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-        byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Roaring64Bitmap deserStreamOne = new Roaring64Bitmap();
     deserStreamOne.deserialize(dataInputStream);
@@ -165,7 +163,6 @@ public class TestRoaring64Bitmap {
     assertEquals(1, map.rankLong(Long.MAX_VALUE));
   }
 
-
   @Test
   public void testMinusOne_Unsigned() {
     Roaring64Bitmap map = newDefaultCtor();
@@ -187,7 +184,7 @@ public class TestRoaring64Bitmap {
     assertEquals(0, map.rankLong(Long.MAX_VALUE));
     assertEquals(0, map.rankLong(-2));
     assertEquals(1, map.rankLong(-1));
-    assertArrayEquals(new long[]{-1L}, map.toArray());
+    assertArrayEquals(new long[] {-1L}, map.toArray());
   }
 
   @Test
@@ -215,16 +212,18 @@ public class TestRoaring64Bitmap {
     assertEquals(2, map.rankLong(235));
     assertEquals(2, map.rankLong(Integer.MAX_VALUE + 1L));
     assertEquals(2, map.rankLong(Long.MAX_VALUE));
-    assertArrayEquals(new long[]{123L, 234L}, map.toArray());
+    assertArrayEquals(new long[] {123L, 234L}, map.toArray());
   }
 
   @Test
   public void testAddOneSelect2() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
-      map.addLong(123);
-      map.select(1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
+          map.addLong(123);
+          map.select(1);
+        });
   }
 
   @Test
@@ -244,10 +243,12 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testIterator_NextWithoutHasNext_Empty() {
-    assertThrows(IllegalStateException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
-      map.getLongIterator().next();
-    });
+    assertThrows(
+        IllegalStateException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
+          map.getLongIterator().next();
+        });
   }
 
   @Test
@@ -267,7 +268,7 @@ public class TestRoaring64Bitmap {
     assertEquals(0, map.rankLong(1));
     assertEquals(0, map.rankLong(Long.MAX_VALUE - 1));
     assertEquals(1, map.rankLong(Long.MAX_VALUE));
-    assertArrayEquals(new long[]{Long.MAX_VALUE}, map.toArray());
+    assertArrayEquals(new long[] {Long.MAX_VALUE}, map.toArray());
   }
 
   @Test
@@ -318,13 +319,14 @@ public class TestRoaring64Bitmap {
     assertEquals(3, map.rankLong(Long.MAX_VALUE));
 
     final List<Long> foreach = new ArrayList<>();
-    map.forEach(new LongConsumer() {
+    map.forEach(
+        new LongConsumer() {
 
-      @Override
-      public void accept(long value) {
-        foreach.add(value);
-      }
-    });
+          @Override
+          public void accept(long value) {
+            foreach.add(value);
+          }
+        });
     assertEquals(Arrays.asList(0L, 1L, Long.MAX_VALUE, Long.MIN_VALUE), foreach);
   }
 
@@ -472,7 +474,6 @@ public class TestRoaring64Bitmap {
     assertEquals(negative, last);
   }
 
-
   @Test
   public void testLargeRankLong() {
     long positive = 1;
@@ -482,7 +483,6 @@ public class TestRoaring64Bitmap {
     map.addLong(negative);
     assertEquals(2, map.rankLong(negative));
   }
-
 
   @Test
   public void testIterationOrder() {
@@ -525,8 +525,8 @@ public class TestRoaring64Bitmap {
   public void testSerialization_ToBigEndianBuffer() throws IOException {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(123);
-    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes())
-        .order(ByteOrder.BIG_ENDIAN);
+    ByteBuffer buffer =
+        ByteBuffer.allocate((int) map.serializedSizeInBytes()).order(ByteOrder.BIG_ENDIAN);
     map.serialize(buffer);
     assertEquals(map.serializedSizeInBytes(), buffer.position());
   }
@@ -546,7 +546,6 @@ public class TestRoaring64Bitmap {
     assertEquals(123, clone.select(0));
   }
 
-
   @Test
   public void testSerialization() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
@@ -562,10 +561,8 @@ public class TestRoaring64Bitmap {
     assertEquals(123, clone.select(0));
   }
 
-
   @Test
-  public void testSerializationMultipleBuckets()
-      throws IOException, ClassNotFoundException {
+  public void testSerializationMultipleBuckets() throws IOException, ClassNotFoundException {
     final Roaring64Bitmap map = newDefaultCtor();
     map.addLong(-123);
     map.addLong(123);
@@ -592,7 +589,6 @@ public class TestRoaring64Bitmap {
     assertEquals(Long.MAX_VALUE, anotherDeserMap.select(1));
     assertEquals(-123, anotherDeserMap.select(2));
   }
-
 
   @Test
   public void testOrSameBucket() {
@@ -663,7 +659,6 @@ public class TestRoaring64Bitmap {
     assertEquals(Long.MAX_VALUE / 2, orNotInPlace.select(1));
   }
 
-
   @Test
   public void testOrDifferentBucket2() {
     Roaring64Bitmap left = newDefaultCtor();
@@ -706,7 +701,6 @@ public class TestRoaring64Bitmap {
     assertEquals(1, right.getLongCardinality());
     assertEquals(123, right.select(0));
   }
-
 
   @Test
   public void testXorBucket() {
@@ -794,7 +788,6 @@ public class TestRoaring64Bitmap {
     assertEquals(123, xorNotInPlace.select(0));
   }
 
-
   @Test
   public void testAndSingleBucket() {
     Roaring64Bitmap left = newDefaultCtor();
@@ -838,8 +831,9 @@ public class TestRoaring64Bitmap {
   @Test
   public void testAndDisjoint() {
     // There are no shared values between these maps.
-    final long[] leftData = new long[]{1076595327100L, 1074755534972L, 5060192403580L, 5060308664444L};
-    final long[] rightData = new long[]{3470563844L};
+    final long[] leftData =
+        new long[] {1076595327100L, 1074755534972L, 5060192403580L, 5060308664444L};
+    final long[] rightData = new long[] {3470563844L};
 
     Roaring64Bitmap left = Roaring64Bitmap.bitmapOf(leftData);
     Roaring64Bitmap right = Roaring64Bitmap.bitmapOf(rightData);
@@ -871,10 +865,10 @@ public class TestRoaring64Bitmap {
 
     Roaring64Bitmap bitmap2 = new Roaring64Bitmap();
     bitmap2.addLong(1);
-    //bit and
+    // bit and
     Roaring64Bitmap andNotInPlace = Roaring64Bitmap.and(bitmap, bitmap2);
     bitmap.and(bitmap2);
-    //to array
+    // to array
     Assertions.assertDoesNotThrow(bitmap::toArray);
     Assertions.assertDoesNotThrow(andNotInPlace::toArray);
   }
@@ -1100,7 +1094,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(1,2);
+    map.flip(1, 2);
 
     assertEquals(2, map.getLongCardinality());
     assertEquals(1, map.select(1));
@@ -1113,7 +1107,7 @@ public class TestRoaring64Bitmap {
     map.addLong(0);
     map.addLong(0x20001);
 
-    map.flip(0x10001,0x10002);
+    map.flip(0x10001, 0x10002);
 
     assertEquals(3, map.getLongCardinality());
     assertEquals(0x10001, map.select(1));
@@ -1124,7 +1118,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(0x10001,0x10002);
+    map.flip(0x10001, 0x10002);
 
     assertEquals(2, map.getLongCardinality());
     assertEquals(0x10001, map.select(1));
@@ -1135,7 +1129,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(0xFFFF,0x10000);
+    map.flip(0xFFFF, 0x10000);
 
     assertEquals(2, map.getLongCardinality());
     assertEquals(0xFFFF, map.select(1));
@@ -1146,7 +1140,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(0xFFFF,0x10002);
+    map.flip(0xFFFF, 0x10002);
 
     assertEquals(4, map.getLongCardinality());
     assertEquals(0x10001, map.select(3));
@@ -1157,7 +1151,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0x10001);
-    map.flip(1L,2L);
+    map.flip(1L, 2L);
 
     assertEquals(2, map.getLongCardinality());
     assertEquals(1, map.select(0));
@@ -1169,7 +1163,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(1L,1L);
+    map.flip(1L, 1L);
 
     assertEquals(1, map.getLongCardinality());
     assertEquals(0, map.select(0));
@@ -1180,7 +1174,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(2L,1L);
+    map.flip(2L, 1L);
 
     assertEquals(1, map.getLongCardinality());
     assertEquals(0, map.select(0));
@@ -1191,7 +1185,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(-1L,-3L);
+    map.flip(-1L, -3L);
 
     assertEquals(1, map.getLongCardinality());
     assertEquals(0, map.select(0));
@@ -1202,7 +1196,7 @@ public class TestRoaring64Bitmap {
     Roaring64Bitmap map = newDefaultCtor();
 
     map.addLong(0);
-    map.flip(-1L,0x7FffFFffFFffFFffL);
+    map.flip(-1L, 0x7FffFFffFFffFFffL);
 
     assertEquals(1, map.getLongCardinality());
     assertEquals(0, map.select(0));
@@ -1272,7 +1266,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testInvalidIntMask() {
     Roaring64Bitmap map = new Roaring64Bitmap();
-    int a = 0xFFFFFFFF;  // -1 in two's compliment
+    int a = 0xFFFFFFFF; // -1 in two's compliment
     map.addInt(a);
     assertEquals(map.getIntCardinality(), 1);
     long addedInt = map.getLongIterator().next();
@@ -1291,7 +1285,8 @@ public class TestRoaring64Bitmap {
 
     // Different higher parts
     assertThrows(IllegalArgumentException.class, () -> map.addRange(Long.MAX_VALUE, 0L));
-    assertThrows(IllegalArgumentException.class, () -> map.addRange(Long.MIN_VALUE, Long.MAX_VALUE));
+    assertThrows(
+        IllegalArgumentException.class, () -> map.addRange(Long.MIN_VALUE, Long.MAX_VALUE));
   }
 
   @Test
@@ -1320,7 +1315,6 @@ public class TestRoaring64Bitmap {
     assertEquals(end - 1, map.select(1));
   }
 
-
   @Test
   public void testAddRangeMultipleBuckets() {
     Roaring64Bitmap map = newDefaultCtor();
@@ -1337,17 +1331,18 @@ public class TestRoaring64Bitmap {
     assertEquals(to - 1, map.select(nbItems - 1));
   }
 
-
   public static final long outOfRoaringBitmapRange = 2L * Integer.MAX_VALUE + 3L;
 
   // Check this range is not handled by RoaringBitmap
   @Test
   public void testCardinalityAboveIntegerMaxValue_RoaringBitmap() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      RoaringBitmap map = new RoaringBitmap();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          RoaringBitmap map = new RoaringBitmap();
 
-      map.add(0L, outOfRoaringBitmapRange);
-    });
+          map.add(0L, outOfRoaringBitmapRange);
+        });
   }
 
   @Test
@@ -1364,7 +1359,6 @@ public class TestRoaring64Bitmap {
 
     assertEquals(0, map.select(0));
     assertEquals(outOfSingleRoaring - 1, map.select(outOfSingleRoaring - 1));
-
   }
 
   @Test
@@ -1377,7 +1371,6 @@ public class TestRoaring64Bitmap {
     assertEquals(maxForRoaringBitmap, map.getLongCardinality());
     assertEquals(-1, map.select(-1));
   }
-
 
   @Test
   public void testTrim() {
@@ -1417,21 +1410,22 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testAutoboxedIteratorCanNotRemove() {
-    assertThrows(UnsupportedOperationException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
 
-      map.addLong(123);
-      map.addLong(234);
+          map.addLong(123);
+          map.addLong(234);
 
-      Iterator<Long> it = map.iterator();
+          Iterator<Long> it = map.iterator();
 
-      assertTrue(it.hasNext());
+          assertTrue(it.hasNext());
 
-      // Should throw a UnsupportedOperationException
-      it.remove();
-    });
+          // Should throw a UnsupportedOperationException
+          it.remove();
+        });
   }
-
 
   @Test
   public void testSelectMultipleBuckets() {
@@ -1446,32 +1440,36 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void testSelectEmpty() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
 
-      map.select(0);
-    });
+          map.select(0);
+        });
   }
-
 
   @Test
   public void testSelectOutOfBoundsMatchCardinality() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
-      map.addLong(123);
-      map.select(1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
+          map.addLong(123);
+          map.select(1);
+        });
   }
 
   @Test
   public void testSelectOutOfBoundsOtherCardinality() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Roaring64Bitmap map = newDefaultCtor();
-      map.addLong(123);
-      map.select(2);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Roaring64Bitmap map = newDefaultCtor();
+          map.addLong(123);
+          map.select(2);
+        });
   }
-
 
   @Test
   public void testRankMultipleBuckets() {
@@ -1610,21 +1608,22 @@ public class TestRoaring64Bitmap {
   public void testIssue428() {
     long input = 1353768194141061120L;
 
-    long[] compare = new long[]{
-        5192650370358181888L,
-        5193776270265024512L,
-        5194532734264934400L,
-        5194544828892839936L,
-        5194545653526560768L,
-        5194545688960040960L,
-        5194545692181266432L,
-        5194545705066168320L,
-        5194545722246037504L,
-        5194545928404467712L,
-        5194550326450978816L,
-        5194620695195156480L,
-        5206161169240293376L
-    };
+    long[] compare =
+        new long[] {
+          5192650370358181888L,
+          5193776270265024512L,
+          5194532734264934400L,
+          5194544828892839936L,
+          5194545653526560768L,
+          5194545688960040960L,
+          5194545692181266432L,
+          5194545705066168320L,
+          5194545722246037504L,
+          5194545928404467712L,
+          5194550326450978816L,
+          5194620695195156480L,
+          5206161169240293376L
+        };
 
     Roaring64Bitmap inputRB = new Roaring64Bitmap();
     inputRB.add(input);
@@ -1648,11 +1647,23 @@ public class TestRoaring64Bitmap {
   @Test
   public void shouldNotThrowNPE() {
 
-    long[] inputs = new long[]{5183829215128059904L};
-    long[] crossers = new long[]{4413527634823086080L, 4418031234450456576L, 4421408934170984448L,
-        4421690409147695104L, 4421479302915162112L, 4421426526357028864L, 4421413332217495552L,
-        4421416630752378880L, 4421416905630285824L, 4421417111788716032L, 4421417128968585216L,
-        4421417133263552512L, 4421417134337294336L};
+    long[] inputs = new long[] {5183829215128059904L};
+    long[] crossers =
+        new long[] {
+          4413527634823086080L,
+          4418031234450456576L,
+          4421408934170984448L,
+          4421690409147695104L,
+          4421479302915162112L,
+          4421426526357028864L,
+          4421413332217495552L,
+          4421416630752378880L,
+          4421416905630285824L,
+          4421417111788716032L,
+          4421417128968585216L,
+          4421417133263552512L,
+          4421417134337294336L
+        };
 
     Roaring64Bitmap refRB = new Roaring64Bitmap();
     refRB.add(inputs);
@@ -1664,11 +1675,23 @@ public class TestRoaring64Bitmap {
 
   @Test
   public void shouldNotThrowAIOOB() {
-    long[] inputs = new long[]{5183829215128059904L};
-    long[] crossers = new long[]{4413527634823086080L, 4418031234450456576L, 4421408934170984448L,
-        4421127459194273792L, 4420916352961740800L, 4420863576403607552L, 4420850382264074240L,
-        4420847083729190912L, 4420847358607097856L, 4420847564765528064L, 4420847616305135616L,
-        4420847620600102912L, 4420847623821328384L};
+    long[] inputs = new long[] {5183829215128059904L};
+    long[] crossers =
+        new long[] {
+          4413527634823086080L,
+          4418031234450456576L,
+          4421408934170984448L,
+          4421127459194273792L,
+          4420916352961740800L,
+          4420863576403607552L,
+          4420850382264074240L,
+          4420847083729190912L,
+          4420847358607097856L,
+          4420847564765528064L,
+          4420847616305135616L,
+          4420847620600102912L,
+          4420847623821328384L
+        };
     Roaring64Bitmap referenceRB = new Roaring64Bitmap();
     referenceRB.add(inputs);
     Roaring64Bitmap crossRB = new Roaring64Bitmap();
@@ -1680,8 +1703,8 @@ public class TestRoaring64Bitmap {
   @Test
   public void shouldNotThrowIAE() {
 
-    long[] inputs = new long[]{5183829215128059904L};
-    long[] crossers = new long[]{4421416447812311717L, 4420658333523655893L, 4420658332008999025L};
+    long[] inputs = new long[] {5183829215128059904L};
+    long[] crossers = new long[] {4421416447812311717L, 4420658333523655893L, 4420658332008999025L};
 
     Roaring64Bitmap referenceRB = new Roaring64Bitmap();
     referenceRB.add(inputs);
@@ -1691,28 +1714,25 @@ public class TestRoaring64Bitmap {
     assertEquals(0, crossRB.getIntCardinality());
   }
 
-
-
-
   @Test
   public void testSkips() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
     final long[] data = takeSortedAndDistinct(source, 45000);
     Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
     PeekableLongIterator pii = bitmap.getLongIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.peekNext());
     }
     pii = bitmap.getLongIterator();
-    for(int i = 0; i < data.length; ++i) {
+    for (int i = 0; i < data.length; ++i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.next());
     }
     pii = bitmap.getLongIterator();
-    for(int i = 1; i < data.length; ++i) {
-      pii.advanceIfNeeded(data[i-1]);
-      assertEquals(data[i-1], pii.next());
+    for (int i = 1; i < data.length; ++i) {
+      pii.advanceIfNeeded(data[i - 1]);
+      assertEquals(data[i - 1], pii.next());
       assertEquals(data[i], pii.peekNext());
     }
     bitmap.getLongIterator().advanceIfNeeded(-1); // should not crash
@@ -1723,12 +1743,12 @@ public class TestRoaring64Bitmap {
   public void testSkipsDense() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     int n = 100000;
-    for(long i = 0; i < n; ++i) {
+    for (long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
 
     // use advance
-    for(long i = 0; i < n; ++i) {
+    for (long i = 0; i < n; ++i) {
       PeekableLongIterator pii = bitmap.getLongIterator();
       long expected = 2 * i + Integer.MAX_VALUE;
       pii.advanceIfNeeded(expected);
@@ -1737,7 +1757,7 @@ public class TestRoaring64Bitmap {
     }
 
     // use iterator from
-    for(long i = 0; i < n; ++i) {
+    for (long i = 0; i < n; ++i) {
       long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
       assertEquals(expected, pii.peekNext());
@@ -1751,17 +1771,17 @@ public class TestRoaring64Bitmap {
 
     int n = 100000;
     int numHighPoints = 10;
-    for(long h = 0; h < numHighPoints; ++h) {
+    for (long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = 0; i < n; ++i) {
+      for (long i = 0; i < n; ++i) {
         bitmap.add(2 * i + base);
       }
     }
-    for(long h = 0; h < numHighPoints; ++h) {
+    for (long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
 
       // use advance
-      for(long i = 0; i < n; ++i) {
+      for (long i = 0; i < n; ++i) {
         PeekableLongIterator pii = bitmap.getLongIterator();
         long expected = 2 * i + base;
         pii.advanceIfNeeded(expected);
@@ -1770,7 +1790,7 @@ public class TestRoaring64Bitmap {
       }
 
       // use iterator from
-      for(long i = 0; i < n; ++i) {
+      for (long i = 0; i < n; ++i) {
         long expected = 2 * i + base;
         PeekableLongIterator pii = bitmap.getLongIteratorFrom(expected);
         assertEquals(expected, pii.peekNext());
@@ -1779,21 +1799,20 @@ public class TestRoaring64Bitmap {
     }
   }
 
-
   @Test
   public void testSkipsRun() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.addRange(4L, 100000L);
     bitmap.runOptimize();
     // use advance
-    for(int i = 4; i < 100000; ++i) {
+    for (int i = 4; i < 100000; ++i) {
       PeekableLongIterator pii = bitmap.getLongIterator();
       pii.advanceIfNeeded(i);
       assertEquals(i, pii.peekNext());
       assertEquals(i, pii.next());
     }
     // use iterator from
-    for(int i = 4; i < 100000; ++i) {
+    for (int i = 4; i < 100000; ++i) {
       PeekableLongIterator pii = bitmap.getLongIteratorFrom(i);
       assertEquals(i, pii.peekNext());
       assertEquals(i, pii.next());
@@ -1809,41 +1828,40 @@ public class TestRoaring64Bitmap {
     bitmap.getLongIteratorFrom(0);
   }
 
-
   @Test
   public void testSkipsReverse() {
     final Random source = new Random(0xcb000a2b9b5bdfb6l);
     final long[] data = takeSortedAndDistinct(source, 45000);
     Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(data);
     PeekableLongIterator pii = bitmap.getReverseLongIterator();
-    for(int i = data.length -1; i >= 0 ; --i) {
+    for (int i = data.length - 1; i >= 0; --i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.peekNext());
     }
     pii = bitmap.getReverseLongIterator();
-    for(int i = data.length -1; i >= 0 ; --i) {
+    for (int i = data.length - 1; i >= 0; --i) {
       pii.advanceIfNeeded(data[i]);
       assertEquals(data[i], pii.next());
     }
     pii = bitmap.getReverseLongIterator();
-    for(int i = data.length -2; i >= 0 ; --i) {
-      pii.advanceIfNeeded(data[i+1]);
+    for (int i = data.length - 2; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i + 1]);
       pii.next();
-      assertEquals(data[i],pii.peekNext() );
+      assertEquals(data[i], pii.peekNext());
     }
-    bitmap.getReverseLongIterator().advanceIfNeeded(-1);// should not crash
-    bitmap.getReverseLongIteratorFrom(-1);// should not crash
+    bitmap.getReverseLongIterator().advanceIfNeeded(-1); // should not crash
+    bitmap.getReverseLongIteratorFrom(-1); // should not crash
   }
 
   @Test
   public void testSkipsDenseReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     int n = 100000;
-    for(long i = 0; i < n; ++i) {
+    for (long i = 0; i < n; ++i) {
       bitmap.add(2 * i + Integer.MAX_VALUE);
     }
     // use advance
-    for(long i = n - 1; i >= 0; --i) {
+    for (long i = n - 1; i >= 0; --i) {
       long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(expected);
@@ -1852,7 +1870,7 @@ public class TestRoaring64Bitmap {
     }
 
     // use iterator from
-    for(long i = n - 1; i >= 0; --i) {
+    for (long i = n - 1; i >= 0; --i) {
       long expected = 2 * i + Integer.MAX_VALUE;
       PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
       assertEquals(expected, pii.peekNext());
@@ -1866,17 +1884,17 @@ public class TestRoaring64Bitmap {
 
     int n = 100000;
     int numHighPoints = 10;
-    for(long h = 0; h < numHighPoints; ++h) {
+    for (long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
-      for(long i = 0; i < n; ++i) {
+      for (long i = 0; i < n; ++i) {
         bitmap.add(2 * i + base);
       }
     }
-    for(long h = 0; h < numHighPoints; ++h) {
+    for (long h = 0; h < numHighPoints; ++h) {
       long base = h << 16;
 
       // use advance
-      for(long i = n - 1; i >= 0 ; --i) {
+      for (long i = n - 1; i >= 0; --i) {
         PeekableLongIterator pii = bitmap.getReverseLongIterator();
         long expected = 2 * i + base;
         pii.advanceIfNeeded(expected);
@@ -1885,7 +1903,7 @@ public class TestRoaring64Bitmap {
       }
 
       // use iterator from
-      for(long i = n - 1; i >= 0 ; --i) {
+      for (long i = n - 1; i >= 0; --i) {
         long expected = 2 * i + base;
         PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(expected);
         assertEquals(expected, pii.peekNext());
@@ -1901,7 +1919,7 @@ public class TestRoaring64Bitmap {
     bitmap.runOptimize();
 
     // use advance
-    for(int i = 99999; i >= 4; --i) {
+    for (int i = 99999; i >= 4; --i) {
       PeekableLongIterator pii = bitmap.getReverseLongIterator();
       pii.advanceIfNeeded(i);
       assertEquals(i, pii.peekNext());
@@ -1909,7 +1927,7 @@ public class TestRoaring64Bitmap {
     }
 
     // use iterator from
-    for(int i = 99999; i >= 4; --i) {
+    for (int i = 99999; i >= 4; --i) {
       PeekableLongIterator pii = bitmap.getReverseLongIteratorFrom(i);
       assertEquals(i, pii.peekNext());
       assertEquals(i, pii.next());
@@ -1967,7 +1985,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipIntoFarAwayGaps() {
     Roaring64Bitmap bitset = new Roaring64Bitmap();
-    //long runLength = 18500L;
+    // long runLength = 18500L;
     long runLength = 4 << 20; // ~ 4mio
     long b1 = 2000000000L;
     long b1e = b1 + runLength;
@@ -2066,7 +2084,7 @@ public class TestRoaring64Bitmap {
   @Test
   public void testSkipIntoFarAwayGapsReverse() {
     Roaring64Bitmap bitset = new Roaring64Bitmap();
-    //long runLength = 18500L;
+    // long runLength = 18500L;
     long runLength = 4 << 20; // ~ 4mio
     long b1 = 2000000000L;
     long b1e = b1 + runLength;
@@ -2193,15 +2211,15 @@ public class TestRoaring64Bitmap {
     bitmap.forAllInRange(10001, 1000, consumer2);
     assertEquals(1000, consumer2.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
-        ABSENT, ABSENT, PRESENT, PRESENT, PRESENT
-    });
+    ValidationRangeConsumer consumer3 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {ABSENT, ABSENT, PRESENT, PRESENT, PRESENT});
     bitmap.forAllInRange(98, 5, consumer3);
     assertEquals(5, consumer3.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer4 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
-        PRESENT, PRESENT, ABSENT, ABSENT, ABSENT
-    });
+    ValidationRangeConsumer consumer4 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {PRESENT, PRESENT, ABSENT, ABSENT, ABSENT});
     bitmap.forAllInRange(9998, 5, consumer4);
     assertEquals(5, consumer4.getNumberOfValuesConsumed());
   }
@@ -2220,18 +2238,19 @@ public class TestRoaring64Bitmap {
     bitmap.forAllInRange(0, 100000, consumer);
     assertEquals(100000, consumer.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected,2500, 6000);
+    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected, 2500, 6000);
     ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(expectedSubRange);
     bitmap.forAllInRange(2500, 3500, consumer2);
     assertEquals(3500, consumer2.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[]{
-        expected[99997], expected[99998], expected[99999], ABSENT, ABSENT, ABSENT
-    });
+    ValidationRangeConsumer consumer3 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {
+              expected[99997], expected[99998], expected[99999], ABSENT, ABSENT, ABSENT
+            });
     bitmap.forAllInRange(99997, 6, consumer3);
     assertEquals(6, consumer3.getNumberOfValuesConsumed());
   }
-
 
   @Test
   public void testForAllInRangeSparse() {
@@ -2247,7 +2266,7 @@ public class TestRoaring64Bitmap {
     bitmap.forAllInRange(0, 100000, consumer);
     assertEquals(100000, consumer.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected,2500, 6001);
+    ValidationRangeConsumer.Value[] expectedSubRange = Arrays.copyOfRange(expected, 2500, 6001);
     ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(expectedSubRange);
     bitmap.forAllInRange(2500, 3500, consumer2);
     assertEquals(3500, consumer2.getNumberOfValuesConsumed());
@@ -2262,25 +2281,82 @@ public class TestRoaring64Bitmap {
   public void testIssue537() {
     Roaring64Bitmap a = Roaring64Bitmap.bitmapOf(275846320L);
     Roaring64Bitmap b = Roaring64Bitmap.bitmapOf(275846320L);
-    Roaring64Bitmap c = Roaring64Bitmap.bitmapOf(275845652L,275845746L,275846148L,275847372L,275847380L,275847388L,275847459L,275847528L,275847586L,
-                                                 275847588L,275847600L,275847607L,275847610L,275847613L,275847631L,275847664L,275847672L,275847677L,
-                                                 275847680L,275847742L,275847808L,275847811L,275847824L,275847830L,275847856L,275847861L,275847863L,
-                                                 275847872L,275847896L,275847923L,275847924L,275847975L,275847990L,275847995L,275848003L,275848080L,
-                                                 275848081L,275848084L,275848095L,275848100L,275848120L,275848129L,275848134L,275848163L,275848174L,
-                                                 275848206L,275848218L,275848231L,275848272L,275848281L,275848308L,275848344L,275848376L,275848382L,
-                                                 275848395L,275848400L,275848411L,275848426L,275848445L,275848449L,275848451L,275848454L,275848469L);
+    Roaring64Bitmap c =
+        Roaring64Bitmap.bitmapOf(
+            275845652L,
+            275845746L,
+            275846148L,
+            275847372L,
+            275847380L,
+            275847388L,
+            275847459L,
+            275847528L,
+            275847586L,
+            275847588L,
+            275847600L,
+            275847607L,
+            275847610L,
+            275847613L,
+            275847631L,
+            275847664L,
+            275847672L,
+            275847677L,
+            275847680L,
+            275847742L,
+            275847808L,
+            275847811L,
+            275847824L,
+            275847830L,
+            275847856L,
+            275847861L,
+            275847863L,
+            275847872L,
+            275847896L,
+            275847923L,
+            275847924L,
+            275847975L,
+            275847990L,
+            275847995L,
+            275848003L,
+            275848080L,
+            275848081L,
+            275848084L,
+            275848095L,
+            275848100L,
+            275848120L,
+            275848129L,
+            275848134L,
+            275848163L,
+            275848174L,
+            275848206L,
+            275848218L,
+            275848231L,
+            275848272L,
+            275848281L,
+            275848308L,
+            275848344L,
+            275848376L,
+            275848382L,
+            275848395L,
+            275848400L,
+            275848411L,
+            275848426L,
+            275848445L,
+            275848449L,
+            275848451L,
+            275848454L,
+            275848469L);
     c.and(b);
     assertFalse(c.contains(275846320L));
     c.and(a);
     assertFalse(c.contains(275846320L));
   }
 
-
   @Test
   public void testIssue558() {
     Roaring64Bitmap rb = new Roaring64Bitmap();
     Random random = new Random(1234);
-    for (int i = 0 ; i < 1000000; i++) {
+    for (int i = 0; i < 1000000; i++) {
       rb.addLong(random.nextLong());
       rb.removeLong(random.nextLong());
     }
@@ -2290,71 +2366,84 @@ public class TestRoaring64Bitmap {
   public void testIssue577Case1() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     bitmap.add(
-        45011744312L, 45008074636L, 41842920068L, 41829418930L, 40860008694L, 40232297287L,
-        40182908832L, 40171852270L, 39933922233L, 39794107638L);
+        45011744312L,
+        45008074636L,
+        41842920068L,
+        41829418930L,
+        40860008694L,
+        40232297287L,
+        40182908832L,
+        40171852270L,
+        39933922233L,
+        39794107638L);
     long maxLong = bitmap.getReverseLongIterator().peekNext();
     assertEquals(maxLong, 45011744312L);
 
-    bitmap.forEachInRange(46000000000L, 1000000000,
-        value -> fail("No values in this range, but got: " + value));
+    bitmap.forEachInRange(
+        46000000000L, 1000000000, value -> fail("No values in this range, but got: " + value));
   }
 
   @Test
   public void testIssue577Case2() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    bitmap.add(
-        30385375409L, 30399869293L, 34362979339L, 35541844320L, 36637965094L);
+    bitmap.add(30385375409L, 30399869293L, 34362979339L, 35541844320L, 36637965094L);
 
-    bitmap.forEachInRange(33000000000L, 1000000000,
-        value -> assertEquals(34362979339L, value));
+    bitmap.forEachInRange(33000000000L, 1000000000, value -> assertEquals(34362979339L, value));
   }
 
   @Test
   public void testIssue577Case3() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
-    bitmap.add(
-        14510802367L, 26338197481L, 32716744974L, 32725817880L, 35679129730L);
+    bitmap.add(14510802367L, 26338197481L, 32716744974L, 32725817880L, 35679129730L);
 
-    final long[] expected = new long[]{32716744974L, 32725817880L};
+    final long[] expected = new long[] {32716744974L, 32725817880L};
 
-    bitmap.forEachInRange(32000000000L, 1000000000, new LongConsumer() {
+    bitmap.forEachInRange(
+        32000000000L,
+        1000000000,
+        new LongConsumer() {
 
-      int offset = 0;
+          int offset = 0;
 
-      @Override
-      public void accept(long value) {
-        assertEquals(expected[offset], value);
-        offset++;
-      }
-    });
+          @Override
+          public void accept(long value) {
+            assertEquals(expected[offset], value);
+            offset++;
+          }
+        });
   }
-
 
   @Test
   public void testWithYourself() {
-    Roaring64Bitmap b1 = Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    Roaring64Bitmap b1 = Roaring64Bitmap.bitmapOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     b1.runOptimize();
     b1.or(b1);
-    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
     b1.xor(b1);
     assertTrue(b1.isEmpty());
-    b1 = Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10);
+    b1 = Roaring64Bitmap.bitmapOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     b1.and(b1);
-    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1,2,3,4,5,6,7,8,9,10)));
+    assertTrue(b1.equals(Roaring64Bitmap.bitmapOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
     b1.andNot(b1);
     assertTrue(b1.isEmpty());
   }
 
   @Test
   public void testIssue580() {
-    Roaring64Bitmap rb = Roaring64Bitmap.bitmapOf(3242766498713841665L, 3492544636360507394L,
-      3418218112527884289L, 3220956490660966402L, 3495344165583036418L, 3495023214002368514L,
-      3485108231289675778L);
+    Roaring64Bitmap rb =
+        Roaring64Bitmap.bitmapOf(
+            3242766498713841665L,
+            3492544636360507394L,
+            3418218112527884289L,
+            3220956490660966402L,
+            3495344165583036418L,
+            3495023214002368514L,
+            3485108231289675778L);
     LongIterator it = rb.getLongIterator();
     int count = 0;
-    while(it.hasNext()) {
-        it.next();
-        count++;
+    while (it.hasNext()) {
+      it.next();
+      count++;
     }
     assertEquals(count, 7);
   }
@@ -2376,7 +2465,9 @@ public class TestRoaring64Bitmap {
     x.addRange(Long.MAX_VALUE - 1L, Long.MAX_VALUE + 3L);
 
     Assertions.assertEquals(4L, x.getLongCardinality());
-    Assertions.assertArrayEquals(x.toArray(), new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
+    Assertions.assertArrayEquals(
+        x.toArray(),
+        new long[] {Long.MAX_VALUE - 1L, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1L});
   }
 
   @Test
@@ -2440,11 +2531,11 @@ public class TestRoaring64Bitmap {
     Set<Long> source = getSourceForAllKindsOfNodeTypes();
     source.forEach(rb::addLong);
 
-    assertEquals(source.stream().min((l,r) -> Long.compareUnsigned(l, r)).get(), rb.first());
-    assertEquals(source.stream().max((l,r) -> Long.compareUnsigned(l, r)).get(), rb.last());
+    assertEquals(source.stream().min((l, r) -> Long.compareUnsigned(l, r)).get(), rb.first());
+    assertEquals(source.stream().max((l, r) -> Long.compareUnsigned(l, r)).get(), rb.last());
   }
 
- @Test
+  @Test
   public void testIssue619() {
     long[] CLEANER_VALUES = {140664568792144l};
     long[] ADDRESS_SPACE_VALUES = {140662937752432l};
@@ -2456,7 +2547,7 @@ public class TestRoaring64Bitmap {
       addressSpace.add(ADDRESS_SPACE_VALUES);
       addressSpace.add(CLEANER_VALUES);
       if (iteration == 33) {
-        //This test case can safely break here.
+        // This test case can safely break here.
         break;
       }
       addressSpace.andNot(cleaner);

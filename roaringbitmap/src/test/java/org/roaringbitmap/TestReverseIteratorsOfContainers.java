@@ -1,20 +1,18 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.primitives.Chars;
-
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 public class TestReverseIteratorsOfContainers {
 
@@ -43,7 +41,7 @@ public class TestReverseIteratorsOfContainers {
       pii.next();
       assertEquals(data[i], pii.peekNext());
     }
-    container.getCharIterator().advanceIfNeeded((char) -1);// should not crash
+    container.getCharIterator().advanceIfNeeded((char) -1); // should not crash
   }
 
   @ParameterizedTest
@@ -115,7 +113,7 @@ public class TestReverseIteratorsOfContainers {
       pii.next();
       assertEquals(data[i], pii.peekNext());
     }
-    container.getReverseCharIterator().advanceIfNeeded((char) -1);// should not crash
+    container.getReverseCharIterator().advanceIfNeeded((char) -1); // should not crash
   }
 
   @ParameterizedTest
@@ -153,7 +151,6 @@ public class TestReverseIteratorsOfContainers {
       assertEquals(pii.peekNext(), i);
       assertEquals(pii.next(), i);
     }
-
   }
 
   @ParameterizedTest
@@ -178,9 +175,7 @@ public class TestReverseIteratorsOfContainers {
     return unboxed;
   }
 
-  static interface Converter extends Function<Container, Container> {
-
-  }
+  static interface Converter extends Function<Container, Container> {}
 
   static class ArrayContainerConverter implements Converter {
 
@@ -201,7 +196,6 @@ public class TestReverseIteratorsOfContainers {
     public String toString() {
       return "ArrayContainer";
     }
-
   }
 
   static class BitmapContainerConverter implements Converter {
@@ -219,7 +213,6 @@ public class TestReverseIteratorsOfContainers {
     public String toString() {
       return "BitmapContainer";
     }
-
   }
 
   static class RunContainerConverter implements Converter {
@@ -241,17 +234,19 @@ public class TestReverseIteratorsOfContainers {
     public String toString() {
       return "RunContainer";
     }
-
   }
 
   static class ContainerProvider implements ArgumentsProvider {
 
-    Stream<Converter> streams = Stream.of(new ArrayContainerConverter(), new BitmapContainerConverter(), new RunContainerConverter());
+    Stream<Converter> streams =
+        Stream.of(
+            new ArrayContainerConverter(),
+            new BitmapContainerConverter(),
+            new RunContainerConverter());
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
       return streams.map(f -> Arguments.of(f));
     }
   }
-
 }

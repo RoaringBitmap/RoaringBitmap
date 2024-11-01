@@ -1,8 +1,7 @@
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.*;
-
 import java.util.function.Supplier;
+import org.roaringbitmap.buffer.*;
 
 public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Supplier<T> {
 
@@ -14,9 +13,9 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     return new BufferWizard();
   }
 
-  abstract class Wizard<C extends WordStorage<C>,
-          T extends BitmapDataProvider & AppendableStorage<C>>
-          implements Supplier<RoaringBitmapWriter<T>> {
+  abstract class Wizard<
+          C extends WordStorage<C>, T extends BitmapDataProvider & AppendableStorage<C>>
+      implements Supplier<RoaringBitmapWriter<T>> {
 
     protected int initialCapacity = RoaringArray.INITIAL_CAPACITY;
     protected boolean constantMemory;
@@ -152,8 +151,8 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
     @Override
     public RoaringBitmapWriter<T> get() {
       int capacity = initialCapacity;
-      return new ContainerAppender<>(partiallySortValues, runCompress,
-          () -> createUnderlying(capacity), containerSupplier);
+      return new ContainerAppender<>(
+          partiallySortValues, runCompress, () -> createUnderlying(capacity), containerSupplier);
     }
 
     private static void sanityCheck(int count) {
@@ -208,7 +207,7 @@ public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Suppl
       if (constantMemory) {
         int capacity = initialCapacity;
         return new ConstantMemoryContainerAppender<>(
-                partiallySortValues, runCompress, () -> createUnderlying(capacity));
+            partiallySortValues, runCompress, () -> createUnderlying(capacity));
       }
       return super.get();
     }

@@ -52,5 +52,4 @@ public class Roaring64BitmapBenchmark {
   public Roaring64Bitmap justclone() {
     return bitmap1.clone();
   }
-
 }

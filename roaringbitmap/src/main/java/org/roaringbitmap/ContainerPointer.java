@@ -9,12 +9,11 @@ package org.roaringbitmap;
  * This interface allows you to iterate over the containers in a roaring bitmap.
  *
  */
-public interface ContainerPointer extends Comparable<ContainerPointer>, Cloneable  {
+public interface ContainerPointer extends Comparable<ContainerPointer>, Cloneable {
   /**
    * Move to the next container
    */
   void advance();
-
 
   /**
    * Create a copy

@@ -7,7 +7,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
-
 import org.roaringbitmap.Container;
 import org.roaringbitmap.art.*;
 
@@ -109,7 +108,7 @@ public class HighLowContainer {
   }
 
   private void assertNonEmpty() {
-    if(isEmpty()) {
+    if (isEmpty()) {
       throw new NoSuchElementException("Empty " + this.getClass().getSimpleName());
     }
   }
@@ -129,7 +128,6 @@ public class HighLowContainer {
     char low = (char) container.first();
     return LongUtils.toLong(high, low);
   }
-
 
   /**
    * Gets the last value in the array
@@ -176,8 +174,8 @@ public class HighLowContainer {
    * @throws IOException indicate exception happened
    */
   public void serialize(ByteBuffer buffer) throws IOException {
-    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
-        : buffer.slice().order(LITTLE_ENDIAN);
+    ByteBuffer byteBuffer =
+        buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
     if (art.isEmpty()) {
       byteBuffer.put(EMPTY_TAG);
       buffer.position(buffer.position() + byteBuffer.position());
@@ -198,8 +196,8 @@ public class HighLowContainer {
    * @throws IOException indicate exception happened
    */
   public void deserialize(ByteBuffer buffer) throws IOException {
-    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
-        : buffer.slice().order(LITTLE_ENDIAN);
+    ByteBuffer byteBuffer =
+        buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
     clear();
     byte emptyTag = byteBuffer.get();
     if (emptyTag == EMPTY_TAG) {

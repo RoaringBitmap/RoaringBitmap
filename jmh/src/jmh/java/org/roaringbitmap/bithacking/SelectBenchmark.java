@@ -2,7 +2,6 @@ package org.roaringbitmap.bithacking;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -24,46 +23,44 @@ public class SelectBenchmark {
     bitmap = new long[N];
     key = new int[N];
     for (int k = 0; k < bitmap.length; ++k) {
-      while (bitmap[k] == 0)
-        bitmap[k] = r.nextInt();
+      while (bitmap[k] == 0) bitmap[k] = r.nextInt();
     }
-    for (int k = 0; k < key.length; ++k)
-      key[k] = r.nextInt() % (Long.bitCount(bitmap[k]));
+    for (int k = 0; k < key.length; ++k) key[k] = r.nextInt() % (Long.bitCount(bitmap[k]));
     for (int k = 0; k < 64; ++k) {
-      if (select(0xFFFFFFFFFFFFFFFFL, k) != k)
-        throw new RuntimeException("bug " + k);
+      if (select(0xFFFFFFFFFFFFFFFFL, k) != k) throw new RuntimeException("bug " + k);
     }
     for (int k = 0; k < 64; ++k) {
-      if (selectBitPosition(0xFFFFFFFFFFFFFFFFL, k) != k)
-        throw new RuntimeException("bug " + k);
+      if (selectBitPosition(0xFFFFFFFFFFFFFFFFL, k) != k) throw new RuntimeException("bug " + k);
     }
 
     for (int k = 0; k < bitmap.length; ++k)
       if (selectBitPosition(bitmap[k], key[k]) != select(bitmap[k], key[k]))
-        throw new RuntimeException("bug " + bitmap[k] + " " + key[k] + " : "
-            + selectBitPosition(bitmap[k], key[k]) + " : " + select(bitmap[k], key[k]));
+        throw new RuntimeException(
+            "bug "
+                + bitmap[k]
+                + " "
+                + key[k]
+                + " : "
+                + selectBitPosition(bitmap[k], key[k])
+                + " : "
+                + select(bitmap[k], key[k]));
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public int onefunction() {
     int answer = 0;
-    for (int k = 0; k < bitmap.length; ++k)
-      answer += selectBitPosition(bitmap[k], key[k]);
+    for (int k = 0; k < bitmap.length; ++k) answer += selectBitPosition(bitmap[k], key[k]);
     return answer;
   }
-
-
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public int manyfunctions() {
     int answer = 0;
-    for (int k = 0; k < bitmap.length; ++k)
-      answer += select(bitmap[k], key[k]);
+    for (int k = 0; k < bitmap.length; ++k) answer += select(bitmap[k], key[k]);
     return answer;
   }
-
 
   public static int selectBitPosition(long w, int j) {
     int seen = 0;
@@ -144,7 +141,6 @@ public class SelectBenchmark {
     }
   }
 
-
   /**
    * Given a word w, return the position of the jth true bit.
    *
@@ -156,12 +152,9 @@ public class SelectBenchmark {
     int sumtotal = 0;
     for (int counter = 0; counter < 16; ++counter) {
       sumtotal += (w >> counter) & 1;
-      if (sumtotal > j)
-        return counter;
+      if (sumtotal > j) return counter;
     }
     throw new IllegalArgumentException(
         "cannot locate " + j + "th bit in " + w + " weight is " + Integer.bitCount(w));
   }
-
-
 }

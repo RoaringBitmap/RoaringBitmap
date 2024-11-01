@@ -1,12 +1,8 @@
 package org.roaringbitmap.buffer;
 
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -16,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestFastAggregation {
@@ -62,8 +60,9 @@ public class TestFastAggregation {
   public void testPriorityQueueOr() {
     int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
     int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    int[] array3 =
-        {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
+    int[] array3 = {
+      1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179
+    };
     int[] array4 = {};
     ArrayList<MutableRoaringBitmap> data5 = new ArrayList<>();
     ArrayList<MutableRoaringBitmap> data6 = new ArrayList<>();
@@ -77,27 +76,30 @@ public class TestFastAggregation {
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
     assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
-    assertEquals(new MutableRoaringBitmap(),
-        BufferFastAggregation.priorityqueue_or(data6.iterator()));
+    assertEquals(
+        new MutableRoaringBitmap(), BufferFastAggregation.priorityqueue_or(data6.iterator()));
     data6.add(data1);
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
   }
 
   @Test
   public void testPriorityQueueXor() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
-      int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-      int[] array3 =
-              {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
-      ImmutableRoaringBitmap data1 = MutableRoaringBitmap.bitmapOf(array1);
-      ImmutableRoaringBitmap data2 = MutableRoaringBitmap.bitmapOf(array2);
-      ImmutableRoaringBitmap data3 = MutableRoaringBitmap.bitmapOf(array3);
-      assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
-      BufferFastAggregation.priorityqueue_xor(data1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
+          int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
+          int[] array3 = {
+            1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178,
+            39179
+          };
+          ImmutableRoaringBitmap data1 = MutableRoaringBitmap.bitmapOf(array1);
+          ImmutableRoaringBitmap data2 = MutableRoaringBitmap.bitmapOf(array2);
+          ImmutableRoaringBitmap data3 = MutableRoaringBitmap.bitmapOf(array3);
+          assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
+          BufferFastAggregation.priorityqueue_xor(data1);
+        });
   }
-
 
   @Test
   public void testNaiveAndMapped() {
@@ -117,8 +119,9 @@ public class TestFastAggregation {
   public void testPriorityQueueOrMapped() {
     int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
     int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-    int[] array3 =
-        {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
+    int[] array3 = {
+      1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179
+    };
     int[] array4 = {};
     ArrayList<ImmutableRoaringBitmap> data5 = new ArrayList<>();
     ArrayList<ImmutableRoaringBitmap> data6 = new ArrayList<>();
@@ -132,8 +135,8 @@ public class TestFastAggregation {
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1));
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data1, data4));
     assertEquals(data3, BufferFastAggregation.priorityqueue_or(data5.iterator()));
-    assertEquals(new MutableRoaringBitmap(),
-        BufferFastAggregation.priorityqueue_or(data6.iterator()));
+    assertEquals(
+        new MutableRoaringBitmap(), BufferFastAggregation.priorityqueue_or(data6.iterator()));
     data6.add(data1);
     assertEquals(data1, BufferFastAggregation.priorityqueue_or(data6.iterator()));
   }
@@ -142,14 +145,14 @@ public class TestFastAggregation {
     MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
     MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
     MutableRoaringBitmap rb3 = new MutableRoaringBitmap();
-    for(int k = 100; k < 10000; ++k) {
-      if((k % 3) == 0) {
+    for (int k = 100; k < 10000; ++k) {
+      if ((k % 3) == 0) {
         rb1.add(k);
       }
-      if((k % 3) == 1) {
+      if ((k % 3) == 1) {
         rb2.add(k);
       }
-      if((k % 3) == 2) {
+      if ((k % 3) == 2) {
         rb3.add(k);
       }
     }
@@ -157,81 +160,227 @@ public class TestFastAggregation {
     ImmutableRoaringBitmap data2 = toMapped(rb2);
     ImmutableRoaringBitmap data3 = toMapped(rb3);
     MutableRoaringBitmap mrb = data1.clone().toMutableRoaringBitmap();
-    mrb.add(100L,10000L);
-    assertEquals(mrb, BufferFastAggregation.or(data1,data2,data3));
+    mrb.add(100L, 10000L);
+    assertEquals(mrb, BufferFastAggregation.or(data1, data2, data3));
   }
 
   @Test
   public void testPriorityQueueXorMapped() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
-      int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
-      int[] array3 =
-              {1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178, 39179};
-      ImmutableRoaringBitmap data1 = toMapped(MutableRoaringBitmap.bitmapOf(array1));
-      ImmutableRoaringBitmap data2 = toMapped(MutableRoaringBitmap.bitmapOf(array2));
-      ImmutableRoaringBitmap data3 = toMapped(MutableRoaringBitmap.bitmapOf(array3));
-      assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
-      BufferFastAggregation.priorityqueue_xor(data1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          int[] array1 = {1232, 3324, 123, 43243, 1322, 7897, 8767};
+          int[] array2 = {39173, 39174, 39175, 39176, 39177, 39178, 39179};
+          int[] array3 = {
+            1232, 3324, 123, 43243, 1322, 7897, 8767, 39173, 39174, 39175, 39176, 39177, 39178,
+            39179
+          };
+          ImmutableRoaringBitmap data1 = toMapped(MutableRoaringBitmap.bitmapOf(array1));
+          ImmutableRoaringBitmap data2 = toMapped(MutableRoaringBitmap.bitmapOf(array2));
+          ImmutableRoaringBitmap data3 = toMapped(MutableRoaringBitmap.bitmapOf(array3));
+          assertEquals(data3, BufferFastAggregation.priorityqueue_xor(data1, data2));
+          BufferFastAggregation.priorityqueue_xor(data1);
+        });
   }
-
 
   public static Stream<Arguments> bitmaps() {
     return Stream.of(
-            Arguments.of(Arrays.asList(
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withArrayAt(0).withRunAt(1).withBitmapAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(3).withRunAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(0).withBitmapAt(1).withRunAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withRunAt(0).withArrayAt(1).withBitmapAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withRunAt(1).withArrayAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(2).withRunAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(0).withArrayAt(1).withArrayAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withBitmapAt(2).withBitmapAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withRunAt(0).withRunAt(1).withRunAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(0).withArrayAt(1).withArrayAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withBitmapAt(2).withArrayAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withRunAt(0).withRunAt(1).withArrayAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(0).withArrayAt(1).withBitmapAt(2).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withBitmapAt(2).withBitmapAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withRunAt(0).withRunAt(1).withBitmapAt(2).build().toMutableRoaringBitmap()
-            )),
-            Arguments.of(Arrays.asList(
-                    testCase().withArrayAt(20).build().toMutableRoaringBitmap(),
-                    testCase().withBitmapAt(0).withBitmapAt(1).withBitmapAt(4).build().toMutableRoaringBitmap(),
-                    testCase().withRunAt(0).withRunAt(1).withBitmapAt(3).build().toMutableRoaringBitmap()
-            ))
-    );
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withBitmapAt(0)
+                    .withRunAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withRunAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withRunAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withArrayAt(0)
+                    .withRunAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withArrayAt(0)
+                    .withRunAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withArrayAt(0)
+                    .withRunAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(3)
+                    .withRunAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withArrayAt(0)
+                    .withBitmapAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withRunAt(0)
+                    .withArrayAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withRunAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(2)
+                    .withRunAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withArrayAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withArrayAt(0)
+                    .withArrayAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withBitmapAt(2)
+                    .withBitmapAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withRunAt(0)
+                    .withRunAt(1)
+                    .withRunAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withArrayAt(0)
+                    .withArrayAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withBitmapAt(2)
+                    .withArrayAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withRunAt(0)
+                    .withRunAt(1)
+                    .withArrayAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase()
+                    .withArrayAt(0)
+                    .withArrayAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withBitmapAt(2)
+                    .withBitmapAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withRunAt(0)
+                    .withRunAt(1)
+                    .withBitmapAt(2)
+                    .build()
+                    .toMutableRoaringBitmap())),
+        Arguments.of(
+            Arrays.asList(
+                testCase().withArrayAt(20).build().toMutableRoaringBitmap(),
+                testCase()
+                    .withBitmapAt(0)
+                    .withBitmapAt(1)
+                    .withBitmapAt(4)
+                    .build()
+                    .toMutableRoaringBitmap(),
+                testCase()
+                    .withRunAt(0)
+                    .withRunAt(1)
+                    .withBitmapAt(3)
+                    .build()
+                    .toMutableRoaringBitmap())));
   }
-
 
   @MethodSource("bitmaps")
   @ParameterizedTest(name = "testWorkShyAnd")
@@ -263,7 +412,7 @@ public class TestFastAggregation {
   public void testWorkShyAndDirect(List<MutableRoaringBitmap> list) {
     ImmutableRoaringBitmap[] bitmaps = list.toArray(new ImmutableRoaringBitmap[0]);
     for (int i = 0; i < bitmaps.length; ++i) {
-      bitmaps[i] = toDirect((MutableRoaringBitmap)bitmaps[i]);
+      bitmaps[i] = toDirect((MutableRoaringBitmap) bitmaps[i]);
     }
     long[] buffer = new long[1024];
     MutableRoaringBitmap result = BufferFastAggregation.and(buffer, bitmaps);

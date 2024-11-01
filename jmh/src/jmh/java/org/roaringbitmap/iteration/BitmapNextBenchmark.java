@@ -1,19 +1,16 @@
 package org.roaringbitmap.iteration;
 
-
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
-
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.*;
+import org.roaringbitmap.*;
 
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 @Fork(jvmArgsPrepend = "-XX:-TieredCompilation")
 public class BitmapNextBenchmark {
-
 
   @Param({"0.1", "0.2", "0.3", "0.4", "0.5"})
   double density;
@@ -31,12 +28,12 @@ public class BitmapNextBenchmark {
     long target_cardinality = Math.round(density * size);
     long actual_cardinality = 0;
     ThreadLocalRandom random = ThreadLocalRandom.current();
-    while(actual_cardinality < target_cardinality) {
+    while (actual_cardinality < target_cardinality) {
       int x = random.nextInt(size);
       actual_cardinality += bitmap.checkedAdd(x) ? 1 : 0;
       bs.set(x);
     }
-    for(int k = 0; k < random_size; k++) {
+    for (int k = 0; k < random_size; k++) {
       random_array[k] = random.nextInt(size);
     }
   }
@@ -44,8 +41,8 @@ public class BitmapNextBenchmark {
   @Benchmark
   public long bitset_count() {
     long count = 0;
-    for(int k = 0; k < random_size; k++) {
-      count = count + (long)bs.nextSetBit(random_array[k]);
+    for (int k = 0; k < random_size; k++) {
+      count = count + (long) bs.nextSetBit(random_array[k]);
     }
     return count;
   }
@@ -53,10 +50,9 @@ public class BitmapNextBenchmark {
   @Benchmark
   public long roaring_count() {
     long count = 0;
-    for(int k = 0; k < random_size; k++) {
-      count = count + (long)bitmap.nextValue(random_array[k]);
+    for (int k = 0; k < random_size; k++) {
+      count = count + (long) bitmap.nextValue(random_array[k]);
     }
     return count;
   }
-
 }

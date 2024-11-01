@@ -1,17 +1,16 @@
 package org.roaringbitmap.aggregation.and;
 
+import java.util.SplittableRandom;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
-
-import java.util.SplittableRandom;
-import java.util.concurrent.ThreadLocalRandom;
 
 @State(Scope.Benchmark)
 public class BitmapContainerAndBenchmark {
 
   @Param({"0.1", "0.5"})
   double thisDensity;
+
   @Param({"0.1", "0.5"})
   double thatDensity;
 

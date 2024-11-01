@@ -4,20 +4,19 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
-
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
+import org.roaringbitmap.*;
 
 /**
  * Base container class. This class is similar to org.roaringbitmap.Container but meant to be used
  * with memory mapping.
  */
-public abstract class MappeableContainer implements Iterable<Character>, Cloneable, Externalizable,
-        WordStorage<MappeableContainer> {
+public abstract class MappeableContainer
+    implements Iterable<Character>, Cloneable, Externalizable, WordStorage<MappeableContainer> {
   /**
    * Create a container initialized with a range of consecutive values
    *
@@ -43,7 +42,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return the new container
    */
   public abstract MappeableContainer add(int begin, int end);
-
 
   /**
    * Add a char to the container. May generate a new container.
@@ -111,9 +109,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
       return and((MappeableRunContainer) x);
     }
     return and((MappeableBitmapContainer) x);
-
   }
-
 
   protected abstract int andCardinality(MappeableArrayContainer x);
 
@@ -153,7 +149,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
     }
   }
 
-
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
@@ -161,9 +156,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer and(MappeableRunContainer x);
-
 
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
@@ -200,7 +193,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer andNot(MappeableRunContainer x);
 
   /**
@@ -250,22 +242,21 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract boolean contains(char x);
 
-    /**
+  /**
    * Checks whether the container is a subset of this container or not
    * @param subset the container to be tested
    * @return true if the parameter is a subset of this container
    */
   public boolean contains(MappeableContainer subset) {
-    if(subset instanceof MappeableRunContainer) {
-      return contains((MappeableRunContainer)subset);
-    } else if(subset instanceof MappeableArrayContainer) {
+    if (subset instanceof MappeableRunContainer) {
+      return contains((MappeableRunContainer) subset);
+    } else if (subset instanceof MappeableArrayContainer) {
       return contains((MappeableArrayContainer) subset);
-    } else if(subset instanceof MappeableBitmapContainer){
-      return contains((MappeableBitmapContainer)subset);
+    } else if (subset instanceof MappeableBitmapContainer) {
+      return contains((MappeableBitmapContainer) subset);
     }
     return false;
   }
-
 
   protected abstract boolean contains(MappeableRunContainer runContainer);
 
@@ -310,14 +301,12 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract MappeableContainer flip(char x);
 
-
   /**
    * Size of the underlying array
    *
    * @return size in bytes
    */
   protected abstract int getArraySizeInBytes();
-
 
   /**
    * Computes the distinct number of char values in the container. Can be expected to run in
@@ -341,10 +330,11 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
       return ContainerNames[2];
     }
   }
+
   /**
    * Name of the various possible containers
    */
-  public static String[] ContainerNames = {"mappeablebitmap","mappeablearray","mappeablerun"};
+  public static String[] ContainerNames = {"mappeablebitmap", "mappeablearray", "mappeablerun"};
 
   /**
    * Iterator to visit the char values in the container in descending order.
@@ -352,7 +342,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return iterator
    */
   public abstract CharIterator getReverseCharIterator();
-
 
   /**
    * Iterator to visit the char values in the container in ascending order.
@@ -412,7 +401,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract MappeableContainer iand(MappeableBitmapContainer x);
 
-
   protected MappeableContainer iand(MappeableContainer x) {
     if (x instanceof MappeableArrayContainer) {
       return iand((MappeableArrayContainer) x);
@@ -421,7 +409,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
     }
 
     return iand((MappeableBitmapContainer) x);
-
   }
 
   /**
@@ -432,7 +419,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer iand(MappeableRunContainer x);
 
   /**
@@ -473,10 +459,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer iandNot(MappeableRunContainer x);
-
-
 
   /**
    * Computes the in-place bitwise NOT of this container (complement). Only those bits within the
@@ -487,7 +470,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return (partially) completmented container
    */
   public abstract MappeableContainer inot(int rangeStart, int rangeEnd);
-
 
   /**
    * Returns true if the current container intersects the other container.
@@ -566,7 +548,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer ior(MappeableRunContainer x);
 
   /**
@@ -579,7 +560,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
   public abstract MappeableContainer iremove(int begin, int end);
 
   protected abstract boolean isArrayBacked();
-
 
   /**
    * Computes the in-place bitwise XOR of this container with another (symmetric difference). The
@@ -609,9 +589,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
     }
 
     return ixor((MappeableBitmapContainer) x);
-
   }
-
 
   /**
    * Computes the in-place bitwise XOR of this container with another (symmetric difference). The
@@ -621,10 +599,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer ixor(MappeableRunContainer x);
-
-
 
   /**
    * Computes the in-place bitwise OR of this container with another (union). The current container
@@ -724,7 +699,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract MappeableContainer or(MappeableArrayContainer x);
 
-
   /**
    * Computes the bitwise OR of this container with another (union). This container as well as the
    * provided container are left unaffected.
@@ -733,7 +707,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @return aggregated container
    */
   public abstract MappeableContainer or(MappeableBitmapContainer x);
-
 
   protected MappeableContainer or(MappeableContainer x) {
     if (x instanceof MappeableArrayContainer) {
@@ -752,7 +725,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * @param x other container
    * @return aggregated container
    */
-
   public abstract MappeableContainer or(MappeableRunContainer x);
 
   /**
@@ -797,7 +769,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract MappeableContainer runOptimize();
 
-
   /**
    * Return the jth value
    *
@@ -807,15 +778,12 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract char select(int j);
 
-
   /**
    * Report the number of bytes required to serialize this container.
    *
    * @return the size in bytes
    */
   public abstract int serializedSizeInBytes();
-
-
 
   /**
    * Convert to a non-mappeable container.
@@ -828,8 +796,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * If possible, recover wasted memory.
    */
   public abstract void trim();
-
-
 
   /**
    * Write just the underlying array.
@@ -872,7 +838,6 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
     }
 
     return xor((MappeableBitmapContainer) x);
-
   }
 
   /**
@@ -889,7 +854,7 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    * If the container is already a bitmap, the container is returned unchanged.
    * @return a bitmap container
    */
-  public abstract MappeableBitmapContainer toBitmapContainer() ;
+  public abstract MappeableBitmapContainer toBitmapContainer();
 
   /**
    * Get the first integer held in the container
@@ -933,16 +898,14 @@ public abstract class MappeableContainer implements Iterable<Character>, Cloneab
    */
   public abstract int previousAbsentValue(char fromValue);
 
-
   /**
    * Throw if the container is empty
    * @param condition a boolean expression
    * @throws NoSuchElementException if empty
    */
   protected void assertNonEmpty(boolean condition) {
-    if(condition) {
+    if (condition) {
       throw new NoSuchElementException("Empty " + getContainerName());
     }
   }
-
 }

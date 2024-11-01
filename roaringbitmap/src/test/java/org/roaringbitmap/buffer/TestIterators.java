@@ -4,17 +4,12 @@
 
 package org.roaringbitmap.buffer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.CharIterator;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.PeekableIntIterator;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -22,9 +17,12 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableIntIterator;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestIterators {
@@ -42,26 +40,27 @@ public class TestIterators {
   }
 
   private static List<Integer> asList(final CharIterator shorts) {
-    return asList(new IntIterator() {
-      @Override
-      public IntIterator clone() {
-        throw new UnsupportedOperationException();
-      }
+    return asList(
+        new IntIterator() {
+          @Override
+          public IntIterator clone() {
+            throw new UnsupportedOperationException();
+          }
 
-      @Override
-      public boolean hasNext() {
-        return shorts.hasNext();
-      }
+          @Override
+          public boolean hasNext() {
+            return shorts.hasNext();
+          }
 
-      @Override
-      public int next() {
-        return shorts.next();
-      }
-    });
+          @Override
+          public int next() {
+            return shorts.next();
+          }
+        });
   }
 
-
-  private static int[] takeSortedAndDistinct(Random source, int count, Comparator<Integer> comparator) {
+  private static int[] takeSortedAndDistinct(
+      Random source, int count, Comparator<Integer> comparator) {
     HashSet<Integer> ints = new HashSet<Integer>(count);
     for (int size = 0; size < count; size++) {
       int next;
@@ -83,18 +82,22 @@ public class TestIterators {
     bitmap.add(Integer.MAX_VALUE - 2);
     // Adding this one leads to the issue
     bitmap.add(Integer.MAX_VALUE - 3);
-    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
-      if (!bitmap.contains(e)) {
-        throw new IllegalStateException("Not expecting to find: " + e);
-      }
-    });
+    bitmap.forEach(
+        (org.roaringbitmap.IntConsumer)
+            e -> {
+              if (!bitmap.contains(e)) {
+                throw new IllegalStateException("Not expecting to find: " + e);
+              }
+            });
 
     bitmap.runOptimize(); // This is the line causing the issue
-    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
-      if (!bitmap.contains(e)) {
-        throw new IllegalStateException("Not expecting to find: " + e);
-      }
-    });
+    bitmap.forEach(
+        (org.roaringbitmap.IntConsumer)
+            e -> {
+              if (!bitmap.contains(e)) {
+                throw new IllegalStateException("Not expecting to find: " + e);
+              }
+            });
   }
 
   @Test
@@ -102,7 +105,7 @@ public class TestIterators {
     final MappeableBitmapContainer bits =
         new MappeableBitmapContainer(2, LongBuffer.allocate(2).put(0x1l).put(1l << 63));
 
-      assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
+    assertEquals(asList(bits.getCharIterator()), ImmutableList.of(0, 127));
     assertEquals(asList(bits.getReverseCharIterator()), ImmutableList.of(127, 0));
   }
 
@@ -113,7 +116,6 @@ public class TestIterators {
     assertFalse(MutableRoaringBitmap.bitmapOf().getSignedIntIterator().hasNext());
     assertFalse(MutableRoaringBitmap.bitmapOf().getReverseIntIterator().hasNext());
   }
-
 
   @Test
   public void testIteration() {
@@ -132,10 +134,10 @@ public class TestIterators {
     assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
     assertEquals(Ints.asList(data), iteratorCopy);
     assertEquals(Ints.asList(data), intIteratorCopy);
-    assertEquals(Ints.asList(data).stream().sorted().collect(Collectors.toList()), signedIntIteratorCopy);
+    assertEquals(
+        Ints.asList(data).stream().sorted().collect(Collectors.toList()), signedIntIteratorCopy);
     assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
-
 
   @Test
   public void testIteration1() {
@@ -183,7 +185,8 @@ public class TestIterators {
 
   @Test
   public void testSmallIteration() {
-    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3, -1, -2147483648 , 2147483647, 0);
+    MutableRoaringBitmap bitmap =
+        MutableRoaringBitmap.bitmapOf(1, 2, 3, -1, -2147483648, 2147483647, 0);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
     final List<Integer> intIteratorCopy = asList(bitmap.getIntIterator());
@@ -268,10 +271,10 @@ public class TestIterators {
   public void testSkipsDense() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     int N = 100000;
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       bitmap.add(2 * i);
     }
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(2 * i);
       assertEquals(pii.peekNext(), 2 * i);
@@ -297,7 +300,7 @@ public class TestIterators {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     bitmap.add(4L, 100000L);
     bitmap.runOptimize();
-    for(int i = 4; i < 100000; ++i) {
+    for (int i = 4; i < 100000; ++i) {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(i);
       assertEquals(pii.peekNext(), i);
@@ -314,35 +317,33 @@ public class TestIterators {
 
   @Test
   public void testIteratorsOnLargeBitmap() throws IOException {
-      MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
 
-      int inc = Short.MAX_VALUE;
+    int inc = Short.MAX_VALUE;
 
-      for (long i = -Integer.MIN_VALUE; i < Integer.MAX_VALUE; i += inc) {
-          bitmap.add((int) i);
-      }
+    for (long i = -Integer.MIN_VALUE; i < Integer.MAX_VALUE; i += inc) {
+      bitmap.add((int) i);
+    }
 
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      DataOutputStream dos = new DataOutputStream(bos);
-      bitmap.serialize(dos);
-      dos.close();
-      ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
-      ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
-      int j = 0;
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    bitmap.serialize(dos);
+    dos.close();
+    ByteBuffer bb = ByteBuffer.wrap(bos.toByteArray());
+    ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+    int j = 0;
 
-      // we can iterate over the mutable bitmap
-      for (int i : bitmap) {
-          j += i;
-      }
+    // we can iterate over the mutable bitmap
+    for (int i : bitmap) {
+      j += i;
+    }
 
-      int jj = 0;
+    int jj = 0;
 
-      // we can iterate over the immutable bitmap
-      for (int i : rrback1) {
-          jj+= i;
-      }
-      assertEquals(j, jj);
-
+    // we can iterate over the immutable bitmap
+    for (int i : rrback1) {
+      jj += i;
+    }
+    assertEquals(j, jj);
   }
 }
-

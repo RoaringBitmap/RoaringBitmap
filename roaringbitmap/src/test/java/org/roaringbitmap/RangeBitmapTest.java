@@ -1,13 +1,14 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.EXP;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.NORMAL;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.POINT;
+import static org.roaringbitmap.RangeBitmapTest.Distribution.UNIFORM;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,32 +27,33 @@ import java.util.function.LongSupplier;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-
-import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.roaringbitmap.RangeBitmapTest.Distribution.EXP;
-import static org.roaringbitmap.RangeBitmapTest.Distribution.NORMAL;
-import static org.roaringbitmap.RangeBitmapTest.Distribution.POINT;
-import static org.roaringbitmap.RangeBitmapTest.Distribution.UNIFORM;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * When contributing test, please be mindful of the computational requirements.
  * We can use fuzzers to hunt for difficult-to-find bugs, but we should not
  * abuse the continuous-integration infrastructure.
  */
-
 @Execution(ExecutionMode.CONCURRENT)
 public class RangeBitmapTest {
 
   @Test
   public void betweenRegressionTest() throws IOException {
-    String[] lines = new String(Files.readAllBytes(Paths.get("src/test/resources/testdata/rangebitmap_regression.txt"))).split(",");
+    String[] lines =
+        new String(
+                Files.readAllBytes(
+                    Paths.get("src/test/resources/testdata/rangebitmap_regression.txt")))
+            .split(",");
     RangeBitmap.Appender appender = RangeBitmap.appender(2175288L);
     for (String line : lines) {
-        appender.add(Long.parseLong(line));
+      appender.add(Long.parseLong(line));
     }
     RangeBitmap bitmap = appender.build();
     for (int i = 0; i < 4; i++) {
@@ -236,17 +238,22 @@ public class RangeBitmapTest {
     AtomicInteger cleanerInvocations = new AtomicInteger();
     AtomicInteger supplierInvocations = new AtomicInteger();
     Consumer<ByteBuffer> cleaner = buffer -> cleanerInvocations.incrementAndGet();
-    IntFunction<ByteBuffer> supplier = capacity -> {
-      supplierInvocations.incrementAndGet();
-      return ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN);
-    };
+    IntFunction<ByteBuffer> supplier =
+        capacity -> {
+          supplierInvocations.incrementAndGet();
+          return ByteBuffer.allocate(capacity).order(LITTLE_ENDIAN);
+        };
     RangeBitmap.Appender appender = RangeBitmap.appender(1_000_000, supplier, cleaner);
     LongStream.range(0, 1_000_000).forEach(appender::add);
     ByteBuffer target = ByteBuffer.allocate(appender.serializedSizeInBytes());
     appender.serialize(target);
-    assertEquals(supplierInvocations.get() - 2, cleanerInvocations.get(),
+    assertEquals(
+        supplierInvocations.get() - 2,
+        cleanerInvocations.get(),
         "two internal buffers remain active and uncleaned at any time, the rest must be cleaned");
-    assertTrue(supplierInvocations.get() > 2, "this test requires more than 2 buffer allocations to ensure cleaning occurs");
+    assertTrue(
+        supplierInvocations.get() > 2,
+        "this test requires more than 2 buffer allocations to ensure cleaning occurs");
   }
 
   @Test
@@ -265,15 +272,17 @@ public class RangeBitmapTest {
     RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
     IntStream.range(0, 1_000_000)
         .mapToDouble(i -> random.nextGaussian())
-        .mapToLong(value -> {
-          long bits = Double.doubleToLongBits(value);
-          if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
-            bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
-          } else {
-            bits ^= Long.MIN_VALUE;
-          }
-          return bits;
-        }).forEach(appender::add);
+        .mapToLong(
+            value -> {
+              long bits = Double.doubleToLongBits(value);
+              if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
+                bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
+              } else {
+                bits ^= Long.MIN_VALUE;
+              }
+              return bits;
+            })
+        .forEach(appender::add);
     ByteBuffer buffer = ByteBuffer.allocate(appender.serializedSizeInBytes());
     appender.serialize(buffer);
     buffer.flip();
@@ -283,11 +292,27 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(longs = {1L, 0xFL, 0xFFL, 0xFFFL, 0xFFFFL,
-      0xFFFFFL, 0xFFFFFFL, 0xFFFFFFL, 0xFFFFFFFL, 0xFFFFFFFFL,
-      0xFFFFFFFFFL, 0xFFFFFFFFFFL, 0xFFFFFFFFFFFL,
-      0xFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFL,  0xFFFFFFFFFFFFFFL,
-      0xFFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFFFL})
+  @ValueSource(
+      longs = {
+        1L,
+        0xFL,
+        0xFFL,
+        0xFFFL,
+        0xFFFFL,
+        0xFFFFFL,
+        0xFFFFFFL,
+        0xFFFFFFL,
+        0xFFFFFFFL,
+        0xFFFFFFFFL,
+        0xFFFFFFFFFL,
+        0xFFFFFFFFFFL,
+        0xFFFFFFFFFFFL,
+        0xFFFFFFFFFFFFL,
+        0xFFFFFFFFFFFFFL,
+        0xFFFFFFFFFFFFFFL,
+        0xFFFFFFFFFFFFFFFL,
+        0xFFFFFFFFFFFFFFFFL
+      })
   public void testSerializeEmpty(long maxValue) {
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     ByteBuffer buffer = ByteBuffer.allocate(appender.serializedSizeInBytes());
@@ -341,24 +366,24 @@ public class RangeBitmapTest {
 
   public static Stream<Arguments> distributions() {
     return Stream.of(
-        NORMAL.of(42, 1_000, 100),
-        NORMAL.of(42, 10_000, 10),
-        NORMAL.of(42, 1_000_000, 1000),
-        UNIFORM.of(42, 0, 1_000_000),
-        UNIFORM.of(42, 500_000, 10_000_000),
-        EXP.of(42, 0.0001),
-        EXP.of(42, 0.9999),
-        POINT.of(0, 0),
-        POINT.of(0, 1),
-        POINT.of(0, 2),
-        POINT.of(0, 3),
-        POINT.of(0, 4),
-        POINT.of(0, 7),
-        POINT.of(0, 8),
-        POINT.of(0, 15),
-        POINT.of(0, 31),
-        POINT.of(0, Long.MAX_VALUE)
-    ).map(Arguments::of);
+            NORMAL.of(42, 1_000, 100),
+            NORMAL.of(42, 10_000, 10),
+            NORMAL.of(42, 1_000_000, 1000),
+            UNIFORM.of(42, 0, 1_000_000),
+            UNIFORM.of(42, 500_000, 10_000_000),
+            EXP.of(42, 0.0001),
+            EXP.of(42, 0.9999),
+            POINT.of(0, 0),
+            POINT.of(0, 1),
+            POINT.of(0, 2),
+            POINT.of(0, 3),
+            POINT.of(0, 4),
+            POINT.of(0, 7),
+            POINT.of(0, 8),
+            POINT.of(0, 15),
+            POINT.of(0, 31),
+            POINT.of(0, Long.MAX_VALUE))
+        .map(Arguments::of);
   }
 
   @ParameterizedTest
@@ -369,18 +394,25 @@ public class RangeBitmapTest {
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     LongStream.range(0, 1_000_000)
         .map(i -> Math.min(dist.getAsLong(), maxValue))
-        .forEach(v -> {
-          builder.add(v);
-          appender.add(v);
-        });
+        .forEach(
+            v -> {
+              builder.add(v);
+              appender.add(v);
+            });
     ReferenceImplementation referenceImplementation = builder.seal();
     RangeBitmap sut = appender.build();
-    assertAll(LongStream.range(0, 7)
-        .map(i -> (long) Math.pow(10, i))
-        .mapToObj(threshold -> () -> {
-          assertEquals(referenceImplementation.lessThanOrEqualTo(threshold), sut.lte(threshold));
-          assertEquals(referenceImplementation.lessThanOrEqualTo(threshold).getCardinality(), sut.lteCardinality(threshold));
-        }));
+    assertAll(
+        LongStream.range(0, 7)
+            .map(i -> (long) Math.pow(10, i))
+            .mapToObj(
+                threshold ->
+                    () -> {
+                      assertEquals(
+                          referenceImplementation.lessThanOrEqualTo(threshold), sut.lte(threshold));
+                      assertEquals(
+                          referenceImplementation.lessThanOrEqualTo(threshold).getCardinality(),
+                          sut.lteCardinality(threshold));
+                    }));
   }
 
   @ParameterizedTest
@@ -391,39 +423,77 @@ public class RangeBitmapTest {
     ReferenceImplementation.Builder builder = ReferenceImplementation.builder();
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     RoaringBitmapWriter<RoaringBitmap>[] recorders =
-        LongStream.range(0, 7).map(i -> (long) Math.pow(10, i)).mapToObj(i -> RoaringBitmapWriter.writer().runCompress(true).get()).toArray(RoaringBitmapWriter[]::new);
+        LongStream.range(0, 7)
+            .map(i -> (long) Math.pow(10, i))
+            .mapToObj(i -> RoaringBitmapWriter.writer().runCompress(true).get())
+            .toArray(RoaringBitmapWriter[]::new);
     LongStream.range(0, 1_000_000)
-        .forEach(i -> {
-          long v = Math.min(dist.getAsLong(), maxValue);
-          for (int p = 0; p < 7; ++p) {
-            if (v <= (long) Math.pow(10, p)) {
-              recorders[p].add((int) i);
-            }
-          }
-          builder.add(v);
-          appender.add(v);
-        });
-    RoaringBitmap[] precomputed = Arrays.stream(recorders).map(RoaringBitmapWriter::get).toArray(RoaringBitmap[]::new);
+        .forEach(
+            i -> {
+              long v = Math.min(dist.getAsLong(), maxValue);
+              for (int p = 0; p < 7; ++p) {
+                if (v <= (long) Math.pow(10, p)) {
+                  recorders[p].add((int) i);
+                }
+              }
+              builder.add(v);
+              appender.add(v);
+            });
+    RoaringBitmap[] precomputed =
+        Arrays.stream(recorders).map(RoaringBitmapWriter::get).toArray(RoaringBitmap[]::new);
     RoaringBitmap all = RoaringBitmap.bitmapOfRange(0, 1_000_000);
     RangeBitmap sut = appender.build();
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
-      assertEquals(precomputed[i], sut.lte((long) Math.pow(10, i)));
-      assertEquals(precomputed[i].getCardinality(), sut.lteCardinality((long) Math.pow(10, i)));
-    }));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
-      assertEquals(all, RoaringBitmap.or((sut.lte((long) Math.pow(10, i))), sut.gt((long) Math.pow(10, i))));
-      assertEquals(all.getCardinality(), sut.lteCardinality((long) Math.pow(10, i)) + sut.gtCardinality((long) Math.pow(10, i)));
-    }));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
-      assertEquals(all, RoaringBitmap.or((sut.lt((long) Math.pow(10, i))), sut.gte((long) Math.pow(10, i))));
-      assertEquals(all.getCardinality(), sut.ltCardinality((long) Math.pow(10, i)) + sut.gteCardinality((long) Math.pow(10, i)));
-    }));
-    assertAll(IntStream.range(0, 7).mapToObj(i -> () -> {
-      assertEquals(RoaringBitmap.andNot(all, precomputed[i]), sut.gt((long) Math.pow(10, i)));
-      assertEquals(RoaringBitmap.andNot(all, precomputed[i]).getCardinality(), sut.gtCardinality((long) Math.pow(10, i)));
-    }));
+    assertAll(
+        IntStream.range(0, 7)
+            .mapToObj(
+                i ->
+                    () -> {
+                      assertEquals(precomputed[i], sut.lte((long) Math.pow(10, i)));
+                      assertEquals(
+                          precomputed[i].getCardinality(),
+                          sut.lteCardinality((long) Math.pow(10, i)));
+                    }));
+    assertAll(
+        IntStream.range(0, 7)
+            .mapToObj(
+                i ->
+                    () -> {
+                      assertEquals(
+                          all,
+                          RoaringBitmap.or(
+                              (sut.lte((long) Math.pow(10, i))), sut.gt((long) Math.pow(10, i))));
+                      assertEquals(
+                          all.getCardinality(),
+                          sut.lteCardinality((long) Math.pow(10, i))
+                              + sut.gtCardinality((long) Math.pow(10, i)));
+                    }));
+    assertAll(
+        IntStream.range(0, 7)
+            .mapToObj(
+                i ->
+                    () -> {
+                      assertEquals(
+                          all,
+                          RoaringBitmap.or(
+                              (sut.lt((long) Math.pow(10, i))), sut.gte((long) Math.pow(10, i))));
+                      assertEquals(
+                          all.getCardinality(),
+                          sut.ltCardinality((long) Math.pow(10, i))
+                              + sut.gteCardinality((long) Math.pow(10, i)));
+                    }));
+    assertAll(
+        IntStream.range(0, 7)
+            .mapToObj(
+                i ->
+                    () -> {
+                      assertEquals(
+                          RoaringBitmap.andNot(all, precomputed[i]),
+                          sut.gt((long) Math.pow(10, i)));
+                      assertEquals(
+                          RoaringBitmap.andNot(all, precomputed[i]).getCardinality(),
+                          sut.gtCardinality((long) Math.pow(10, i)));
+                    }));
   }
-
 
   @ParameterizedTest
   @MethodSource("distributions")
@@ -431,28 +501,30 @@ public class RangeBitmapTest {
     long maxValue = 10_000_000;
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     LongStream.range(0, 1_000_000)
-        .forEach(i -> {
-          long v = Math.min(dist.getAsLong(), maxValue);
-          appender.add(v);
-        });
+        .forEach(
+            i -> {
+              long v = Math.min(dist.getAsLong(), maxValue);
+              appender.add(v);
+            });
     RangeBitmap sut = appender.build();
-    IntStream.range(1, 8).forEach(i -> {
-      long min = (long) Math.pow(10, i - 1);
-      long max = (long) Math.pow(10, i);
-      RoaringBitmap lte = sut.lte(max);
-      RoaringBitmap gte = sut.gte(min);
-      RoaringBitmap expected = RoaringBitmap.and(lte, gte);
-      assertEquals(expected, sut.gte(min, lte));
-      assertEquals(expected.getCardinality(), sut.gteCardinality(min, lte), "" + i);
-      assertEquals(expected, sut.lte(max, gte));
-      assertEquals(expected.getCardinality(), sut.lteCardinality(max, gte));
-      assertEquals(expected, sut.lt(max + 1, gte));
-      assertEquals(expected.getCardinality(), sut.ltCardinality(max + 1, gte));
-      assertEquals(expected, sut.gt(min - 1, lte));
-      assertEquals(expected.getCardinality(), sut.gtCardinality(min - 1, lte));
-    });
+    IntStream.range(1, 8)
+        .forEach(
+            i -> {
+              long min = (long) Math.pow(10, i - 1);
+              long max = (long) Math.pow(10, i);
+              RoaringBitmap lte = sut.lte(max);
+              RoaringBitmap gte = sut.gte(min);
+              RoaringBitmap expected = RoaringBitmap.and(lte, gte);
+              assertEquals(expected, sut.gte(min, lte));
+              assertEquals(expected.getCardinality(), sut.gteCardinality(min, lte), "" + i);
+              assertEquals(expected, sut.lte(max, gte));
+              assertEquals(expected.getCardinality(), sut.lteCardinality(max, gte));
+              assertEquals(expected, sut.lt(max + 1, gte));
+              assertEquals(expected.getCardinality(), sut.ltCardinality(max + 1, gte));
+              assertEquals(expected, sut.gt(min - 1, lte));
+              assertEquals(expected.getCardinality(), sut.gtCardinality(min - 1, lte));
+            });
   }
-
 
   @ParameterizedTest
   @MethodSource("distributions")
@@ -460,20 +532,23 @@ public class RangeBitmapTest {
     long maxValue = 10_000_000;
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     LongStream.range(0, 1_000_000)
-        .forEach(i -> {
-          long v = Math.min(dist.getAsLong(), maxValue);
-          appender.add(v);
-        });
+        .forEach(
+            i -> {
+              long v = Math.min(dist.getAsLong(), maxValue);
+              appender.add(v);
+            });
     RangeBitmap sut = appender.build();
-    IntStream.range(1, 8).forEach(i -> {
-      long min = (long) Math.pow(10, i - 1);
-      long max = (long) Math.pow(10, i);
-      RoaringBitmap lte = sut.lte(max);
-      RoaringBitmap gte = sut.gte(min);
-      RoaringBitmap expected = RoaringBitmap.and(lte, gte);
-      assertEquals(expected, sut.between(min, max));
-      assertEquals(expected.getCardinality(), sut.betweenCardinality(min, max));
-    });
+    IntStream.range(1, 8)
+        .forEach(
+            i -> {
+              long min = (long) Math.pow(10, i - 1);
+              long max = (long) Math.pow(10, i);
+              RoaringBitmap lte = sut.lte(max);
+              RoaringBitmap gte = sut.gte(min);
+              RoaringBitmap expected = RoaringBitmap.and(lte, gte);
+              assertEquals(expected, sut.between(min, max));
+              assertEquals(expected.getCardinality(), sut.betweenCardinality(min, max));
+            });
   }
 
   @Test
@@ -514,101 +589,276 @@ public class RangeBitmapTest {
     assertEquals(7, sut.betweenCardinality(2, 8));
     assertEquals(RoaringBitmap.bitmapOfRange(3, 8), sut.between(3, 7));
     assertEquals(5, sut.betweenCardinality(3, 7));
-    assertEquals(RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6), sut.between(0x10000 - 5, 0x10000 + 5));
+    assertEquals(
+        RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6),
+        sut.between(0x10000 - 5, 0x10000 + 5));
     assertEquals(11, RoaringBitmap.bitmapOfRange(0x10000 - 5, 0x10000 + 6).getCardinality());
     assertEquals(11, sut.betweenCardinality(0x10000 - 5, 0x10000 + 5));
   }
 
   @Test
   public void testBetween3() {
-    long[] values = {-4616189618054758400L, 4601552919265804287L, -4586634745500139520L, 4571364728013586431L};
+    long[] values = {
+      -4616189618054758400L, 4601552919265804287L, -4586634745500139520L, 4571364728013586431L
+    };
     RangeBitmap.Appender appender = RangeBitmap.appender(-4586634745500139520L);
     Arrays.stream(values).forEach(appender::add);
     int numSequentialValues = 1 << 20;
     LongStream.range(0, numSequentialValues).forEach(appender::add);
     RangeBitmap sut = appender.build();
     RoaringBitmap sequentialValues = RoaringBitmap.bitmapOfRange(4, numSequentialValues + 4);
-    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+    assertEquals(
+        RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
     assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
     assertEquals(RoaringBitmap.bitmapOfRange(5, 47), sut.between(1, 42));
     assertEquals(42, sut.betweenCardinality(1, 42));
-    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues), sut.between(0, 4571364728013586431L));
-    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues).getCardinality(), sut.betweenCardinality(0, 4571364728013586431L));
-    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, 4601552919265804287L));
-    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues).getCardinality(), sut.betweenCardinality(0, 4601552919265804287L));
+    assertEquals(
+        RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues),
+        sut.between(0, 4571364728013586431L));
+    assertEquals(
+        RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues).getCardinality(),
+        sut.betweenCardinality(0, 4571364728013586431L));
+    assertEquals(
+        RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
+        sut.between(0, 4601552919265804287L));
+    assertEquals(
+        RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues).getCardinality(),
+        sut.betweenCardinality(0, 4601552919265804287L));
     assertEquals(RoaringBitmap.bitmapOf(0), sut.between(Long.MAX_VALUE, -4616189618054758400L));
     assertEquals(1, sut.betweenCardinality(Long.MAX_VALUE, -4616189618054758400L));
     assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, -4586634745500139520L));
     assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, -4586634745500139520L));
-    assertEquals(RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4), sut.between(0, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4).getCardinality(), sut.betweenCardinality(0, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(RoaringBitmap.bitmapOfRange(0, 4), sut.between(4571364728013586431L, -4586634745500139520L));
+    assertEquals(
+        RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4),
+        sut.between(0, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(
+        RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4).getCardinality(),
+        sut.betweenCardinality(0, 0xFFFFFFFFFFFFFFFFL));
+    assertEquals(
+        RoaringBitmap.bitmapOfRange(0, 4),
+        sut.between(4571364728013586431L, -4586634745500139520L));
     assertEquals(4, sut.betweenCardinality(4571364728013586431L, -4586634745500139520L));
     assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
     assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.between(0, Long.MAX_VALUE));
-    assertEquals(RoaringBitmap.orCardinality(RoaringBitmap.bitmapOf(1, 3), sequentialValues), sut.betweenCardinality(0, Long.MAX_VALUE));
+    assertEquals(
+        RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
+        sut.between(0, Long.MAX_VALUE));
+    assertEquals(
+        RoaringBitmap.orCardinality(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
+        sut.betweenCardinality(0, Long.MAX_VALUE));
     assertEquals(new RoaringBitmap(), sut.between(-42, 0xFFFFFFFFFFFFFFFFL));
     assertEquals(0, sut.betweenCardinality(-42, 0xFFFFFFFFFFFFFFFFL));
   }
 
   @Test
   public void testBetween4() {
-    long[] values = {-4616189618054758400L, 4601552919265804287L, -4586634745500139520L, 4571364728013586431L,
-        -4556648864387432448L, 4541763675970600959L, -4526534890170089472L, 4511741717132607487L,
-        -4496888740970496000L, 4481700220488384511L, -4466831549978902528L, 4452010031096791039L,
-        -4436860832214679552L, 4421918433705197567L, -4407127634823086080L, 4392016835940974591L,
-        -4377002437431492608L, 4362241638549381119L, -4347168339667269632L, 4332083628657787647L,
-        -4317352126650676160L, 4302315448862314671L, -4287162073302051438L, 4272459181524432137L,
-        -4257458266522935884L, 4242237835737300334L, -4227562883636919499L, 4212596893231971325L,
-        -4197310978827808127L, 4182663311568480478L, -4167731427214848790L, 4152444271493337051L,
-        -4137760542057730537L, 4122861964394837603L, -4107616442036749309L, 4092854650044723837L,
-        -4077988598447005469L, 4062783733670385380L, -4047945708713107023L, 4033111420850910690L,
-        -4017946260743693147L, 4003033789531285016L, -3988230520942059423L, 3973104134926055302L,
-        -3958118962292622004L, 3943345985962156897L, -3928257465269603386L, 3913201295154700195L,
-        -3898457901108180877L, 3883406358270559600L, -3868280854677658470L, 3853566349580304959L,
-        -3838550917929140944L, 3823357705861632449L, -3808671412628698674L, 3793691245808059326L,
-        -3778431912183317079L, 3763773169599230700L, -3748827441089650601L, 3733522980173203346L,
-        -3718871697978100924L, 3703959600631664618L, -3688697178669147109L, 3673967073435426414L,
-        -3659087819021747723L, 3643866450725177229L, -3629059369867805881L, 3614212188630648294L,
-        -3599030911804729185L, 3584148659439886491L, -3569332799664175299L, 3554190674665064179L,
-        -3539235012624956505L, 3524449740213939054L, -3509345849420695115L, 3494318498244586478L,
-        -3479563096306902762L, 3464496543605325988L, -3449399183507341415L, 3434672951953772672L,
-        -3419642862232339617L, 3404477134046585572L, -3389779389196254110L, 3374784907853867652L,
-        -3359552413957401235L, 3344882488153199927L, -3329922780618476166L, 3314625085832642195L,
-        -3299982327065677369L, 3285056578327499206L, -3269777092125304377L, 3255078982340978658L,
-        -3240186396490052060L, 3224948363896921682L, -3210172528595600116L, 3195312328376755120L,
-        -3180114777823726749L, 3165263038697213921L, -3150434465072198619L, 3135276447761457361L,
-        -3120350583805656195L, 3105552895526177699L, -3090433484897357453L, 3075435233412954391L,
-        -3060667706603726686L, 3045585997812719925L, -3030517055382416577L, 3015778983133980657L,
-        -3000734092543963630L, 2985596115986804532L, -2970886807957891842L, 2955877872642278850L,
-        -2940672479945612186L, 2925991261974827647L, -2911017439231874848L, 2895746210461470323L,
-        -2881092424188076561L, 2866152891066862228L, -2850856174385872187L, 2836190371749287492L,
-        -2821284324586802134L, 2806029465354223306L, -2791285180001867583L, 2776411833970953486L,
-        -2761197851152838739L, 2746376922523362867L, -2731535511191248833L, 2716361446746634160L,
-        -2701465671166845646L, 2686655446064028545L, -2671520364406035042L, 2656551496101331837L,
-        -2641771726300562525L, 2626674713770128755L, -2611634465851251049L, 2596884437556387778L,
-        -2581824601908336563L, 2566714647334991567L, -2551993663479489668L, 2536970133380640164L,
-        -2521792105902541959L, 2507099485757353896L, -2492111410296396691L, 2476866905372250427L,
-        -2462201984162915723L, 2447248532371775213L, -2431939108066722645L, 2417301236599432233L,
-        -2402381596985847092L, 2387109747189393536L, -2372397319144302929L, 2357510699235361700L,
-        -2342280124069713038L, 2327490306091863256L, -2312635931988238351L, 2297445664079235090L,
-        -2282580269995175180L, 2267757385935804494L, -2252606480582119011L, 2237667281706838269L,
-        -2222875149643809597L, 2207762684285551627L, -2192751410418844296L, 2177989309602243369L,
-        -2162914383302020084L, 2147832723701497720L, -2133099950273986391L, 2118061683210125099L,
-        -2102911287541423996L, 2088207154142320474L, -2073204687113968945L, 2057987166378687038L,
-        -2043311001757325518L, 2028343495701151489L, -2013060423143036769L, 1998411571781188921L,
-        -1983478207299406984L, 1968189201417707433L, -1953508941032453066L, 1938608917931913404L,
-        -1923361588776766700L, 1908603184529225747L, -1893735721371305496L, 1878529092144433054L,
-        -1863694375531377859L, 1848858709192421875L, -1833691825989254769L, 1818782585581752070L,
-        -1803977970823815880L, 1788849902096923513L, -1773867884546405676L, 1759093593598059126L,
-        -1744003429633153813L, 1728950340653910252L, -1714205662800866089L, 1699152515205088754L,
-        -1684030020533730232L, 1669314261719067301L, -1654297262921266511L, 1639106989253701968L,
+    long[] values = {
+      -4616189618054758400L,
+      4601552919265804287L,
+      -4586634745500139520L,
+      4571364728013586431L,
+      -4556648864387432448L,
+      4541763675970600959L,
+      -4526534890170089472L,
+      4511741717132607487L,
+      -4496888740970496000L,
+      4481700220488384511L,
+      -4466831549978902528L,
+      4452010031096791039L,
+      -4436860832214679552L,
+      4421918433705197567L,
+      -4407127634823086080L,
+      4392016835940974591L,
+      -4377002437431492608L,
+      4362241638549381119L,
+      -4347168339667269632L,
+      4332083628657787647L,
+      -4317352126650676160L,
+      4302315448862314671L,
+      -4287162073302051438L,
+      4272459181524432137L,
+      -4257458266522935884L,
+      4242237835737300334L,
+      -4227562883636919499L,
+      4212596893231971325L,
+      -4197310978827808127L,
+      4182663311568480478L,
+      -4167731427214848790L,
+      4152444271493337051L,
+      -4137760542057730537L,
+      4122861964394837603L,
+      -4107616442036749309L,
+      4092854650044723837L,
+      -4077988598447005469L,
+      4062783733670385380L,
+      -4047945708713107023L,
+      4033111420850910690L,
+      -4017946260743693147L,
+      4003033789531285016L,
+      -3988230520942059423L,
+      3973104134926055302L,
+      -3958118962292622004L,
+      3943345985962156897L,
+      -3928257465269603386L,
+      3913201295154700195L,
+      -3898457901108180877L,
+      3883406358270559600L,
+      -3868280854677658470L,
+      3853566349580304959L,
+      -3838550917929140944L,
+      3823357705861632449L,
+      -3808671412628698674L,
+      3793691245808059326L,
+      -3778431912183317079L,
+      3763773169599230700L,
+      -3748827441089650601L,
+      3733522980173203346L,
+      -3718871697978100924L,
+      3703959600631664618L,
+      -3688697178669147109L,
+      3673967073435426414L,
+      -3659087819021747723L,
+      3643866450725177229L,
+      -3629059369867805881L,
+      3614212188630648294L,
+      -3599030911804729185L,
+      3584148659439886491L,
+      -3569332799664175299L,
+      3554190674665064179L,
+      -3539235012624956505L,
+      3524449740213939054L,
+      -3509345849420695115L,
+      3494318498244586478L,
+      -3479563096306902762L,
+      3464496543605325988L,
+      -3449399183507341415L,
+      3434672951953772672L,
+      -3419642862232339617L,
+      3404477134046585572L,
+      -3389779389196254110L,
+      3374784907853867652L,
+      -3359552413957401235L,
+      3344882488153199927L,
+      -3329922780618476166L,
+      3314625085832642195L,
+      -3299982327065677369L,
+      3285056578327499206L,
+      -3269777092125304377L,
+      3255078982340978658L,
+      -3240186396490052060L,
+      3224948363896921682L,
+      -3210172528595600116L,
+      3195312328376755120L,
+      -3180114777823726749L,
+      3165263038697213921L,
+      -3150434465072198619L,
+      3135276447761457361L,
+      -3120350583805656195L,
+      3105552895526177699L,
+      -3090433484897357453L,
+      3075435233412954391L,
+      -3060667706603726686L,
+      3045585997812719925L,
+      -3030517055382416577L,
+      3015778983133980657L,
+      -3000734092543963630L,
+      2985596115986804532L,
+      -2970886807957891842L,
+      2955877872642278850L,
+      -2940672479945612186L,
+      2925991261974827647L,
+      -2911017439231874848L,
+      2895746210461470323L,
+      -2881092424188076561L,
+      2866152891066862228L,
+      -2850856174385872187L,
+      2836190371749287492L,
+      -2821284324586802134L,
+      2806029465354223306L,
+      -2791285180001867583L,
+      2776411833970953486L,
+      -2761197851152838739L,
+      2746376922523362867L,
+      -2731535511191248833L,
+      2716361446746634160L,
+      -2701465671166845646L,
+      2686655446064028545L,
+      -2671520364406035042L,
+      2656551496101331837L,
+      -2641771726300562525L,
+      2626674713770128755L,
+      -2611634465851251049L,
+      2596884437556387778L,
+      -2581824601908336563L,
+      2566714647334991567L,
+      -2551993663479489668L,
+      2536970133380640164L,
+      -2521792105902541959L,
+      2507099485757353896L,
+      -2492111410296396691L,
+      2476866905372250427L,
+      -2462201984162915723L,
+      2447248532371775213L,
+      -2431939108066722645L,
+      2417301236599432233L,
+      -2402381596985847092L,
+      2387109747189393536L,
+      -2372397319144302929L,
+      2357510699235361700L,
+      -2342280124069713038L,
+      2327490306091863256L,
+      -2312635931988238351L,
+      2297445664079235090L,
+      -2282580269995175180L,
+      2267757385935804494L,
+      -2252606480582119011L,
+      2237667281706838269L,
+      -2222875149643809597L,
+      2207762684285551627L,
+      -2192751410418844296L,
+      2177989309602243369L,
+      -2162914383302020084L,
+      2147832723701497720L,
+      -2133099950273986391L,
+      2118061683210125099L,
+      -2102911287541423996L,
+      2088207154142320474L,
+      -2073204687113968945L,
+      2057987166378687038L,
+      -2043311001757325518L,
+      2028343495701151489L,
+      -2013060423143036769L,
+      1998411571781188921L,
+      -1983478207299406984L,
+      1968189201417707433L,
+      -1953508941032453066L,
+      1938608917931913404L,
+      -1923361588776766700L,
+      1908603184529225747L,
+      -1893735721371305496L,
+      1878529092144433054L,
+      -1863694375531377859L,
+      1848858709192421875L,
+      -1833691825989254769L,
+      1818782585581752070L,
+      -1803977970823815880L,
+      1788849902096923513L,
+      -1773867884546405676L,
+      1759093593598059126L,
+      -1744003429633153813L,
+      1728950340653910252L,
+      -1714205662800866089L,
+      1699152515205088754L,
+      -1684030020533730232L,
+      1669314261719067301L,
+      -1654297262921266511L,
+      1639106989253701968L,
     };
     RangeBitmap.Appender appender = RangeBitmap.appender(0xFFFFFFFFFFFFFFFFL);
     Arrays.stream(values).forEach(appender::add);
     RangeBitmap sut = appender.build();
-    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
+    assertEquals(
+        RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
     assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
   }
 
@@ -619,11 +869,12 @@ public class RangeBitmapTest {
     RangeBitmap.Appender appender = RangeBitmap.appender(maxValue);
     long[] thresholds = new long[256];
     LongStream.range(0, 1_000_000)
-        .forEach(i -> {
-          long v = Math.min(dist.getAsLong(), maxValue);
-          thresholds[(int)i & 255] = v;
-          appender.add(v);
-        });
+        .forEach(
+            i -> {
+              long v = Math.min(dist.getAsLong(), maxValue);
+              thresholds[(int) i & 255] = v;
+              appender.add(v);
+            });
     RangeBitmap sut = appender.build();
     long numRows = sut.gteCardinality(0L);
     RoaringBitmap context = new RoaringBitmap();
@@ -633,7 +884,7 @@ public class RangeBitmapTest {
     Arrays.sort(thresholds);
     for (int i = 0; i < thresholds.length; i += 2) {
       long min = thresholds[i];
-      long max = thresholds[i+1];
+      long max = thresholds[i + 1];
       long contextualCardinality = sut.betweenCardinality(min, max, context);
       RoaringBitmap bitmap = sut.between(min, max);
       bitmap.and(context);
@@ -701,26 +952,28 @@ public class RangeBitmapTest {
   }
 
   // creates very large integer values so stresses edge cases in the top slice
-  private static final DoubleToLongFunction DOUBLE_ENCODER = value -> {
-    if (value == Double.NEGATIVE_INFINITY) {
-      return 0;
-    }
-    if (value == Double.POSITIVE_INFINITY || Double.isNaN(value)) {
-      return 0xFFFFFFFFFFFFFFFFL;
-    }
-    long bits = Double.doubleToLongBits(value);
-    if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
-      bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
-    } else {
-      bits ^= Long.MIN_VALUE;
-    }
-    return bits;
-  };
+  private static final DoubleToLongFunction DOUBLE_ENCODER =
+      value -> {
+        if (value == Double.NEGATIVE_INFINITY) {
+          return 0;
+        }
+        if (value == Double.POSITIVE_INFINITY || Double.isNaN(value)) {
+          return 0xFFFFFFFFFFFFFFFFL;
+        }
+        long bits = Double.doubleToLongBits(value);
+        if ((bits & Long.MIN_VALUE) == Long.MIN_VALUE) {
+          bits = bits == Long.MIN_VALUE ? Long.MIN_VALUE : ~bits;
+        } else {
+          bits ^= Long.MIN_VALUE;
+        }
+        return bits;
+      };
 
   @Test
   public void testIndexDoubleValues() {
     RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
-    double[] doubles = IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
+    double[] doubles =
+        IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
     Arrays.stream(doubles).mapToLong(DOUBLE_ENCODER).forEach(appender::add);
     RangeBitmap bitmap = appender.build();
     for (double value : doubles) {
@@ -740,7 +993,8 @@ public class RangeBitmapTest {
   @Test
   public void testBetweenDoubleValues() {
     RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
-    double[] doubles = IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
+    double[] doubles =
+        IntStream.range(0, 200).mapToDouble(i -> Math.pow(-1, i) * Math.pow(10, i)).toArray();
     Arrays.stream(doubles).mapToLong(DOUBLE_ENCODER).forEach(appender::add);
     RangeBitmap bitmap = appender.build();
     for (double value : doubles) {
@@ -759,7 +1013,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16,  31, 32, 63, 64})
+  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 63, 64})
   public void extremelySmallBitmapTest(long value) {
     RangeBitmap.Appender accumulator = RangeBitmap.appender(value);
     accumulator.add(value);
@@ -772,7 +1026,7 @@ public class RangeBitmapTest {
   }
 
   @ParameterizedTest
-  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16,  31, 32, 63, 64})
+  @ValueSource(longs = {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 63, 64})
   public void testModulo65536(long value) {
     int count = 65537;
     RangeBitmap.Appender accumulator = RangeBitmap.appender(value);
@@ -786,15 +1040,17 @@ public class RangeBitmapTest {
     assertEquals(accumulator.build().between(value, value).getCardinality(), count);
     assertEquals(accumulator.build().betweenCardinality(value, value), count);
   }
+
   @Test
   public void regressionTestIssue586() {
     // see https://github.com/RoaringBitmap/RoaringBitmap/issues/586
     assertAll(
-            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFF0L),
-            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFFF0L),
-            () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF1L, 0xFFFFFFFFFFFFFFF0L),
-            () -> regresssionTestIssue586(0, 10_000_000_000L, 10_000_000L)
-    );
+        () -> regresssionTestIssue586(0x0FFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFF0L),
+        () ->
+            regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF0L, 0xFFFFFFFFFFFFFFF0L),
+        () ->
+            regresssionTestIssue586(0x0FFFFFFFFFFFFFFFL, 0xFFFFFFFFFFFFFFF1L, 0xFFFFFFFFFFFFFFF0L),
+        () -> regresssionTestIssue586(0, 10_000_000_000L, 10_000_000L));
   }
 
   @Test
@@ -806,7 +1062,7 @@ public class RangeBitmapTest {
 
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(valueInBitmap);
     assertTrue(bitmap.intersects(minValueThatWorks, baseValue));
-    assertTrue(bitmap.intersects(minValueThatWorks-1, baseValue));
+    assertTrue(bitmap.intersects(minValueThatWorks - 1, baseValue));
   }
 
   private static void regresssionTestIssue586(long low, long high, long value) {
@@ -848,15 +1104,18 @@ public class RangeBitmapTest {
     RangeBitmap bitmap = appender.build();
     for (int offset = 0; offset < max; offset++) {
       assertEquals(expected[offset], bitmap.eq(offset, expected[offset]));
-      assertEquals(expected[offset].getLongCardinality(), bitmap.eqCardinality(offset, expected[offset]));
+      assertEquals(
+          expected[offset].getLongCardinality(), bitmap.eqCardinality(offset, expected[offset]));
       assertTrue(bitmap.eq(offset, expected[(offset + 1) % max]).isEmpty());
       assertEquals(0L, bitmap.eqCardinality(offset, expected[(offset + 1) % max]));
       assertTrue(bitmap.eq(offset, new RoaringBitmap()).isEmpty());
       assertEquals(0L, bitmap.eqCardinality(offset, new RoaringBitmap()));
       assertTrue(bitmap.eq(offset, RoaringBitmap.bitmapOf(maxRow + 1)).isEmpty());
       assertEquals(0L, bitmap.eqCardinality(offset, RoaringBitmap.bitmapOf(maxRow + 1)));
-      RoaringBitmap overlapOnlyWithLast = RoaringBitmap.bitmapOfRange(expected[offset].last(), 2 * maxRow);
-      assertEquals(RoaringBitmap.bitmapOf(expected[offset].last()), bitmap.eq(offset, overlapOnlyWithLast));
+      RoaringBitmap overlapOnlyWithLast =
+          RoaringBitmap.bitmapOfRange(expected[offset].last(), 2 * maxRow);
+      assertEquals(
+          RoaringBitmap.bitmapOf(expected[offset].last()), bitmap.eq(offset, overlapOnlyWithLast));
       assertEquals(1L, bitmap.eqCardinality(offset, overlapOnlyWithLast));
     }
   }
@@ -898,7 +1157,8 @@ public class RangeBitmapTest {
     RangeBitmap bitmap = appender.build();
     for (int offset = 0; offset < max; offset++) {
       assertEquals(expected[offset], bitmap.neq(offset, expected[offset]));
-      assertEquals(expected[offset].getLongCardinality(), bitmap.neqCardinality(offset, expected[offset]));
+      assertEquals(
+          expected[offset].getLongCardinality(), bitmap.neqCardinality(offset, expected[offset]));
       assertTrue(bitmap.neq(offset, new RoaringBitmap()).isEmpty());
       assertEquals(0L, bitmap.neqCardinality(offset, new RoaringBitmap()));
       assertTrue(bitmap.neq(offset, RoaringBitmap.bitmapOf(maxRow + 1)).isEmpty());
@@ -1060,7 +1320,7 @@ public class RangeBitmapTest {
     POINT {
       @Override
       LongSupplier of(long seed, double... params) {
-        return () -> (long)params[0];
+        return () -> (long) params[0];
       }
     };
 
@@ -1085,6 +1345,7 @@ public class RangeBitmapTest {
       assertEquals(rangeMaskOriginal(value), rangeMaskOptimized(value));
     }
   }
+
   @Test
   public void rangeMaskExpressionSimplification() {
     for (int lz = 0; lz < 64; lz++) {
@@ -1110,12 +1371,16 @@ public class RangeBitmapTest {
       assertEquals(rangeMaskOriginal2(value), rangeMaskSimplified2(value), "" + value);
     }
   }
+
   @Test
   public void rangeMaskExpressionSimplification2() {
     for (int sliceCount = 1; sliceCount <= 64; sliceCount++) {
       long original = sliceCount == 64 ? -1L : (1L << sliceCount) - 1;
       long simplified = -1L >>> (64 - sliceCount);
-      assertEquals(Long.toBinaryString(original), Long.toBinaryString(simplified), "sliceCount=" + sliceCount);
+      assertEquals(
+          Long.toBinaryString(original),
+          Long.toBinaryString(simplified),
+          "sliceCount=" + sliceCount);
     }
   }
 }

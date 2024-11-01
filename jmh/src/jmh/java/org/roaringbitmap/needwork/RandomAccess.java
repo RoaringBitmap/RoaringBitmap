@@ -1,9 +1,7 @@
 package org.roaringbitmap.needwork;
 
-
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -31,8 +29,6 @@ public class RandomAccess {
   @State(Scope.Benchmark)
   public static class BenchmarkState extends NeedWorkBenchmarkState {
 
-
-
     int[] queries = new int[1024];
 
     public BenchmarkState() {}
@@ -45,15 +41,10 @@ public class RandomAccess {
       int universe = 0;
       for (Bitmap bitmap : bitmaps) {
         int lv = bitmap.last();
-        if (lv > universe)
-          universe = lv;
+        if (lv > universe) universe = lv;
       }
       Random rand = new Random(123);
-      for (int k = 0; k < queries.length; ++k)
-        queries[k] = rand.nextInt(universe + 1);
-
+      for (int k = 0; k < queries.length; ++k) queries[k] = rand.nextInt(universe + 1);
     }
-
   }
-
 }

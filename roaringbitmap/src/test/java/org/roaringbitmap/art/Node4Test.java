@@ -44,8 +44,8 @@ public class Node4Test {
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     node4.serialize(dataOutputStream);
     Assertions.assertEquals(bytesSize, byteArrayOutputStream.toByteArray().length);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-        byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Node4 deserializedNode4 = (Node4) Node.deserialize(dataInputStream);
     Assertions.assertEquals(0, deserializedNode4.getChildPos(key2));

@@ -3,23 +3,20 @@
  */
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.Test;
-
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
-
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer and BitmapContainer
@@ -27,7 +24,7 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 @SuppressWarnings({"static-method"})
 public class TestContainer {
 
-  private final static Class<?>[] CONTAINER_TYPES =
+  private static final Class<?>[] CONTAINER_TYPES =
       new Class[] {ArrayContainer.class, BitmapContainer.class, RunContainer.class};
 
   @Test
@@ -254,10 +251,25 @@ public class TestContainer {
     final Container c1 = c.inot(65190, 65201);
     assertTrue(c1 instanceof ArrayContainer);
     assertEquals(14, c1.getCardinality());
-    assertTrue(checkContent(c1,
-        new char[] {0, 2, 4, (char) 65190, (char) 65191, (char) 65192, (char) 65193,
-            (char) 65194, (char) 65195, (char) 65196, (char) 65197, (char) 65198,
-            (char) 65199, (char) 65200}));
+    assertTrue(
+        checkContent(
+            c1,
+            new char[] {
+              0,
+              2,
+              4,
+              (char) 65190,
+              (char) 65191,
+              (char) 65192,
+              (char) 65193,
+              (char) 65194,
+              (char) 65195,
+              (char) 65196,
+              (char) 65197,
+              (char) 65198,
+              (char) 65199,
+              (char) 65200
+            }));
   }
 
   @Test
@@ -320,7 +332,6 @@ public class TestContainer {
     c = c.inot(4, 1000); // back, as a bitmap
     assertTrue(c instanceof BitmapContainer);
     assertTrue(checkContent(c, content));
-
   }
 
   @Test
@@ -628,8 +639,6 @@ public class TestContainer {
     assertTrue(checkContent(c2, content));
   }
 
-
-
   @Test
   public void numberOfRuns() {
     char[] positions = {3, 4, 5, 10, 11, 13, 15, 62, 63, 64, 65};
@@ -644,8 +653,6 @@ public class TestContainer {
     assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
     assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
   }
-
-
 
   @Test
   public void numberOfRuns1() {
@@ -673,16 +680,14 @@ public class TestContainer {
       assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
       assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
       // a limit of 50k assures that the no early bail-out can be taken
-      assertEquals(bc.numberOfRuns(),
-          bc.numberOfRunsLowerBound(50000) + bc.numberOfRunsAdjustment());
+      assertEquals(
+          bc.numberOfRuns(), bc.numberOfRunsLowerBound(50000) + bc.numberOfRunsAdjustment());
       // inferior approaches to be removed in a future cleanup, now commented...
       // assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled());
       // assertEquals(bc.numberOfRunsLowerBound(), bc.numberOfRunsLowerBoundUnrolled2());
       // assertEquals(bc.numberOfRunsAdjustment(), bc.numberOfRunsAdjustmentUnrolled());
     }
   }
-
-
 
   @Test
   public void or1() {
@@ -698,7 +703,6 @@ public class TestContainer {
     Container result = ac.or(ac1.getCharIterator());
     assertTrue(checkContent(result, new char[] {1, 3, 5, (char) 50000, (char) 50001}));
   }
-
 
   @Test
   public void or2() {
@@ -716,8 +720,9 @@ public class TestContainer {
     ac1.add((char) 50004);
 
     Container result = ac.or(ac1.getCharIterator());
-    assertTrue(checkContent(result,
-        new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
+    assertTrue(
+        checkContent(
+            result, new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
 
   @Test
@@ -742,11 +747,13 @@ public class TestContainer {
     ac1.add((char) 50004);
 
     Container result = ac.or(ac1.getCharIterator());
-    assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
-        (char) 50002, (char) 50003, (char) 50004}));
+    assertTrue(
+        checkContent(
+            result,
+            new char[] {
+              1, 3, 4, 5, (char) 50000, (char) 50001, (char) 50002, (char) 50003, (char) 50004
+            }));
   }
-
-
 
   @Test
   public void or4() {
@@ -770,13 +777,23 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-
     Container result = ac.or(ac1.getCharIterator());
-    assertTrue(checkContent(result, new char[] {1, 3, 4, 5, (char) 50000, (char) 50001,
-        (char) 50002, (char) 50003, (char) 50004, (char) 50011}));
+    assertTrue(
+        checkContent(
+            result,
+            new char[] {
+              1,
+              3,
+              4,
+              5,
+              (char) 50000,
+              (char) 50001,
+              (char) 50002,
+              (char) 50003,
+              (char) 50004,
+              (char) 50011
+            }));
   }
-
-
 
   @Test
   public void or5() {
@@ -806,13 +823,13 @@ public class TestContainer {
     System.out.println("or6");
     RunContainer rc1 = new RunContainer();
     for (int i = 0; i < 6144; i += 6) {
-      rc1.iadd(i, i+1);
+      rc1.iadd(i, i + 1);
     }
 
     RunContainer rc2 = new RunContainer();
 
     for (int i = 3; i < 6144; i += 6) {
-      rc2.iadd(i, i+1);
+      rc2.iadd(i, i + 1);
     }
 
     Container result = rc1.or(rc2);
@@ -823,27 +840,31 @@ public class TestContainer {
   @Test
   public void testXorContainer() throws Exception {
     Container rc1 = new RunContainer(new char[] {10, 12, 90, 10}, 2);
-    Container rc2 = new RunContainer(new char[]{1, 10, 40, 400, 900, 10}, 3);
+    Container rc2 = new RunContainer(new char[] {1, 10, 40, 400, 900, 10}, 3);
     Container bc1 = new BitmapContainer().add(10, 20);
     Container bc2 = new BitmapContainer().add(21, 30);
     Container ac1 = new ArrayContainer(4, new char[] {10, 12, 90, 104});
-    Container ac2 = new ArrayContainer(2, new char[]{1, 10, 40, 400, 900, 1910});
-    for(Set<Container> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
+    Container ac2 = new ArrayContainer(2, new char[] {1, 10, 40, 400, 900, 1910});
+    for (Set<Container> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
       Iterator<Container> it = test.iterator();
-      if(test.size() == 1) { // compare with self
+      if (test.size() == 1) { // compare with self
         Container x = it.next();
-        assertEquals(x.xor(x).getCardinality(), x.xorCardinality(x), x.getContainerName() + ": " + x);
-      } else if(test.size() == 2) {
+        assertEquals(
+            x.xor(x).getCardinality(), x.xorCardinality(x), x.getContainerName() + ": " + x);
+      } else if (test.size() == 2) {
         Container x = it.next();
         Container y = it.next();
         assertEquals(
-                x.xor(y).getCardinality(), x.xorCardinality(y), x.getContainerName() + " " + x + " " + y.getContainerName() + " " + y);
-        assertEquals(y.xor(x).getCardinality(), y.xorCardinality(x), y.getContainerName() + " " + y + " " + x.getContainerName() + " " + x);
+            x.xor(y).getCardinality(),
+            x.xorCardinality(y),
+            x.getContainerName() + " " + x + " " + y.getContainerName() + " " + y);
+        assertEquals(
+            y.xor(x).getCardinality(),
+            y.xorCardinality(x),
+            y.getContainerName() + " " + y + " " + x.getContainerName() + " " + x);
       }
     }
   }
-
-
 
   @Test
   public void rangeOfOnesTest1() {
@@ -853,15 +874,12 @@ public class TestContainer {
     assertTrue(checkContent(c, new char[] {4, 5, 6, 7, 8, 9, 10}));
   }
 
-
-
   @Test
   public void rangeOfOnesTest2() {
     final Container c = Container.rangeOfOnes(1000, 35001); // dense
     // assertTrue(c instanceof BitmapContainer);
     assertEquals(35000 - 1000 + 1, c.getCardinality());
   }
-
 
   @Test
   public void rangeOfOnesTest2A() {
@@ -872,7 +890,6 @@ public class TestContainer {
     }
     assertTrue(checkContent(c, s));
   }
-
 
   @Test
   public void rangeOfOnesTest3() {
@@ -885,8 +902,6 @@ public class TestContainer {
     Container.rangeOfOnes(1, ArrayContainer.DEFAULT_MAX_SIZE + 2);
   }
 
-
-
   @Test
   public void testRunOptimize1() {
     ArrayContainer ac = new ArrayContainer();
@@ -898,8 +913,6 @@ public class TestContainer {
     assertEquals(ac, c);
   }
 
-
-
   public void testRunOptimize1A() {
     ArrayContainer ac = new ArrayContainer();
     for (char s : new char[] {1, 2, 3, 4, 6, 8, 9, (char) 50000, (char) 50003}) {
@@ -909,7 +922,6 @@ public class TestContainer {
     assertTrue(c instanceof ArrayContainer);
     assertSame(ac, c);
   }
-
 
   @Test
   public void testRunOptimize2() {
@@ -921,8 +933,6 @@ public class TestContainer {
     assertTrue(c instanceof RunContainer);
     assertEquals(bc, c);
   }
-
-
 
   @Test
   public void testRunOptimize2A() {
@@ -938,7 +948,7 @@ public class TestContainer {
   @Test
   public void testRunOptimize3() {
     RunContainer rc = new RunContainer();
-    for (char s : new char[] {1, 2,3, 4, 5, 6, 7, 8, 9, (char) 50000, (char) 50001}) {
+    for (char s : new char[] {1, 2, 3, 4, 5, 6, 7, 8, 9, (char) 50000, (char) 50001}) {
       rc.add(s);
     }
     Container c = rc.runOptimize();
@@ -956,7 +966,6 @@ public class TestContainer {
     assertTrue(c instanceof ArrayContainer);
     assertEquals(c, rc);
   }
-
 
   @Test
   public void testRunOptimize3B() {
@@ -1021,11 +1030,10 @@ public class TestContainer {
     ac1.add((char) 50004);
 
     Container result = ac.xor(ac1.getCharIterator());
-    assertTrue(checkContent(result,
-        new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
+    assertTrue(
+        checkContent(
+            result, new char[] {1, 4, 5, (char) 50000, (char) 50002, (char) 50003, (char) 50004}));
   }
-
-
 
   @Test
   public void xor3() {
@@ -1049,8 +1057,9 @@ public class TestContainer {
     ac1.add((char) 50004);
 
     Container result = ac.xor(ac1.getCharIterator());
-    assertTrue(checkContent(result,
-        new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003, (char) 50004}));
+    assertTrue(
+        checkContent(
+            result, new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003, (char) 50004}));
   }
 
   @Test
@@ -1058,7 +1067,7 @@ public class TestContainer {
     ArrayContainer ac = new ArrayContainer();
     BitmapContainer bc = new BitmapContainer();
     RunContainer rc = new RunContainer();
-    for (char i : new char[]{0, 2, 17, Short.MAX_VALUE, (char)-3, (char)-1}) {
+    for (char i : new char[] {0, 2, 17, Short.MAX_VALUE, (char) -3, (char) -1}) {
       ac.add(i);
       bc.add(i);
       rc.add(i);
@@ -1067,10 +1076,8 @@ public class TestContainer {
 
     assertEquals(expected, ac.toString());
     assertEquals(expected, bc.toString());
-    String normalizedRCstr = rc.toString()
-        .replaceAll("\\d+\\]\\[", "")
-        .replace('[', '{')
-        .replaceFirst(",\\d+\\]", "}");
+    String normalizedRCstr =
+        rc.toString().replaceAll("\\d+\\]\\[", "").replace('[', '{').replaceFirst(",\\d+\\]", "}");
     assertEquals(expected, normalizedRCstr);
   }
 
@@ -1096,13 +1103,14 @@ public class TestContainer {
     ac1.add((char) 50003);
     ac1.add((char) 50004);
 
-
     Container result = ac.xor(ac1.getCharIterator());
-    assertTrue(checkContent(result, new char[] {3, 4, (char) 50001, (char) 50002, (char) 50003,
-        (char) 50004, (char) 50011}));
+    assertTrue(
+        checkContent(
+            result,
+            new char[] {
+              3, 4, (char) 50001, (char) 50002, (char) 50003, (char) 50004, (char) 50011
+            }));
   }
-
-
 
   @Test
   public void xor5() {
@@ -1139,7 +1147,8 @@ public class TestContainer {
   private void testForAllMaterialization(char[] data) {
     for (Class<?> ct1 : CONTAINER_TYPES) {
       Container container = getContainerInstance(ct1);
-      ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1];
+      ValidationRangeConsumer.Value[] expected =
+          new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1];
       Arrays.fill(expected, ABSENT);
       for (char c : data) {
         container = container.add(c);
@@ -1161,14 +1170,14 @@ public class TestContainer {
   @Test
   public void forAll() {
     testForAllMaterialization(new char[0]);
-    testForAllMaterialization(new char[]{0});
-    testForAllMaterialization(new char[]{1});
-    testForAllMaterialization(new char[]{Character.MAX_VALUE});
-    testForAllMaterialization(new char[]{0, 2, 5, 7});
-    testForAllMaterialization(new char[]{49, 63, 65, 32768, 3280});
-    testForAllMaterialization(new char[]{0, Character.MAX_VALUE});
-    testForAllMaterialization(new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
-    testForAllMaterialization(new char[]{Character.MAX_VALUE - 1});
+    testForAllMaterialization(new char[] {0});
+    testForAllMaterialization(new char[] {1});
+    testForAllMaterialization(new char[] {Character.MAX_VALUE});
+    testForAllMaterialization(new char[] {0, 2, 5, 7});
+    testForAllMaterialization(new char[] {49, 63, 65, 32768, 3280});
+    testForAllMaterialization(new char[] {0, Character.MAX_VALUE});
+    testForAllMaterialization(new char[] {Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllMaterialization(new char[] {Character.MAX_VALUE - 1});
     testForAllMaterialization(allValues());
   }
 
@@ -1176,7 +1185,8 @@ public class TestContainer {
   private void testForAllFromMaterialization(char start, char[] data) {
     for (Class<?> ct1 : CONTAINER_TYPES) {
       Container container = getContainerInstance(ct1);
-      ValidationRangeConsumer.Value[] expected = new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1 - start];
+      ValidationRangeConsumer.Value[] expected =
+          new ValidationRangeConsumer.Value[Character.MAX_VALUE + 1 - start];
       Arrays.fill(expected, ABSENT);
       for (char c : data) {
         container = container.add(c);
@@ -1196,13 +1206,14 @@ public class TestContainer {
   @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
   public void forAllFrom(int start) {
     testForAllFromMaterialization((char) start, new char[0]);
-    testForAllFromMaterialization((char) start, new char[]{0});
-    testForAllFromMaterialization((char) start, new char[]{1});
-    testForAllFromMaterialization((char) start, new char[]{0, 2, 5, 7});
-    testForAllFromMaterialization((char) start, new char[]{49, 63, 65, 32768, 3280});
-    testForAllFromMaterialization((char) start, new char[]{0, Character.MAX_VALUE});
-    testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
-    testForAllFromMaterialization((char) start, new char[]{Character.MAX_VALUE - 1});
+    testForAllFromMaterialization((char) start, new char[] {0});
+    testForAllFromMaterialization((char) start, new char[] {1});
+    testForAllFromMaterialization((char) start, new char[] {0, 2, 5, 7});
+    testForAllFromMaterialization((char) start, new char[] {49, 63, 65, 32768, 3280});
+    testForAllFromMaterialization((char) start, new char[] {0, Character.MAX_VALUE});
+    testForAllFromMaterialization(
+        (char) start, new char[] {Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllFromMaterialization((char) start, new char[] {Character.MAX_VALUE - 1});
     testForAllFromMaterialization((char) start, allValues());
   }
 
@@ -1230,13 +1241,14 @@ public class TestContainer {
   @ValueSource(ints = {0, 1, 50, 63, 64, 65, 32768, 3280, 65534, 65535})
   public void forAllUntil(int end) {
     testForAllUntilMaterialization((char) end, new char[0]);
-    testForAllUntilMaterialization((char) end, new char[]{0});
-    testForAllUntilMaterialization((char) end, new char[]{1});
-    testForAllUntilMaterialization((char) end, new char[]{0, 2, 5, 7});
-    testForAllUntilMaterialization((char) end, new char[]{49, 63, 65, 32768, 3280});
-    testForAllUntilMaterialization((char) end, new char[]{0, Character.MAX_VALUE});
-    testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
-    testForAllUntilMaterialization((char) end, new char[]{Character.MAX_VALUE - 1});
+    testForAllUntilMaterialization((char) end, new char[] {0});
+    testForAllUntilMaterialization((char) end, new char[] {1});
+    testForAllUntilMaterialization((char) end, new char[] {0, 2, 5, 7});
+    testForAllUntilMaterialization((char) end, new char[] {49, 63, 65, 32768, 3280});
+    testForAllUntilMaterialization((char) end, new char[] {0, Character.MAX_VALUE});
+    testForAllUntilMaterialization(
+        (char) end, new char[] {Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllUntilMaterialization((char) end, new char[] {Character.MAX_VALUE - 1});
     testForAllUntilMaterialization((char) end, allValues());
   }
 
@@ -1261,7 +1273,8 @@ public class TestContainer {
       } else {
         final Container container = getContainerInstance(ct1);
         final ValidationRangeConsumer consumer = ValidationRangeConsumer.ofSize(0);
-        assertThrows(IllegalArgumentException.class, () -> container.forAllInRange(start, end, consumer));
+        assertThrows(
+            IllegalArgumentException.class, () -> container.forAllInRange(start, end, consumer));
       }
     }
   }
@@ -1278,17 +1291,21 @@ public class TestContainer {
     }
     return cartesianProduct.stream();
   }
+
   @ParameterizedTest
   @MethodSource("provideArgsForAllInRange")
   public void forAllInRange(int start, int end) {
     testForAllInRangeMaterialization((char) start, (char) end, new char[0]);
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{1});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, 2, 5, 7});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{49, 63, 65, 32768, 3280});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{0, Character.MAX_VALUE});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1, Character.MAX_VALUE});
-    testForAllInRangeMaterialization((char) start, (char) end, new char[]{Character.MAX_VALUE - 1});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[] {0});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[] {1});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[] {0, 2, 5, 7});
+    testForAllInRangeMaterialization(
+        (char) start, (char) end, new char[] {49, 63, 65, 32768, 3280});
+    testForAllInRangeMaterialization((char) start, (char) end, new char[] {0, Character.MAX_VALUE});
+    testForAllInRangeMaterialization(
+        (char) start, (char) end, new char[] {Character.MAX_VALUE - 1, Character.MAX_VALUE});
+    testForAllInRangeMaterialization(
+        (char) start, (char) end, new char[] {Character.MAX_VALUE - 1});
     testForAllInRangeMaterialization((char) start, (char) end, allValues());
   }
 

@@ -44,36 +44,37 @@ public class Node16 extends Node {
     if (count <= 8) {
       return Node.binarySearchWithResult(firstBytes, 0, count, k);
     } else {
-      SearchResult firstResult = Node.binarySearchWithResult(
-              firstBytes, 0, 8, k);
+      SearchResult firstResult = Node.binarySearchWithResult(firstBytes, 0, 8, k);
       // given the values are "in order" if we found a match or a value larger than
       // the target we are done.
-      if (firstResult.outcome == SearchResult.Outcome.FOUND
-              || firstResult.hasNextLargerPos()) {
+      if (firstResult.outcome == SearchResult.Outcome.FOUND || firstResult.hasNextLargerPos()) {
         return firstResult;
       } else {
         byte[] secondBytes = LongUtils.toBDBytes(secondV);
-        SearchResult secondResult = Node.binarySearchWithResult(
-                secondBytes, 0, (count - 8), k);
+        SearchResult secondResult = Node.binarySearchWithResult(secondBytes, 0, (count - 8), k);
 
-        switch(secondResult.outcome) {
+        switch (secondResult.outcome) {
           case FOUND:
             return SearchResult.found(8 + secondResult.getKeyPos());
           case NOT_FOUND:
             int lowPos = secondResult.getNextSmallerPos();
             int highPos = secondResult.getNextLargerPos();
             // don't map -1 into the legal range by adding 8!
-            if (lowPos>=0){ lowPos += 8;}
-            if (highPos>=0){ highPos += 8;}
+            if (lowPos >= 0) {
+              lowPos += 8;
+            }
+            if (highPos >= 0) {
+              highPos += 8;
+            }
 
-            if(firstResult.hasNextLargerPos() == false && secondResult.hasNextSmallerPos() == false)
-            {
+            if (firstResult.hasNextLargerPos() == false
+                && secondResult.hasNextSmallerPos() == false) {
               // this happens when the result is in the gap of the two ranges, the correct
               // "smaller value" is that of first result.
               lowPos = firstResult.getNextSmallerPos();
             }
 
-            return SearchResult.notFound( lowPos, highPos);
+            return SearchResult.notFound(lowPos, highPos);
 
           default:
             throw new IllegalStateException("There only two possible search outcomes");
@@ -145,7 +146,7 @@ public class Node16 extends Node {
   public static Node insert(Node node, Node child, byte key) {
     Node16 currentNode16 = (Node16) node;
     if (currentNode16.count < 8) {
-      //first
+      // first
       byte[] bytes = LongUtils.toBDBytes(currentNode16.firstV);
       bytes[currentNode16.count] = key;
       currentNode16.children[currentNode16.count] = child;
@@ -154,7 +155,7 @@ public class Node16 extends Node {
       currentNode16.firstV = LongUtils.fromBDBytes(bytes);
       return currentNode16;
     } else if (currentNode16.count < 16) {
-      //second
+      // second
       ByteBuffer byteBuffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
       byteBuffer.putLong(currentNode16.firstV);
       byteBuffer.putLong(currentNode16.secondV);
@@ -169,7 +170,7 @@ public class Node16 extends Node {
       Node48 node48 = new Node48(currentNode16.prefixLength);
       for (int i = 0; i < 8; i++) {
         int unsignedIdx = Byte.toUnsignedInt((byte) (currentNode16.firstV >>> ((7 - i) << 3)));
-        //i won't be beyond 48
+        // i won't be beyond 48
         Node48.setOneByte(unsignedIdx, (byte) i, node48.childIndex);
         node48.children[i] = currentNode16.children[i];
       }
@@ -177,7 +178,7 @@ public class Node16 extends Node {
       for (int i = 8; i < currentNode16.count; i++) {
         byte v = secondBytes[i - 8];
         int unsignedIdx = Byte.toUnsignedInt(v);
-        //i won't be beyond 48
+        // i won't be beyond 48
         Node48.setOneByte(unsignedIdx, (byte) i, node48.childIndex);
         node48.children[i] = currentNode16.children[i];
       }
@@ -199,9 +200,9 @@ public class Node16 extends Node {
     secondV = byteBuffer.getLong(8);
     count--;
     if (count <= 3) {
-      //shrink to node4
+      // shrink to node4
       Node4 node4 = new Node4(prefixLength);
-      //copy the keys
+      // copy the keys
       node4.key = (int) (firstV >> 32);
       System.arraycopy(children, 0, node4.children, 0, count);
       node4.count = count;
@@ -213,7 +214,7 @@ public class Node16 extends Node {
 
   @Override
   public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    //little endian
+    // little endian
     dataOutput.writeLong(Long.reverseBytes(firstV));
     dataOutput.writeLong(Long.reverseBytes(secondV));
   }

@@ -4,12 +4,10 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
-
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.util.Iterator;
+import org.roaringbitmap.*;
 
 /**
  * MutableRoaringBitmap, a compressed alternative to the BitSet. It is similar to
@@ -62,8 +60,12 @@ import java.util.Iterator;
  * @see org.roaringbitmap.RoaringBitmap
  */
 public class MutableRoaringBitmap extends ImmutableRoaringBitmap
-    implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-        BitmapDataProvider, AppendableStorage<MappeableContainer> {
+    implements Cloneable,
+        Serializable,
+        Iterable<Integer>,
+        Externalizable,
+        BitmapDataProvider,
+        AppendableStorage<MappeableContainer> {
   private static final long serialVersionUID = 4L; // 3L; bumped by ofk for runcontainers
 
   /**
@@ -84,56 +86,53 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public static MutableRoaringBitmap addOffset(final ImmutableRoaringBitmap x, long offset) {
     // we need "offset" to be a long because we want to support values
     // between -0xFFFFFFFF up to +-0xFFFFFFFF
-    long container_offset_long = offset < 0
-        ? (offset - (1<<16) + 1)  / (1<<16) : offset / (1 << 16);
-    if((container_offset_long < -(1<<16) ) || (container_offset_long >= (1<<16) )) {
+    long container_offset_long =
+        offset < 0 ? (offset - (1 << 16) + 1) / (1 << 16) : offset / (1 << 16);
+    if ((container_offset_long < -(1 << 16)) || (container_offset_long >= (1 << 16))) {
       return new MutableRoaringBitmap(); // it is necessarily going to be empty
     }
     // next cast is necessarily safe, the result is between -0xFFFF and 0xFFFF
     int container_offset = (int) container_offset_long;
     // next case is safe
-    int in_container_offset = (int)(offset - container_offset_long * (1L<<16));
-    if(in_container_offset == 0) {
+    int in_container_offset = (int) (offset - container_offset_long * (1L << 16));
+    if (in_container_offset == 0) {
       MutableRoaringBitmap answer = new MutableRoaringBitmap();
-      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+      for (int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
-        answer.getMappeableRoaringArray().append((char)key,
-            x.highLowContainer.getContainerAtIndex(pos).clone());
+        answer
+            .getMappeableRoaringArray()
+            .append((char) key, x.highLowContainer.getContainerAtIndex(pos).clone());
       }
       return answer;
     } else {
       MutableRoaringBitmap answer = new MutableRoaringBitmap();
-      for(int pos = 0; pos < x.highLowContainer.size(); pos++) {
+      for (int pos = 0; pos < x.highLowContainer.size(); pos++) {
         int key = (x.highLowContainer.getKeyAtIndex(pos));
         key += container_offset;
         if (key + 1 < 0 || key > 0xFFFF) {
           continue;
         }
         MappeableContainer c = x.highLowContainer.getContainerAtIndex(pos);
-        MappeableContainer[] offsetted = BufferUtil.addOffset(c,
-                (char)in_container_offset);
+        MappeableContainer[] offsetted = BufferUtil.addOffset(c, (char) in_container_offset);
         boolean keyok = key >= 0;
         boolean keypok = key + 1 <= 0xFFFF;
-        if( !offsetted[0].isEmpty() && keyok) {
+        if (!offsetted[0].isEmpty() && keyok) {
           int current_size = answer.highLowContainer.size();
           int lastkey = 0;
-          if(current_size > 0) {
-            lastkey = (answer.highLowContainer.getKeyAtIndex(
-                    current_size - 1));
+          if (current_size > 0) {
+            lastkey = (answer.highLowContainer.getKeyAtIndex(current_size - 1));
           }
-          if((current_size > 0) && (lastkey == key)) {
-            MappeableContainer prev = answer.highLowContainer
-                    .getContainerAtIndex(current_size - 1);
+          if ((current_size > 0) && (lastkey == key)) {
+            MappeableContainer prev = answer.highLowContainer.getContainerAtIndex(current_size - 1);
             MappeableContainer orresult = prev.ior(offsetted[0]);
-            answer.getMappeableRoaringArray().setContainerAtIndex(current_size - 1,
-                    orresult);
+            answer.getMappeableRoaringArray().setContainerAtIndex(current_size - 1, orresult);
           } else {
-            answer.getMappeableRoaringArray().append((char)key, offsetted[0]);
+            answer.getMappeableRoaringArray().append((char) key, offsetted[0]);
           }
         }
-        if( !offsetted[1].isEmpty()  && keypok) {
-          answer.getMappeableRoaringArray().append((char)(key + 1), offsetted[1]);
+        if (!offsetted[1].isEmpty() && keypok) {
+          answer.getMappeableRoaringArray().append((char) (key + 1), offsetted[1]);
         }
       }
       answer.repairAfterLazy();
@@ -149,9 +148,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new bitmap
    */
-  public static MutableRoaringBitmap add(MutableRoaringBitmap rb, final long rangeStart,
-      final long rangeEnd) {
-    rangeSanityCheck(rangeStart,rangeEnd);
+  public static MutableRoaringBitmap add(
+      MutableRoaringBitmap rb, final long rangeStart, final long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return rb.clone(); // empty range
     }
@@ -162,27 +161,30 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
 
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    ((MutableRoaringArray) answer.highLowContainer).appendCopiesUntil(rb.highLowContainer,
-        (char) hbStart);
+    ((MutableRoaringArray) answer.highLowContainer)
+        .appendCopiesUntil(rb.highLowContainer, (char) hbStart);
 
     if (hbStart == hbLast) {
       final int i = rb.highLowContainer.getIndex((char) hbStart);
       final MappeableContainer c =
-          i >= 0 ? rb.highLowContainer.getContainerAtIndex(i).add(lbStart, lbLast + 1)
+          i >= 0
+              ? rb.highLowContainer.getContainerAtIndex(i).add(lbStart, lbLast + 1)
               : MappeableContainer.rangeOfOnes(lbStart, lbLast + 1);
       ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
-      ((MutableRoaringArray) answer.highLowContainer).appendCopiesAfter(rb.highLowContainer,
-          (char) hbLast);
+      ((MutableRoaringArray) answer.highLowContainer)
+          .appendCopiesAfter(rb.highLowContainer, (char) hbLast);
       return answer;
     }
     int ifirst = rb.highLowContainer.getIndex((char) hbStart);
     int ilast = rb.highLowContainer.getIndex((char) hbLast);
 
     {
-      final MappeableContainer c = ifirst >= 0
-          ? rb.highLowContainer.getContainerAtIndex(ifirst).add(lbStart,
-              BufferUtil.maxLowBitAsInteger() + 1)
-          : MappeableContainer.rangeOfOnes(lbStart, BufferUtil.maxLowBitAsInteger() + 1);
+      final MappeableContainer c =
+          ifirst >= 0
+              ? rb.highLowContainer
+                  .getContainerAtIndex(ifirst)
+                  .add(lbStart, BufferUtil.maxLowBitAsInteger() + 1)
+              : MappeableContainer.rangeOfOnes(lbStart, BufferUtil.maxLowBitAsInteger() + 1);
       ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
     }
     for (int hb = hbStart + 1; hb < hbLast; ++hb) {
@@ -191,12 +193,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     {
       final MappeableContainer c =
-          ilast >= 0 ? rb.highLowContainer.getContainerAtIndex(ilast).add(0, lbLast + 1)
+          ilast >= 0
+              ? rb.highLowContainer.getContainerAtIndex(ilast).add(0, lbLast + 1)
               : MappeableContainer.rangeOfOnes(0, lbLast + 1);
       ((MutableRoaringArray) answer.highLowContainer).append((char) hbLast, c);
     }
-    ((MutableRoaringArray) answer.highLowContainer).appendCopiesAfter(rb.highLowContainer,
-        (char) hbLast);
+    ((MutableRoaringArray) answer.highLowContainer)
+        .appendCopiesAfter(rb.highLowContainer, (char) hbLast);
     return answer;
   }
 
@@ -211,8 +214,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-  public static MutableRoaringBitmap add(MutableRoaringBitmap rb,
-                                           final int rangeStart, final int rangeEnd) {
+  public static MutableRoaringBitmap add(
+      MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return add(rb, (long) rangeStart, (long) rangeEnd);
     }
@@ -220,9 +223,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     // so assume both -ve
     return add(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
-
-
-
 
   /**
    * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
@@ -232,8 +232,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    * @return result of the operation
    */
-  public static MutableRoaringBitmap and(final MutableRoaringBitmap x1,
-      final MutableRoaringBitmap x2) {
+  public static MutableRoaringBitmap and(
+      final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
@@ -268,8 +268,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    * @return result of the operation
    */
-  public static MutableRoaringBitmap andNot(final MutableRoaringBitmap x1,
-      final MutableRoaringBitmap x2) {
+  public static MutableRoaringBitmap andNot(
+      final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
@@ -325,13 +325,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    */
   public void addN(final int[] dat, final int offset, final int n) {
     // let us validate the values first.
-    if((n < 0) || (offset < 0)) {
+    if ((n < 0) || (offset < 0)) {
       throw new IllegalArgumentException("Negative values do not make sense.");
     }
-    if(n == 0) {
+    if (n == 0) {
       return; // nothing to do
     }
-    if(offset + n > dat.length) {
+    if (offset + n > dat.length) {
       throw new IllegalArgumentException("Data source is too small.");
     }
     MutableRoaringArray mra = (MutableRoaringArray) highLowContainer;
@@ -344,24 +344,24 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if (currentcontainerindex >= 0) {
       currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
       MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
-      if(newcont != currentcont) {
+      if (newcont != currentcont) {
         mra.setContainerAtIndex(currentcontainerindex, newcont);
         currentcont = newcont;
       }
     } else {
-      currentcontainerindex = - currentcontainerindex - 1;
+      currentcontainerindex = -currentcontainerindex - 1;
       final MappeableArrayContainer newac = new MappeableArrayContainer();
       currentcont = newac.add(BufferUtil.lowbits(val));
       mra.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
     }
     j++;
-    for( ; j < n; ++j) {
+    for (; j < n; ++j) {
       val = dat[j + offset];
       char newhb = BufferUtil.highbits(val);
-      if(currenthb == newhb) {// easy case
+      if (currenthb == newhb) { // easy case
         // this could be quite frequent
         MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
-        if(newcont != currentcont) {
+        if (newcont != currentcont) {
           mra.setContainerAtIndex(currentcontainerindex, newcont);
           currentcont = newcont;
         }
@@ -371,12 +371,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         if (currentcontainerindex >= 0) {
           currentcont = highLowContainer.getContainerAtIndex(currentcontainerindex);
           MappeableContainer newcont = currentcont.add(BufferUtil.lowbits(val));
-          if(newcont != currentcont) {
+          if (newcont != currentcont) {
             mra.setContainerAtIndex(currentcontainerindex, newcont);
             currentcont = newcont;
           }
         } else {
-          currentcontainerindex = - currentcontainerindex - 1;
+          currentcontainerindex = -currentcontainerindex - 1;
           final MappeableArrayContainer newac = new MappeableArrayContainer();
           currentcont = newac.add(BufferUtil.lowbits(val));
           mra.insertNewKeyValueAt(currentcontainerindex, currenthb, currentcont);
@@ -398,7 +398,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     ans.add(dat);
     return ans;
   }
-
 
   /**
    * @see #add(long, long)
@@ -422,7 +421,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if (hbStart < hbLast) {
       int i = hbStart + 1;
       while (i < hbLast) {
-        MappeableContainer runContainer = MappeableContainer. rangeOfOnes(0, 1 << 16);
+        MappeableContainer runContainer = MappeableContainer.rangeOfOnes(0, 1 << 16);
         bitmap.append((char) i, runContainer);
         i++;
       }
@@ -433,13 +432,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
   protected static void rangeSanityCheck(final long rangeStart, final long rangeEnd) {
-    if (rangeStart < 0 || rangeStart > (1L << 32)-1) {
-      throw new IllegalArgumentException("rangeStart="+ rangeStart
-                                         +" should be in [0, 0xffffffff]");
+    if (rangeStart < 0 || rangeStart > (1L << 32) - 1) {
+      throw new IllegalArgumentException(
+          "rangeStart=" + rangeStart + " should be in [0, 0xffffffff]");
     }
     if (rangeEnd > (1L << 32) || rangeEnd < 0) {
-      throw new IllegalArgumentException("rangeEnd="+ rangeEnd
-                                         +" should be in [0, 0xffffffff + 1]");
+      throw new IllegalArgumentException(
+          "rangeEnd=" + rangeEnd + " should be in [0, 0xffffffff + 1]");
     }
   }
 
@@ -452,8 +451,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return a new Bitmap
    */
-  public static MutableRoaringBitmap flip(MutableRoaringBitmap bm, final long rangeStart,
-      final long rangeEnd) {
+  public static MutableRoaringBitmap flip(
+      MutableRoaringBitmap bm, final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return bm.clone();
@@ -464,7 +463,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int lbStart = (BufferUtil.lowbits(rangeStart));
     final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
     final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
-
 
     // copy the containers before the active area
     answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, (char) hbStart);
@@ -486,8 +484,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
       } else { // *think* the range of ones must never be
         // empty.
-        answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, (char) hb,
-            MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
+        answer
+            .getMappeableRoaringArray()
+            .insertNewKeyValueAt(
+                -j - 1,
+                (char) hb,
+                MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
       }
     }
     // copy the containers after the active area.
@@ -495,7 +497,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
     return answer;
   }
-
 
   /**
    * Complements the bits in the given range, from rangeStart (inclusive) rangeEnd (exclusive). The
@@ -508,8 +509,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-  public static MutableRoaringBitmap flip(MutableRoaringBitmap rb,
-                                            final int rangeStart, final int rangeEnd) {
+  public static MutableRoaringBitmap flip(
+      MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return flip(rb, (long) rangeStart, (long) rangeEnd);
     }
@@ -519,12 +520,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   }
 
   // important: inputs should not have been computed lazily
-  protected static MutableRoaringBitmap lazyorfromlazyinputs(final MutableRoaringBitmap x1,
-      final MutableRoaringBitmap x2) {
+  protected static MutableRoaringBitmap lazyorfromlazyinputs(
+      final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
     MappeableContainerPointer i1 = x1.highLowContainer.getContainerPointer();
     MappeableContainerPointer i2 = x2.highLowContainer.getContainerPointer();
-    main: if (i1.hasContainer() && i2.hasContainer()) {
+    main:
+    if (i1.hasContainer() && i2.hasContainer()) {
       while (true) {
         if (i1.key() == i2.key()) {
           MappeableContainer c1 = i1.getContainer();
@@ -591,19 +593,25 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    * @return result of the operation
    */
-  public static MutableRoaringBitmap or(final MutableRoaringBitmap x1,
-      final MutableRoaringBitmap x2) {
+  public static MutableRoaringBitmap or(
+      final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          answer.getMappeableRoaringArray().append(s1, x1.highLowContainer.getContainerAtIndex(pos1)
-              .or(x2.highLowContainer.getContainerAtIndex(pos2)));
+          answer
+              .getMappeableRoaringArray()
+              .append(
+                  s1,
+                  x1.highLowContainer
+                      .getContainerAtIndex(pos1)
+                      .or(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -612,16 +620,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
         } else if (s1 < s2) {
-          answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer.getKeyAtIndex(pos1),
-              x1.highLowContainer.getContainerAtIndex(pos1));
+          answer
+              .getMappeableRoaringArray()
+              .appendCopy(
+                  x1.highLowContainer.getKeyAtIndex(pos1),
+                  x1.highLowContainer.getContainerAtIndex(pos1));
           pos1++;
           if (pos1 == length1) {
             break main;
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          answer.getMappeableRoaringArray().appendCopy(x2.highLowContainer.getKeyAtIndex(pos2),
-              x2.highLowContainer.getContainerAtIndex(pos2));
+          answer
+              .getMappeableRoaringArray()
+              .appendCopy(
+                  x2.highLowContainer.getKeyAtIndex(pos2),
+                  x2.highLowContainer.getContainerAtIndex(pos2));
           pos2++;
           if (pos2 == length2) {
             break main;
@@ -646,8 +660,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd exclusive ending of range
    * @return new bitmap
    */
-  public static MutableRoaringBitmap remove(MutableRoaringBitmap rb, final long rangeStart,
-      final long rangeEnd) {
+  public static MutableRoaringBitmap remove(
+      MutableRoaringBitmap rb, final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return rb.clone(); // empty range
@@ -657,8 +671,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int hbLast = (BufferUtil.highbits(rangeEnd - 1));
     final int lbLast = (BufferUtil.lowbits(rangeEnd - 1));
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    ((MutableRoaringArray) answer.highLowContainer).appendCopiesUntil(rb.highLowContainer,
-        (char) hbStart);
+    ((MutableRoaringArray) answer.highLowContainer)
+        .appendCopiesUntil(rb.highLowContainer, (char) hbStart);
 
     if (hbStart == hbLast) {
       final int i = rb.highLowContainer.getIndex((char) hbStart);
@@ -669,15 +683,17 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
         }
       }
-      ((MutableRoaringArray) answer.highLowContainer).appendCopiesAfter(rb.highLowContainer,
-          (char) hbLast);
+      ((MutableRoaringArray) answer.highLowContainer)
+          .appendCopiesAfter(rb.highLowContainer, (char) hbLast);
       return answer;
     }
     int ifirst = rb.highLowContainer.getIndex((char) hbStart);
     int ilast = rb.highLowContainer.getIndex((char) hbLast);
     if ((ifirst >= 0) && (lbStart != 0)) {
-      final MappeableContainer c = rb.highLowContainer.getContainerAtIndex(ifirst).remove(lbStart,
-          BufferUtil.maxLowBitAsInteger() + 1);
+      final MappeableContainer c =
+          rb.highLowContainer
+              .getContainerAtIndex(ifirst)
+              .remove(lbStart, BufferUtil.maxLowBitAsInteger() + 1);
       if (!c.isEmpty()) {
         ((MutableRoaringArray) answer.highLowContainer).append((char) hbStart, c);
       }
@@ -689,8 +705,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
         ((MutableRoaringArray) answer.highLowContainer).append((char) hbLast, c);
       }
     }
-    ((MutableRoaringArray) answer.highLowContainer).appendCopiesAfter(rb.highLowContainer,
-        (char) hbLast);
+    ((MutableRoaringArray) answer.highLowContainer)
+        .appendCopiesAfter(rb.highLowContainer, (char) hbLast);
     return answer;
   }
 
@@ -704,8 +720,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @deprecated use the version where longs specify the range
    */
   @Deprecated
-  public static MutableRoaringBitmap remove(MutableRoaringBitmap rb,
-                                              final int rangeStart, final int rangeEnd) {
+  public static MutableRoaringBitmap remove(
+      MutableRoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
       return remove(rb, (long) rangeStart, (long) rangeEnd);
     }
@@ -713,7 +729,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     // so assume both -ve
     return remove(rb, rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
-
 
   /**
    * Bitwise XOR (symmetric difference) operation. The provided bitmaps are *not* modified. This
@@ -723,20 +738,23 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    * @return result of the operation
    */
-  public static MutableRoaringBitmap xor(final MutableRoaringBitmap x1,
-      final MutableRoaringBitmap x2) {
+  public static MutableRoaringBitmap xor(
+      final MutableRoaringBitmap x1, final MutableRoaringBitmap x2) {
     final MutableRoaringBitmap answer = new MutableRoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
 
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          final MappeableContainer c = x1.highLowContainer.getContainerAtIndex(pos1)
-              .xor(x2.highLowContainer.getContainerAtIndex(pos2));
+          final MappeableContainer c =
+              x1.highLowContainer
+                  .getContainerAtIndex(pos1)
+                  .xor(x2.highLowContainer.getContainerAtIndex(pos2));
           if (!c.isEmpty()) {
             answer.getMappeableRoaringArray().append(s1, c);
           }
@@ -748,16 +766,22 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
           s2 = x2.highLowContainer.getKeyAtIndex(pos2);
         } else if (s1 < s2) {
-          answer.getMappeableRoaringArray().appendCopy(x1.highLowContainer.getKeyAtIndex(pos1),
-              x1.highLowContainer.getContainerAtIndex(pos1));
+          answer
+              .getMappeableRoaringArray()
+              .appendCopy(
+                  x1.highLowContainer.getKeyAtIndex(pos1),
+                  x1.highLowContainer.getContainerAtIndex(pos1));
           pos1++;
           if (pos1 == length1) {
             break main;
           }
           s1 = x1.highLowContainer.getKeyAtIndex(pos1);
         } else if (s1 - s2 > 0) {
-          answer.getMappeableRoaringArray().appendCopy(x2.highLowContainer.getKeyAtIndex(pos2),
-              x2.highLowContainer.getContainerAtIndex(pos2));
+          answer
+              .getMappeableRoaringArray()
+              .appendCopy(
+                  x2.highLowContainer.getKeyAtIndex(pos2),
+                  x2.highLowContainer.getContainerAtIndex(pos2));
           pos2++;
           if (pos2 == length2) {
             break main;
@@ -794,8 +818,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     highLowContainer = new MutableRoaringArray();
     ContainerPointer cp = rb.getContainerPointer();
     while (cp.getContainer() != null) {
-      ((MutableRoaringArray) highLowContainer).append(cp.key(),
-          cp.getContainer().toMappeableContainer());
+      ((MutableRoaringArray) highLowContainer)
+          .append(cp.key(), cp.getContainer().toMappeableContainer());
       cp.advance();
     }
   }
@@ -814,8 +838,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final char hb = BufferUtil.highbits(x);
     final int i = highLowContainer.getIndex(hb);
     if (i >= 0) {
-      getMappeableRoaringArray().setContainerAtIndex(i,
-          highLowContainer.getContainerAtIndex(i).add(BufferUtil.lowbits(x)));
+      getMappeableRoaringArray()
+          .setContainerAtIndex(
+              i, highLowContainer.getContainerAtIndex(i).add(BufferUtil.lowbits(x)));
     } else {
       final MappeableArrayContainer newac = new MappeableArrayContainer();
       getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
@@ -851,13 +876,16 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             highLowContainer.getContainerAtIndex(i).iadd(containerStart, containerLast + 1);
         ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, c);
       } else {
-        ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1, (char) hb,
-            MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
+        ((MutableRoaringArray) highLowContainer)
+            .insertNewKeyValueAt(
+                -i - 1,
+                (char) hb,
+                MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
       }
     }
   }
 
- /**
+  /**
    *
    * Add to the current bitmap all integers in [rangeStart,rangeEnd).
    *
@@ -875,16 +903,15 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     add(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
 
-
-
-
   /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
    *
    * @param array other bitmap
    */
   public void and(final ImmutableRoaringBitmap array) {
-    if(array == this) { return; }
+    if (array == this) {
+      return;
+    }
     int pos1 = 0, pos2 = 0, intersectionSize = 0;
     final int length1 = highLowContainer.size(), length2 = array.highLowContainer.size();
 
@@ -909,14 +936,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     getMappeableRoaringArray().resize(intersectionSize);
   }
 
-
   /**
    * In-place bitwise ANDNOT (difference) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
    */
   public void andNot(final ImmutableRoaringBitmap x2) {
-    if(x2 == this) {
+    if (x2 == this) {
       clear();
       return;
     }
@@ -960,12 +986,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeEnd end point of the range (exclusive).
    */
   public void orNot(ImmutableRoaringBitmap other, long rangeEnd) {
-    if(other == this) {
+    if (other == this) {
       throw new UnsupportedOperationException("orNot between a bitmap and itself?");
     }
     rangeSanityCheck(0, rangeEnd);
-    int maxKey = (int)((rangeEnd - 1) >>> 16);
-    int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int)(rangeEnd & 0xFFFF);
+    int maxKey = (int) ((rangeEnd - 1) >>> 16);
+    int lastRun = (rangeEnd & 0xFFFF) == 0 ? 0x10000 : (int) (rangeEnd & 0xFFFF);
     int size = 0;
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size(), length2 = other.highLowContainer.size();
@@ -973,8 +999,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     int s2 = length2 > 0 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
     int remainder = 0;
     for (int i = highLowContainer.size() - 1;
-         i >= 0 && highLowContainer.getKeyAtIndex(i) > maxKey;
-         --i) {
+        i >= 0 && highLowContainer.getKeyAtIndex(i) > maxKey;
+        --i) {
       ++remainder;
     }
     int correction = 0;
@@ -986,8 +1012,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     // it's almost certain that the bitmap will grow, so make a conservative overestimate,
     // this avoids temporary allocation, and can trim afterwards
-    int maxSize = Math.min(maxKey + 1 + remainder - correction
-            + highLowContainer.size(), 0x10000);
+    int maxSize = Math.min(maxKey + 1 + remainder - correction + highLowContainer.size(), 0x10000);
     if (maxSize == 0) {
       return;
     }
@@ -995,27 +1020,36 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     MappeableContainer[] newValues = new MappeableContainer[maxSize];
     for (int key = 0; key <= maxKey && size < maxSize; ++key) {
       if (key == s1 && key == s2) { // actually need to do an or not
-        newValues[size] = highLowContainer.getContainerAtIndex(pos1)
-                .iorNot(other.highLowContainer.getContainerAtIndex(pos2),
-                        key == maxKey ? lastRun : 0x10000);
+        newValues[size] =
+            highLowContainer
+                .getContainerAtIndex(pos1)
+                .iorNot(
+                    other.highLowContainer.getContainerAtIndex(pos2),
+                    key == maxKey ? lastRun : 0x10000);
         ++pos1;
         ++pos2;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else if (key == s1) { // or in a hole
-        newValues[size] = key == maxKey
-            ? highLowContainer.getContainerAtIndex(pos1).ior(
-            MappeableRunContainer.rangeOfOnes(0, lastRun))
-            : MappeableRunContainer.full();
+        newValues[size] =
+            key == maxKey
+                ? highLowContainer
+                    .getContainerAtIndex(pos1)
+                    .ior(MappeableRunContainer.rangeOfOnes(0, lastRun))
+                : MappeableRunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
-        newValues[size] = other.highLowContainer.getContainerAtIndex(pos2)
+        newValues[size] =
+            other
+                .highLowContainer
+                .getContainerAtIndex(pos2)
                 .not(0, key == maxKey ? lastRun : 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? other.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
-        newValues[size] = key == maxKey
+        newValues[size] =
+            key == maxKey
                 ? MappeableRunContainer.rangeOfOnes(0, lastRun)
                 : MappeableRunContainer.full();
       }
@@ -1023,24 +1057,29 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       if (newValues[size].isEmpty()) {
         newValues[size] = null;
       } else {
-        newKeys[size] = (char)key;
+        newKeys[size] = (char) key;
         ++size;
       }
     }
     // copy over everything which will remain without being complemented
     if (remainder > 0) {
-      System.arraycopy(((MutableRoaringArray)highLowContainer).keys,
-              highLowContainer.size() - remainder,
-              newKeys, size, remainder);
-      System.arraycopy(((MutableRoaringArray)highLowContainer).values,
-              highLowContainer.size() - remainder,
-              newValues, size, remainder);
+      System.arraycopy(
+          ((MutableRoaringArray) highLowContainer).keys,
+          highLowContainer.size() - remainder,
+          newKeys,
+          size,
+          remainder);
+      System.arraycopy(
+          ((MutableRoaringArray) highLowContainer).values,
+          highLowContainer.size() - remainder,
+          newValues,
+          size,
+          remainder);
     }
-    ((MutableRoaringArray)highLowContainer).keys = newKeys;
-    ((MutableRoaringArray)highLowContainer).values = newValues;
-    ((MutableRoaringArray)highLowContainer).size = size + remainder;
+    ((MutableRoaringArray) highLowContainer).keys = newKeys;
+    ((MutableRoaringArray) highLowContainer).values = newValues;
+    ((MutableRoaringArray) highLowContainer).size = size + remainder;
   }
-
 
   /**
    * Add the value to the container (set the value to "true"), whether it already appears or not.
@@ -1114,7 +1153,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final MutableRoaringBitmap x = (MutableRoaringBitmap) super.clone();
     x.highLowContainer = highLowContainer.clone();
     return x;
-
   }
 
   /**
@@ -1128,11 +1166,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public void deserialize(DataInput in) throws IOException {
     try {
       getMappeableRoaringArray().deserialize(in);
-    } catch(InvalidRoaringFormat cookie) {
-      throw cookie.toIOException();// we convert it to an IOException
+    } catch (InvalidRoaringFormat cookie) {
+      throw cookie.toIOException(); // we convert it to an IOException
     }
   }
-
 
   /**
    * Deserialize (retrieve) this bitmap.
@@ -1155,8 +1192,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   public void deserialize(ByteBuffer buffer) throws IOException {
     try {
       getMappeableRoaringArray().deserialize(buffer);
-    } catch(InvalidRoaringFormat cookie) {
-      throw cookie.toIOException();// we convert it to an IOException
+    } catch (InvalidRoaringFormat cookie) {
+      throw cookie.toIOException(); // we convert it to an IOException
     }
   }
 
@@ -1178,12 +1215,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       }
     } else {
       final MappeableArrayContainer newac = new MappeableArrayContainer();
-      ((MutableRoaringArray) highLowContainer).insertNewKeyValueAt(-i - 1, hb,
-          newac.add(BufferUtil.lowbits(x)));
+      ((MutableRoaringArray) highLowContainer)
+          .insertNewKeyValueAt(-i - 1, hb, newac.add(BufferUtil.lowbits(x)));
     }
   }
-
-
 
   /**
    * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
@@ -1192,7 +1227,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rangeStart inclusive beginning of range
    * @param rangeEnd exclusive ending of range
    */
-  public void flip(final long rangeStart, final long  rangeEnd) {
+  public void flip(final long rangeStart, final long rangeEnd) {
     rangeSanityCheck(rangeStart, rangeEnd);
     if (rangeStart >= rangeEnd) {
       return; // empty range
@@ -1219,14 +1254,16 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           getMappeableRoaringArray().removeAtIndex(i);
         }
       } else {
-        getMappeableRoaringArray().insertNewKeyValueAt(-i - 1, (char) hb,
-            MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
+        getMappeableRoaringArray()
+            .insertNewKeyValueAt(
+                -i - 1,
+                (char) hb,
+                MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
       }
     }
   }
 
-
- /**
+  /**
    * Modifies the current bitmap by complementing the bits in the given range, from rangeStart
    * (inclusive) rangeEnd (exclusive).
    *
@@ -1244,9 +1281,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       flip(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
     }
   }
-
-
-
 
   /**
    * @return a mutable copy of this bitmap
@@ -1278,8 +1312,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
       private Iterator<Integer> init() {
         if (pos < MutableRoaringBitmap.this.highLowContainer.size()) {
-          iter = MutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-              .getCharIterator();
+          iter =
+              MutableRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getCharIterator();
           hs = (MutableRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos)) << 16;
         }
         return this;
@@ -1297,28 +1331,34 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
 
       @Override
       public void remove() {
-         // todo: implement
+        // todo: implement
         throw new UnsupportedOperationException();
       }
-
     }.init();
   }
 
   // call repairAfterLazy on result, eventually
   // important: x2 should not have been computed lazily
   protected void lazyor(final ImmutableRoaringBitmap x2) {
-    if(this == x2) { return; }
+    if (this == x2) {
+      return;
+    }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          getMappeableRoaringArray().setContainerAtIndex(pos1, highLowContainer
-              .getContainerAtIndex(pos1).lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
+          getMappeableRoaringArray()
+              .setContainerAtIndex(
+                  pos1,
+                  highLowContainer
+                      .getContainerAtIndex(pos1)
+                      .lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -1333,8 +1373,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          getMappeableRoaringArray()
+              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
           pos1++;
           length1++;
           pos2++;
@@ -1355,20 +1395,23 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   // this method is like lazyor except that it will convert
   // the current container to a bitset
   protected void naivelazyor(final ImmutableRoaringBitmap x2) {
-    if(this == x2) { return; }
+    if (this == x2) {
+      return;
+    }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          MappeableBitmapContainer c1 = highLowContainer.getContainerAtIndex(pos1)
-              .toBitmapContainer();
-          getMappeableRoaringArray().setContainerAtIndex(pos1,
-              c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
+          MappeableBitmapContainer c1 =
+              highLowContainer.getContainerAtIndex(pos1).toBitmapContainer();
+          getMappeableRoaringArray()
+              .setContainerAtIndex(pos1, c1.lazyIOR(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -1383,8 +1426,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          getMappeableRoaringArray()
+              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
           pos1++;
           length1++;
           pos2++;
@@ -1399,9 +1442,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       getMappeableRoaringArray().appendCopy(x2.highLowContainer, pos2, length2);
     }
   }
-
-
-
 
   /**
    * In-place bitwise OR (union) operation. The current bitmap is modified.
@@ -1409,18 +1449,25 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param x2 other bitmap
    */
   public void or(final ImmutableRoaringBitmap x2) {
-    if(this == x2) { return; }
+    if (this == x2) {
+      return;
+    }
     int pos1 = 0, pos2 = 0;
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          getMappeableRoaringArray().setContainerAtIndex(pos1, highLowContainer
-              .getContainerAtIndex(pos1).ior(x2.highLowContainer.getContainerAtIndex(pos2)));
+          getMappeableRoaringArray()
+              .setContainerAtIndex(
+                  pos1,
+                  highLowContainer
+                      .getContainerAtIndex(pos1)
+                      .ior(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -1435,8 +1482,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          getMappeableRoaringArray()
+              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
           pos1++;
           length1++;
           pos2++;
@@ -1452,14 +1499,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
   }
 
-
-
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     getMappeableRoaringArray().readExternal(in);
-
   }
-
 
   /**
    * If present remove the specified integers (effectively, sets its bit value to false)
@@ -1473,8 +1516,9 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     if (i < 0) {
       return;
     }
-    getMappeableRoaringArray().setContainerAtIndex(i,
-        highLowContainer.getContainerAtIndex(i).remove(BufferUtil.lowbits(x)));
+    getMappeableRoaringArray()
+        .setContainerAtIndex(
+            i, highLowContainer.getContainerAtIndex(i).remove(BufferUtil.lowbits(x)));
     if (highLowContainer.getContainerAtIndex(i).isEmpty()) {
       getMappeableRoaringArray().removeAtIndex(i);
     }
@@ -1513,8 +1557,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     int ilast = highLowContainer.getIndex((char) hbLast);
     if (ifirst >= 0) {
       if (lbStart != 0) {
-        final MappeableContainer c = highLowContainer.getContainerAtIndex(ifirst).iremove(lbStart,
-            BufferUtil.maxLowBitAsInteger() + 1);
+        final MappeableContainer c =
+            highLowContainer
+                .getContainerAtIndex(ifirst)
+                .iremove(lbStart, BufferUtil.maxLowBitAsInteger() + 1);
         if (!c.isEmpty()) {
           ((MutableRoaringArray) highLowContainer).setContainerAtIndex(ifirst, c);
           ifirst++;
@@ -1541,7 +1587,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     ((MutableRoaringArray) highLowContainer).removeIndexRange(ifirst, ilast);
   }
 
-
   /**
    * Remove from the current bitmap all integers in [rangeStart,rangeEnd).
    *
@@ -1558,7 +1603,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     // so assume both -ve
     remove(rangeStart & 0xFFFFFFFFL, rangeEnd & 0xFFFFFFFFL);
   }
-
 
   /**
    * Remove run-length encoding even when it is more space efficient
@@ -1586,7 +1630,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
       ((MutableRoaringArray) highLowContainer).setContainerAtIndex(k, c.repairAfterLazy());
     }
   }
-
 
   /**
    * Use a run-length encoding where it is estimated as more space efficient
@@ -1649,7 +1692,6 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    */
   public ImmutableRoaringBitmap toImmutableRoaringBitmap() {
     return this;
-
   }
 
   /**
@@ -1665,15 +1707,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     getMappeableRoaringArray().writeExternal(out);
   }
 
-
-
   /**
    * In-place bitwise XOR (symmetric difference) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
    */
   public void xor(final ImmutableRoaringBitmap x2) {
-    if(x2 == this) {
+    if (x2 == this) {
       clear();
       return;
     }
@@ -1681,14 +1721,17 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     int length1 = highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
 
-    main: if (pos1 < length1 && pos2 < length2) {
+    main:
+    if (pos1 < length1 && pos2 < length2) {
       char s1 = highLowContainer.getKeyAtIndex(pos1);
       char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
 
       while (true) {
         if (s1 == s2) {
-          final MappeableContainer c = highLowContainer.getContainerAtIndex(pos1)
-              .ixor(x2.highLowContainer.getContainerAtIndex(pos2));
+          final MappeableContainer c =
+              highLowContainer
+                  .getContainerAtIndex(pos1)
+                  .ixor(x2.highLowContainer.getContainerAtIndex(pos2));
           if (!c.isEmpty()) {
             this.getMappeableRoaringArray().setContainerAtIndex(pos1, c);
             pos1++;
@@ -1709,8 +1752,8 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
-          getMappeableRoaringArray().insertNewKeyValueAt(pos1, s2,
-              x2.highLowContainer.getContainerAtIndex(pos2).clone());
+          getMappeableRoaringArray()
+              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
           pos1++;
           length1++;
           pos2++;

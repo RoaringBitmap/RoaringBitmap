@@ -1,11 +1,10 @@
 package org.roaringbitmap.writer;
 
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
-
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -14,6 +13,7 @@ public class WriteUnordered {
 
   @Param({"10000", "100000", "1000000", "10000000"})
   int size;
+
   @Param({"0.1", "0.5", "0.9"})
   double randomness;
 
@@ -76,4 +76,3 @@ public class WriteUnordered {
     return RoaringBitmap.bitmapOf(copy);
   }
 }
-

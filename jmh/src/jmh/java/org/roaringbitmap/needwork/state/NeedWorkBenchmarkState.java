@@ -24,10 +24,20 @@ import org.roaringbitmap.AbstractBenchmarkState;
 @State(Scope.Benchmark)
 public class NeedWorkBenchmarkState extends AbstractBenchmarkState {
 
-  @Param({// putting the data sets in alpha. order
-      CENSUS_INCOME, CENSUS1881, DIMENSION_008, DIMENSION_003, DIMENSION_033, USCENSUS2000,
-      WEATHER_SEPT_85, WIKILEAKS_NOQUOTES, CENSUS_INCOME_SRT, CENSUS1881_SRT, WEATHER_SEPT_85_SRT,
-      WIKILEAKS_NOQUOTES_SRT})
+  @Param({ // putting the data sets in alpha. order
+    CENSUS_INCOME,
+    CENSUS1881,
+    DIMENSION_008,
+    DIMENSION_003,
+    DIMENSION_033,
+    USCENSUS2000,
+    WEATHER_SEPT_85,
+    WIKILEAKS_NOQUOTES,
+    CENSUS_INCOME_SRT,
+    CENSUS1881_SRT,
+    WEATHER_SEPT_85_SRT,
+    WIKILEAKS_NOQUOTES_SRT
+  })
   public String dataset;
 
   @Param({ROARING, ROARING_WITH_RUN})
@@ -36,12 +46,10 @@ public class NeedWorkBenchmarkState extends AbstractBenchmarkState {
   @Param({"false", "true"})
   public boolean immutable;
 
-
   public NeedWorkBenchmarkState() {}
 
   @Setup
   public void setup() throws Exception {
     super.setup(dataset, type, immutable);
   }
-
 }

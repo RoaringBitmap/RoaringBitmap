@@ -1,8 +1,7 @@
 package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.*;
-
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.*;
 
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 3, timeUnit = TimeUnit.MILLISECONDS, time = 2000)
@@ -120,8 +119,8 @@ public class CheckedAddBenchmark {
         return true;
       }
     } else {
-      @SuppressWarnings("SpellCheckingInspection") final ArrayContainer newac =
-          new ArrayContainer();
+      @SuppressWarnings("SpellCheckingInspection")
+      final ArrayContainer newac = new ArrayContainer();
       bitmap.highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
       return true;
     }

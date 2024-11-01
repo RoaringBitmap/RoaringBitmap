@@ -1,15 +1,14 @@
 package org.roaringbitmap.bsi.buffer;
 
+import java.io.DataOutput;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.Pair;
 import org.roaringbitmap.bsi.WritableUtils;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-
-import java.io.DataOutput;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * ImmutableBSI
@@ -28,16 +27,15 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
    * @param maxValue
    * @param minValue
    */
-
-  public ImmutableBitSliceIndex(int maxValue, int minValue, ImmutableRoaringBitmap[] bA, ImmutableRoaringBitmap ebM) {
+  public ImmutableBitSliceIndex(
+      int maxValue, int minValue, ImmutableRoaringBitmap[] bA, ImmutableRoaringBitmap ebM) {
     this.maxValue = maxValue;
     this.minValue = minValue;
     this.bA = bA;
     this.ebM = ebM;
   }
 
-  public ImmutableBitSliceIndex() {
-  }
+  public ImmutableBitSliceIndex() {}
 
   /**
    * constructs a BSI from byteBuffer
@@ -70,11 +68,9 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
     this.bA = ba;
   }
 
-
   public void addDigit(ImmutableRoaringBitmap foundSet, int i) {
     throw new UnsupportedOperationException("ImmutableBSI don't support setValue");
   }
-
 
   public ImmutableRoaringBitmap getExistenceBitmap() {
     return this.ebM;
@@ -84,10 +80,9 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
     throw new UnsupportedOperationException("ImmutableBSI don't support setValue");
   }
 
-
   @Override
-  public void setValues(List<Pair<Integer, Integer>> values,
-      Integer currentMaxValue, Integer currentMinValue) {
+  public void setValues(
+      List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue) {
     throw new UnsupportedOperationException("ImmutableBSI don't support setValues");
   }
 
@@ -95,7 +90,6 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
   public void setValues(List<Pair<Integer, Integer>> values) {
     throw new UnsupportedOperationException("ImmutableBSI does not support setting values");
   }
-
 
   public void add(BitmapSliceIndex otherBitmapSliceIndex) {
     throw new UnsupportedOperationException("ImmutableBSI don't support add");
@@ -141,7 +135,6 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
     }
   }
 
-
   public int serializedSizeInBytes() {
     int size = 0;
     for (ImmutableRoaringBitmap rb : this.bA) {
@@ -150,15 +143,15 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
     return 4 + 4 + 1 + 4 + this.ebM.serializedSizeInBytes() + size;
   }
 
-
   public MutableBitSliceIndex toMutableBitSliceIndex() {
     MutableRoaringBitmap[] ibA = new MutableRoaringBitmap[this.bA.length];
     for (int i = 0; i < this.bA.length; i++) {
       ibA[i] = this.bA[i].toMutableRoaringBitmap();
     }
 
-    MutableBitSliceIndex bsi = new MutableBitSliceIndex(
-        this.maxValue, this.minValue, ibA, this.ebM.toMutableRoaringBitmap());
+    MutableBitSliceIndex bsi =
+        new MutableBitSliceIndex(
+            this.maxValue, this.minValue, ibA, this.ebM.toMutableRoaringBitmap());
     return bsi;
   }
 
@@ -175,7 +168,4 @@ public class ImmutableBitSliceIndex extends BitSliceIndexBase implements BitmapS
 
     return bsi;
   }
-
-
 }
-

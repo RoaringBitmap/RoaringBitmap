@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-
 import org.roaringbitmap.*;
 import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.KeyIterator;
@@ -233,17 +232,14 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         // Only part of the container is in range
         char containerRangeStart = LongUtils.lowPart(start);
         char containerRangeEnd = LongUtils.lowPart(end);
-        container.forAllInRange(
-            LongUtils.lowPart(start),
-            LongUtils.lowPart(end),
-            rrc);
+        container.forAllInRange(LongUtils.lowPart(start), LongUtils.lowPart(end), rrc);
         filledUntil += containerRangeEnd - containerRangeStart;
-      } else if (startInContainer) {//  && !endInContainer
+      } else if (startInContainer) { //  && !endInContainer
         // range begins within the container
         char containerRangeStart = LongUtils.lowPart(start);
         container.forAllFrom(containerRangeStart, rrc);
         filledUntil += BitmapContainer.MAX_CAPACITY - containerRangeStart;
-      } else if (endInContainer) {// && !startInContainer
+      } else if (endInContainer) { // && !startInContainer
         // range end within the container
         char containerRangeEnd = LongUtils.lowPart(end);
         container.forAllUntil(containerRangeStartOffset, containerRangeEnd, rrc);
@@ -317,7 +313,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void or(final Roaring64Bitmap x2) {
-    if(this == x2) { return; }
+    if (this == x2) {
+      return;
+    }
     KeyIterator highIte2 = x2.highLowContainer.highKeyIterator();
     while (highIte2.hasNext()) {
       byte[] high = highIte2.next();
@@ -390,7 +388,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void xor(final Roaring64Bitmap x2) {
-    if(x2 == this) {
+    if (x2 == this) {
       clear();
       return;
     }
@@ -466,7 +464,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void and(final Roaring64Bitmap x2) {
-    if(x2 == this) { return; }
+    if (x2 == this) {
+      return;
+    }
     KeyIterator thisIterator = highLowContainer.highKeyIterator();
     while (thisIterator.hasNext()) {
       byte[] highKey = thisIterator.next();
@@ -597,7 +597,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    * @param x2 other bitmap
    */
   public void andNot(final Roaring64Bitmap x2) {
-    if(x2 == this) {
+    if (x2 == this) {
       clear();
       return;
     }
@@ -657,13 +657,13 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   public void flip(final long rangeStart, final long rangeEnd) {
 
-    if(rangeEnd >= 0 && rangeStart >= rangeEnd){
+    if (rangeEnd >= 0 && rangeStart >= rangeEnd) {
       // both numbers in positive range, and start is beyond end, nothing to do.
       return;
-    } else if(rangeStart < 0 && rangeStart >= rangeEnd){
+    } else if (rangeStart < 0 && rangeStart >= rangeEnd) {
       // both numbers in negative range, and start is beyond end, nothing to do.
       return;
-    } else if(rangeStart < 0 && rangeEnd > 0) {
+    } else if (rangeStart < 0 && rangeEnd > 0) {
       // start is neg which is "higher" and end is above zero thus, nothing to do.
       return;
     }
@@ -682,7 +682,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       // last container may contain partial range
       final int containerLast = (hb == shEnd) ? lbLast : LongUtils.maxLowBitAsInteger();
 
-      ContainerWithIndex cwi = highLowContainer.searchContainer(
+      ContainerWithIndex cwi =
+          highLowContainer.searchContainer(
               LongUtils.highPartInPlace(LongUtils.leftShiftHighPart(hb), hbStart));
 
       if (cwi != null) {
@@ -724,8 +725,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   @Override
   public String toString() {
-    final StringBuilder answer = new StringBuilder("{}".length() + "-1234567890123456789,".length()
-        * 256);
+    final StringBuilder answer =
+        new StringBuilder("{}".length() + "-1234567890123456789,".length() * 256);
     final LongIterator i = this.getLongIterator();
     answer.append('{');
     if (i.hasNext()) {
@@ -743,7 +744,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     answer.append("}");
     return answer.toString();
   }
-
 
   /**
    * For better performance, consider the Use the {@link #forEach forEach} method.
@@ -789,7 +789,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   public int getSizeInBytes() {
     return (int) getLongSizeInBytes();
   }
-
 
   /**
    * Estimate of the memory usage of this data structure. This can be expected to be within 1% of
@@ -861,7 +860,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
     return hasChanged;
   }
-
 
   /**
    * Serialize this bitmap.
@@ -1041,8 +1039,8 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKeyBytes);
       if (containerWithIndex != null) {
         long containerIdx = containerWithIndex.getContainerIdx();
-        Container freshContainer = highLowContainer.getContainer(containerIdx)
-            .iadd(containerStart, containerLast + 1);
+        Container freshContainer =
+            highLowContainer.getContainer(containerIdx).iadd(containerStart, containerLast + 1);
         highLowContainer.replaceContainer(containerIdx, freshContainer);
       } else {
         Container freshContainer = Container.rangeOfOnes(containerStart, containerLast + 1);
@@ -1052,7 +1050,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       if (LongUtils.isMaxHigh(startHighKey)) {
         break;
       }
-      //increase the high
+      // increase the high
       rangeStartVal = rangeStartVal + (containerLast - containerStart) + 1;
       startHighKey = LongUtils.rightShiftHighPart(rangeStartVal);
       startHighKeyBytes = LongUtils.highPart(rangeStartVal);
@@ -1110,7 +1108,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       if (container.isEmpty()) {
         keyIterator.remove();
       } else {
-        //TODO
+        // TODO
         container.trim();
       }
     }
@@ -1136,7 +1134,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     return Objects.equals(highLowContainer, other.highLowContainer);
   }
 
-
   /**
    * Add the value if it is not already present, otherwise remove it.
    *
@@ -1154,7 +1151,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
   }
 
-  //mainly used for benchmark
+  // mainly used for benchmark
   @Override
   public Roaring64Bitmap clone() {
     long sizeInBytesL = this.serializedSizeInBytes();
@@ -1174,7 +1171,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
   }
 
-
   private abstract class PeekableIterator implements PeekableLongIterator {
     private final LeafNodeIterator keyIte;
     private byte[] high;
@@ -1185,6 +1181,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
 
     abstract PeekableCharIterator getIterator(Container container);
+
     abstract boolean compare(long next, long val);
 
     @Override
@@ -1198,7 +1195,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         long containerIdx = leafNode.getContainerIdx();
         Container container = highLowContainer.getContainer(containerIdx);
         charIterator = getIterator(container);
-        if(charIterator.hasNext()){
+        if (charIterator.hasNext()) {
           return true;
         }
       }
@@ -1220,11 +1217,11 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       if (!hasNext()) {
         return;
       }
-      if(compare(this.peekNext(), minval)) {
+      if (compare(this.peekNext(), minval)) {
         return;
       }
-      //empty bitset
-      if(this.high == null) {
+      // empty bitset
+      if (this.high == null) {
         return;
       }
 
@@ -1239,7 +1236,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
             long containerIdx = leafNode.getContainerIdx();
             Container container = highLowContainer.getContainer(containerIdx);
             charIterator = getIterator(container);
-            if(!charIterator.hasNext()){
+            if (!charIterator.hasNext()) {
               return;
             }
           } else {
@@ -1250,7 +1247,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
               long containerIdx = leafNode.getContainerIdx();
               Container container = highLowContainer.getContainer(containerIdx);
               charIterator = getIterator(container);
-              if(!charIterator.hasNext()){
+              if (!charIterator.hasNext()) {
                 return;
               }
             } else {
@@ -1286,7 +1283,6 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       throw new UnsupportedOperationException("TODO");
     }
   }
-
 
   private class ForwardPeekableIterator extends PeekableIterator {
 

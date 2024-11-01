@@ -3,15 +3,12 @@
  */
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-
-import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 
 /**
  * Check FastRankRoaringBitmap dismiss the caches cardinalities when necessary
@@ -131,7 +128,6 @@ public class TestRoaringBitmap_FastRank {
     assertEquals(1, b.rank(-234 + 1));
   }
 
-
   @Test
   public void addSmallAddNegativeRemoveNegative() {
     FastRankRoaringBitmap b = new FastRankRoaringBitmap();
@@ -185,7 +181,6 @@ public class TestRoaringBitmap_FastRank {
     for (int i = 0; i < nbReallyAdded; i++) {
       int selected = b.select(r.nextInt(nbReallyAdded - i));
       b.remove(selected);
-
     }
     assertEquals(0, b.getLongCardinality());
   }
@@ -236,10 +231,12 @@ public class TestRoaringBitmap_FastRank {
 
   @Test
   public void selectOnEmpty() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      FastRankRoaringBitmap b = new FastRankRoaringBitmap();
-      b.select(0);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          FastRankRoaringBitmap b = new FastRankRoaringBitmap();
+          b.select(0);
+        });
   }
 
   @Test
@@ -265,8 +262,8 @@ public class TestRoaringBitmap_FastRank {
     long timeNormal = System.currentTimeMillis() - startNormal;
 
     // Mixed workload: "fast" is expected slower as it recomputer cardinality regularly
-    System.out
-        .println("AddSelectRemoveAreMixed LargeInts FastRankRoaringBitmap=" + timeFast + "ms");
+    System.out.println(
+        "AddSelectRemoveAreMixed LargeInts FastRankRoaringBitmap=" + timeFast + "ms");
     System.out.println("AddSelectRemoveAreMixed LargeInts RoaringBitmap=" + timeNormal + "ms");
   }
 
@@ -293,8 +290,8 @@ public class TestRoaringBitmap_FastRank {
     long timeNormal = System.currentTimeMillis() - startNormal;
 
     // Mixed workload: "fast" is expected slower as it recomputes cardinality regularly
-    System.out
-        .println("AddSelectRemoveAreMixed SmallInts FastRankRoaringBitmap=" + timeFast + "ms");
+    System.out.println(
+        "AddSelectRemoveAreMixed SmallInts FastRankRoaringBitmap=" + timeFast + "ms");
     System.out.println("AddSelectRemoveAreMixed SmallInts RoaringBitmap=" + timeNormal + "ms");
   }
 
@@ -340,8 +337,6 @@ public class TestRoaringBitmap_FastRank {
     System.out.println("AddOnlyThenSelectOnly FastRankRoaringBitmap=" + timeFast + "ms");
     System.out.println("AddOnlyThenSelectOnly RoaringBitmap=" + timeNormal + "ms");
   }
-
-
 
   private FastRankRoaringBitmap prepareFastWithComputedCache() {
     FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
@@ -529,15 +524,22 @@ public class TestRoaringBitmap_FastRank {
     roaringBitmap.add(3);
     roaringBitmap.add(5);
     assertEquals(5, roaringBitmap.select(roaringBitmap.getCardinality() - 1));
-    assertThrows(IllegalArgumentException.class, () -> roaringBitmap.select(roaringBitmap.getCardinality()));
-    assertThrows(IllegalArgumentException.class, () -> roaringBitmap.select(roaringBitmap.getCardinality() + 1));
+    assertThrows(
+        IllegalArgumentException.class, () -> roaringBitmap.select(roaringBitmap.getCardinality()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> roaringBitmap.select(roaringBitmap.getCardinality() + 1));
 
     // FastRankRoaringBitmap behavior has to be identical
     FastRankRoaringBitmap rankRoaringBitmap = new FastRankRoaringBitmap();
     rankRoaringBitmap.add(3);
     rankRoaringBitmap.add(5);
     assertEquals(5, rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() - 1));
-    assertThrows(IllegalArgumentException.class, () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality()));
-    assertThrows(IllegalArgumentException.class, () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() + 1));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() + 1));
   }
 }

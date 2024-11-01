@@ -1,9 +1,8 @@
 package org.roaringbitmap;
 
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 3, timeUnit = TimeUnit.MILLISECONDS, time = 1000)
@@ -39,7 +38,6 @@ public class SelectTopValuesBenchmark {
   public MutableRoaringBitmap limit() {
     return bitmap.limit(n);
   }
-
 
   @Benchmark
   public MutableRoaringBitmap add() {

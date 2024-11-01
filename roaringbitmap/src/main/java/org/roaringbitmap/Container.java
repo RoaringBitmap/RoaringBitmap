@@ -4,20 +4,19 @@
 
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.MappeableContainer;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
+import org.roaringbitmap.buffer.MappeableContainer;
 
 /**
  * Base container class.
  */
-public abstract class Container implements Iterable<Character>, Cloneable, Externalizable,
-        WordStorage<Container> {
+public abstract class Container
+    implements Iterable<Character>, Cloneable, Externalizable, WordStorage<Container> {
 
   /**
    * Create a container initialized with a range of consecutive values
@@ -87,7 +86,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
     return and((RunContainer) x);
   }
 
-
   /**
    * Computes the bitwise AND of this container with another (intersection). This container as well
    * as the provided container are left unaffected.
@@ -135,7 +133,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
     return getCardinality() + other.getCardinality() - 2 * andCardinality(other);
   }
 
-
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
    * as the provided container are left unaffected.
@@ -169,7 +166,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
     }
     return andNot((RunContainer) x);
   }
-
 
   /**
    * Computes the bitwise ANDNOT of this container with another (difference). This container as well
@@ -231,23 +227,21 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract boolean contains(int minimum, int supremum);
 
-
   /**
    * Checks whether the container is a subset of this container or not
    * @param subset the container to be tested
    * @return true if the parameter is a subset of this container
    */
   public boolean contains(Container subset) {
-    if(subset instanceof RunContainer) {
-      return contains((RunContainer)subset);
-    } else if(subset instanceof ArrayContainer) {
+    if (subset instanceof RunContainer) {
+      return contains((RunContainer) subset);
+    } else if (subset instanceof ArrayContainer) {
       return contains((ArrayContainer) subset);
-    } else if(subset instanceof BitmapContainer){
-      return contains((BitmapContainer)subset);
+    } else if (subset instanceof BitmapContainer) {
+      return contains((BitmapContainer) subset);
     }
     return false;
   }
-
 
   protected abstract boolean contains(RunContainer runContainer);
 
@@ -263,7 +257,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void deserialize(DataInput in) throws IOException;
 
-
   /**
    * Fill the least significant 16 bits of the integer array, starting at index i, with the short
    * values from this container. The caller is responsible to allocate enough room. The most
@@ -275,8 +268,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @param mask indicates most significant bits
    */
   public abstract void fillLeastSignificant16bits(int[] x, int i, int mask);
-
-
 
   /**
    * Add a short to the container if it is not present, otherwise remove it. May generate a new
@@ -320,8 +311,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   /**
    * Name of the various possible containers
    */
-  public static final String[] ContainerNames = {"bitmap","array","run"};
-
+  public static final String[] ContainerNames = {"bitmap", "array", "run"};
 
   /**
    * Iterate through the values of this container and pass them
@@ -365,10 +355,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @param endValue First value greater than last value to consume.
    * @param rrc consumer
    */
-  public abstract void forAllUntil(
-      int offset,
-      char endValue,
-      final RelativeRangeConsumer rrc);
+  public abstract void forAllUntil(int offset, char endValue, final RelativeRangeConsumer rrc);
 
   /**
    * Consumer presence information for all values in the
@@ -379,9 +366,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @param rrc consumer
    */
   public abstract void forAllInRange(
-      char startValue,
-      char endValue,
-      final RelativeRangeConsumer rrc);
+      char startValue, char endValue, final RelativeRangeConsumer rrc);
 
   /**
    * Iterator to visit the char values in the container in descending order.
@@ -437,7 +422,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract Container iand(ArrayContainer x);
 
-
   /**
    * Computes the in-place bitwise AND of this container with another (intersection). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
@@ -485,7 +469,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract Container iandNot(ArrayContainer x);
 
-
   /**
    * Computes the in-place bitwise ANDNOT of this container with another (difference). The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
@@ -523,7 +506,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract Container iandNot(RunContainer x);
 
-
   /**
    * Computes the in-place bitwise ORNOT of this container with another. The current
    * container is generally modified, whereas the provided container (x) is unaffected. May generate
@@ -539,9 +521,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
     }
     return ior(x.not(0, 0x10000));
   }
-
-
-
 
   /**
    * Computes the in-place bitwise NOT of this container (complement). Only those bits within the
@@ -676,7 +655,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract Container ixor(BitmapContainer x);
 
-
   /**
    * Computes the in-place bitwise OR of this container with another (union). The current container
    * is generally modified, whereas the provided container (x) is unaffected. May generate a new
@@ -717,7 +695,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public Container lazyIOR(Container x) {
     if (this instanceof ArrayContainer) {
       if (x instanceof ArrayContainer) {
-        return ((ArrayContainer)this).lazyor((ArrayContainer) x);
+        return ((ArrayContainer) this).lazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
         return ior((BitmapContainer) x);
       }
@@ -751,7 +729,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public Container lazyOR(Container x) {
     if (this instanceof ArrayContainer) {
       if (x instanceof ArrayContainer) {
-        return ((ArrayContainer)this).lazyor((ArrayContainer) x);
+        return ((ArrayContainer) this).lazyor((ArrayContainer) x);
       } else if (x instanceof BitmapContainer) {
         return ((BitmapContainer) x).lazyor((ArrayContainer) this);
       }
@@ -792,7 +770,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
   public abstract Container not(int rangeStart, int rangeEnd);
 
   abstract int numberOfRuns(); // exact
-
 
   /**
    * Computes the bitwise OR of this container with another (union). This container as well as the
@@ -836,7 +813,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @return aggregated container
    */
   public abstract Container or(RunContainer x);
-
 
   /**
    * Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be
@@ -898,7 +874,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void serialize(DataOutput out) throws IOException;
 
-
   /**
    * Report the number of bytes required to serialize this container.
    *
@@ -912,7 +887,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @return the mappeable container
    */
   public abstract MappeableContainer toMappeableContainer();
-
 
   /**
    * If possible, recover wasted memory.
@@ -934,7 +908,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract void writeArray(ByteBuffer buffer);
 
-
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container
    * as well as the provided container are left unaffected.
@@ -952,7 +925,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @return aggregated container
    */
   public abstract Container xor(BitmapContainer x);
-
 
   /**
    * Computes the bitwise XOR of this container with another (symmetric difference). This container
@@ -1025,7 +997,6 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    */
   public abstract int previousAbsentValue(char fromValue);
 
-
   /**
    * Get the first integer held in the container
    * @return the first integer in the container
@@ -1046,7 +1017,7 @@ public abstract class Container implements Iterable<Character>, Cloneable, Exter
    * @throws NoSuchElementException if empty
    */
   protected void assertNonEmpty(boolean condition) {
-    if(condition) {
+    if (condition) {
       throw new NoSuchElementException("Empty " + getContainerName());
     }
   }

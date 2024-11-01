@@ -2,15 +2,15 @@
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
 
-
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -18,10 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 public class TestIterators {
   private static List<Integer> asList(IntIterator ints) {
@@ -37,25 +34,27 @@ public class TestIterators {
   }
 
   private static List<Integer> asList(final CharIterator shorts) {
-    return asList(new IntIterator() {
-      @Override
-      public IntIterator clone() {
-        throw new UnsupportedOperationException();
-      }
+    return asList(
+        new IntIterator() {
+          @Override
+          public IntIterator clone() {
+            throw new UnsupportedOperationException();
+          }
 
-      @Override
-      public boolean hasNext() {
-        return shorts.hasNext();
-      }
+          @Override
+          public boolean hasNext() {
+            return shorts.hasNext();
+          }
 
-      @Override
-      public int next() {
-        return shorts.next();
-      }
-    });
+          @Override
+          public int next() {
+            return shorts.next();
+          }
+        });
   }
 
-  private static int[] takeSortedAndDistinct(Random source, int count, Comparator<Integer> comparator) {
+  private static int[] takeSortedAndDistinct(
+      Random source, int count, Comparator<Integer> comparator) {
     HashSet<Integer> ints = new HashSet<Integer>(count);
     for (int size = 0; size < count; size++) {
       int next;
@@ -101,7 +100,8 @@ public class TestIterators {
     assertEquals(bitmap.getCardinality(), reverseIntIteratorCopy.size());
     assertEquals(Ints.asList(data), iteratorCopy);
     assertEquals(Ints.asList(data), intIteratorCopy);
-    assertEquals(Ints.asList(data).stream().sorted().collect(Collectors.toList()), signedIntIteratorCopy);
+    assertEquals(
+        Ints.asList(data).stream().sorted().collect(Collectors.toList()), signedIntIteratorCopy);
     assertEquals(Lists.reverse(Ints.asList(data)), reverseIntIteratorCopy);
   }
 
@@ -141,7 +141,7 @@ public class TestIterators {
       pii.next();
       assertEquals(data[i], pii.peekNext());
     }
-    bitmap.getIntIterator().advanceIfNeeded(-1);// should not crash
+    bitmap.getIntIterator().advanceIfNeeded(-1); // should not crash
   }
 
   @Test
@@ -177,10 +177,10 @@ public class TestIterators {
   public void testSkipsDense() {
     RoaringBitmap bitmap = new RoaringBitmap();
     int N = 100000;
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       bitmap.add(2 * i);
     }
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(2 * i);
       assertEquals(pii.peekNext(), 2 * i);
@@ -197,18 +197,22 @@ public class TestIterators {
     bitmap.add(Integer.MAX_VALUE - 2);
     // Adding this one leads to the issue
     bitmap.add(Integer.MAX_VALUE - 3);
-    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
-      if (!bitmap.contains(e)) {
-        throw new IllegalStateException("Not expecting to find: " + e);
-      }
-    });
+    bitmap.forEach(
+        (org.roaringbitmap.IntConsumer)
+            e -> {
+              if (!bitmap.contains(e)) {
+                throw new IllegalStateException("Not expecting to find: " + e);
+              }
+            });
 
     bitmap.runOptimize(); // This is the line causing the issue
-    bitmap.forEach((org.roaringbitmap.IntConsumer) e -> {
-      if (!bitmap.contains(e)) {
-        throw new IllegalStateException("Not expecting to find: " + e);
-      }
-    });
+    bitmap.forEach(
+        (org.roaringbitmap.IntConsumer)
+            e -> {
+              if (!bitmap.contains(e)) {
+                throw new IllegalStateException("Not expecting to find: " + e);
+              }
+            });
   }
 
   @Test
@@ -216,7 +220,7 @@ public class TestIterators {
     RoaringBitmap bitmap = new RoaringBitmap();
     bitmap.add(4L, 100000L);
     bitmap.runOptimize();
-    for(int i = 4; i < 100000; ++i) {
+    for (int i = 4; i < 100000; ++i) {
       PeekableIntIterator pii = bitmap.getIntIterator();
       pii.advanceIfNeeded(i);
       assertEquals(pii.peekNext(), i);
@@ -226,15 +230,15 @@ public class TestIterators {
 
   @Test
   public void testIndexIterator4() throws Exception {
-      RoaringBitmap b = new RoaringBitmap();
-      for (int i = 0; i < 4096; i++) {
-          b.add(i);
-      }
-      PeekableIntIterator it = b.getIntIterator();
-      it.advanceIfNeeded(4096);
-      while (it.hasNext()) {
-          it.next();
-      }
+    RoaringBitmap b = new RoaringBitmap();
+    for (int i = 0; i < 4096; i++) {
+      b.add(i);
+    }
+    PeekableIntIterator it = b.getIntIterator();
+    it.advanceIfNeeded(4096);
+    while (it.hasNext()) {
+      it.next();
+    }
   }
 
   @Test
@@ -294,7 +298,7 @@ public class TestIterators {
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
     assertFalse(bitset.contains(4325376 - 5)); // same container
-    bitIt.advanceIfNeeded( 4325376 - 5);
+    bitIt.advanceIfNeeded(4325376 - 5);
 
     assertEquals(6000000, bitIt.peekNext());
 
@@ -316,7 +320,7 @@ public class TestIterators {
     // advancing to a value not in any range but beyond second range
     // should go to the first value of third range
     assertFalse(bitset.contains(4325376 + 5)); // next container
-    bitIt.advanceIfNeeded( 4325376 + 5);
+    bitIt.advanceIfNeeded(4325376 + 5);
 
     assertEquals(6000000, bitIt.peekNext());
 

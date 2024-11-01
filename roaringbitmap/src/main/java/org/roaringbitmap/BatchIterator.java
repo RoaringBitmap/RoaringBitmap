@@ -69,6 +69,4 @@ public interface BatchIterator extends Cloneable {
    * @param target threshold
    */
   void advanceIfNeeded(int target);
-
-
 }

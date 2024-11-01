@@ -4,7 +4,7 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
+import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 import java.io.DataOutput;
 import java.io.IOException;
@@ -15,9 +15,7 @@ import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
-
+import org.roaringbitmap.*;
 
 /**
  * Simple container made of an array of 16-bit integers. Unlike org.roaringbitmap.ArrayContainer,
@@ -27,7 +25,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   private static final int DEFAULT_INIT_SIZE = 4;
   private static final int ARRAY_LAZY_LOWERBOUND = 1024;
   protected static final int DEFAULT_MAX_SIZE = 4096; // containers with DEFAULT_MAX_SZE or less
-                                                      // integers should be ArrayContainers
+  // integers should be ArrayContainers
 
   private static final long serialVersionUID = 1L;
 
@@ -41,10 +39,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   protected int cardinality = 0;
 
-
   protected CharBuffer content;
-
-
 
   /**
    * Create an array container with default capacity
@@ -66,7 +61,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     this.cardinality = bc.getCardinality();
     this.content = bc.toCharBuffer();
   }
-
 
   /**
    * Create an array container with specified capacity
@@ -96,7 +90,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   private MappeableArrayContainer(int newCard, CharBuffer newContent) {
     this.cardinality = newCard;
-    CharBuffer tmp = newContent.duplicate();// for thread-safety
+    CharBuffer tmp = newContent.duplicate(); // for thread-safety
     this.content = CharBuffer.allocate(Math.max(newCard, tmp.limit()));
     tmp.rewind();
     this.content.put(tmp);
@@ -130,8 +124,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
-        (char) (end - 1));
+    int indexend =
+        BufferUtil.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -147,8 +141,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (!BufferUtil.isBackedBySimpleArray(answer.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    BufferUtil.arraycopy(content, indexend, answer.content, indexstart + rangelength,
-        cardinality - indexend);
+    BufferUtil.arraycopy(
+        content, indexend, answer.content, indexstart + rangelength, cardinality - indexend);
     char[] answerarray = answer.content.array();
     for (int k = 0; k < rangelength; ++k) {
       answerarray[k + indexstart] = (char) (begin + k);
@@ -166,8 +160,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(this.content)) {
       char[] sarray = content.array();
 
-      if (cardinality == 0 || (cardinality > 0
-              && (x) > (sarray[cardinality - 1]))) {
+      if (cardinality == 0 || (cardinality > 0 && (x) > (sarray[cardinality - 1]))) {
         if (cardinality >= DEFAULT_MAX_SIZE) {
           return toBitmapContainer().add(x);
         }
@@ -199,8 +192,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         }
       }
     } else {
-      if (cardinality == 0 || (cardinality > 0
-              && (x) > (content.get(cardinality - 1)))) {
+      if (cardinality == 0 || (cardinality > 0 && (x) > (content.get(cardinality - 1)))) {
         if (cardinality >= DEFAULT_MAX_SIZE) {
           return toBitmapContainer().add(x);
         }
@@ -282,7 +274,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
   }
 
-
   @Override
   public MappeableArrayContainer and(final MappeableArrayContainer value2) {
 
@@ -291,12 +282,21 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     MappeableArrayContainer answer = new MappeableArrayContainer(desiredCapacity);
     if (BufferUtil.isBackedBySimpleArray(this.content)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
-      answer.cardinality = org.roaringbitmap.Util.unsignedIntersect2by2(value1.content.array(),
-          value1.getCardinality(), value2.content.array(), value2.getCardinality(),
-          answer.content.array());
+      answer.cardinality =
+          org.roaringbitmap.Util.unsignedIntersect2by2(
+              value1.content.array(),
+              value1.getCardinality(),
+              value2.content.array(),
+              value2.getCardinality(),
+              answer.content.array());
     } else {
-      answer.cardinality = BufferUtil.unsignedIntersect2by2(value1.content, value1.getCardinality(),
-          value2.content, value2.getCardinality(), answer.content.array());
+      answer.cardinality =
+          BufferUtil.unsignedIntersect2by2(
+              value1.content,
+              value1.getCardinality(),
+              value2.content,
+              value2.getCardinality(),
+              answer.content.array());
     }
     return answer;
   }
@@ -311,7 +311,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return value2.and(this);
   }
 
-
   @Override
   public MappeableArrayContainer andNot(final MappeableArrayContainer value2) {
     final MappeableArrayContainer value1 = this;
@@ -320,11 +319,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(value1.content)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
       answer.cardinality =
-          org.roaringbitmap.Util.unsignedDifference(value1.content.array(), value1.getCardinality(),
-              value2.content.array(), value2.getCardinality(), answer.content.array());
+          org.roaringbitmap.Util.unsignedDifference(
+              value1.content.array(),
+              value1.getCardinality(),
+              value2.content.array(),
+              value2.getCardinality(),
+              answer.content.array());
     } else {
-      answer.cardinality = BufferUtil.unsignedDifference(value1.content, value1.getCardinality(),
-          value2.content, value2.getCardinality(), answer.content.array());
+      answer.cardinality =
+          BufferUtil.unsignedDifference(
+              value1.content,
+              value1.getCardinality(),
+              value2.content,
+              value2.getCardinality(),
+              answer.content.array());
     }
     return answer;
   }
@@ -340,13 +348,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       for (int k = 0; k < cardinality; ++k) {
         char v = c[k];
         sarray[pos] = v;
-        pos += 1 - (int)value2.bitValue(v);
+        pos += 1 - (int) value2.bitValue(v);
       }
     } else {
       for (int k = 0; k < cardinality; ++k) {
         char v = this.content.get(k);
         sarray[pos] = v;
-        pos += 1 - (int)value2.bitValue(v);
+        pos += 1 - (int) value2.bitValue(v);
       }
     }
     answer.cardinality = pos;
@@ -380,7 +388,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     write += cardinality - read;
     answer.cardinality = write;
     return answer;
-
   }
 
   @Override
@@ -410,7 +417,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public static boolean contains(ByteBuffer buf, int position, final char x, int cardinality) {
     return BufferUtil.unsignedBinarySearch(buf, position, 0, cardinality, x) >= 0;
   }
-
 
   // in order
   // not thread-safe
@@ -452,7 +458,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     return false;
   }
-
 
   @Override
   public void fillLeastSignificant16bits(int[] x, int i, int mask) {
@@ -589,8 +594,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
-        (char) (end - 1));
+    int indexend =
+        BufferUtil.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -637,12 +642,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
           destination.put(k + indexstart, (char) (begin + k));
         }
       }
-      BufferUtil.arraycopy(content, indexend, destination, indexstart + rangelength, cardinality
-          - indexend);
+      BufferUtil.arraycopy(
+          content, indexend, destination, indexstart + rangelength, cardinality - indexend);
       this.content = destination;
     } else {
-      BufferUtil.arraycopy(content, indexend, content, indexstart + rangelength, cardinality
-          - indexend);
+      BufferUtil.arraycopy(
+          content, indexend, content, indexstart + rangelength, cardinality - indexend);
       if (BufferUtil.isBackedBySimpleArray(content)) {
         char[] contentarray = content.array();
         for (int k = 0; k < rangelength; ++k) {
@@ -664,11 +669,15 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (!BufferUtil.isBackedBySimpleArray(value1.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
-    value1.cardinality = BufferUtil.unsignedIntersect2by2(value1.content, value1.getCardinality(),
-        value2.content, value2.getCardinality(), value1.content.array());
+    value1.cardinality =
+        BufferUtil.unsignedIntersect2by2(
+            value1.content,
+            value1.getCardinality(),
+            value2.content,
+            value2.getCardinality(),
+            value1.content.array());
     return this;
   }
-
 
   @Override
   public MappeableContainer iand(MappeableBitmapContainer value2) {
@@ -676,12 +685,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int k = 0; k < cardinality; ++k) {
       char v = this.content.get(k);
       this.content.put(pos, v);
-      pos += (int)value2.bitValue(v);
+      pos += (int) value2.bitValue(v);
     }
     cardinality = pos;
     return this;
   }
-
 
   @Override
   public MappeableContainer iand(final MappeableRunContainer value2) {
@@ -706,11 +714,20 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     if (BufferUtil.isBackedBySimpleArray(value2.content)) {
       this.cardinality =
-          org.roaringbitmap.Util.unsignedDifference(this.content.array(), this.getCardinality(),
-              value2.content.array(), value2.getCardinality(), this.content.array());
+          org.roaringbitmap.Util.unsignedDifference(
+              this.content.array(),
+              this.getCardinality(),
+              value2.content.array(),
+              value2.getCardinality(),
+              this.content.array());
     } else {
-      this.cardinality = BufferUtil.unsignedDifference(this.content, this.getCardinality(),
-          value2.content, value2.getCardinality(), this.content.array());
+      this.cardinality =
+          BufferUtil.unsignedDifference(
+              this.content,
+              this.getCardinality(),
+              value2.content,
+              value2.getCardinality(),
+              this.content.array());
     }
 
     return this;
@@ -726,7 +743,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     for (int k = 0; k < cardinality; ++k) {
       char v = c[k];
       c[pos] = v;
-      pos += 1 - (int)value2.bitValue(v);
+      pos += 1 - (int) value2.bitValue(v);
     }
     this.cardinality = pos;
     return this;
@@ -762,8 +779,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
     // if we are within 1/16th of the max., go to max right away to avoid further reallocations
-    if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE
-        - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16 && !allowIllegalSize) {
+    if (newCapacity
+            > MappeableArrayContainer.DEFAULT_MAX_SIZE
+                - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16
+        && !allowIllegalSize) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
     final CharBuffer newContent = CharBuffer.allocate(newCapacity);
@@ -774,12 +793,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   private int calculateCapacity() {
     int len = this.content.limit();
-    int newCapacity = (len == 0) ? DEFAULT_INIT_SIZE
-        : len < 64 ? len * 2 : len < 1067 ? len * 3 / 2 : len * 5 / 4;
+    int newCapacity =
+        (len == 0)
+            ? DEFAULT_INIT_SIZE
+            : len < 64 ? len * 2 : len < 1067 ? len * 3 / 2 : len * 5 / 4;
     return newCapacity;
   }
 
-  private int calculateCapacity(int min){
+  private int calculateCapacity(int min) {
     int newCapacity = calculateCapacity();
     if (newCapacity < min) {
       newCapacity = min;
@@ -787,8 +808,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
-    if (newCapacity > MappeableArrayContainer.DEFAULT_MAX_SIZE
-        - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16) {
+    if (newCapacity
+        > MappeableArrayContainer.DEFAULT_MAX_SIZE
+            - MappeableArrayContainer.DEFAULT_MAX_SIZE / 16) {
       newCapacity = MappeableArrayContainer.DEFAULT_MAX_SIZE;
     }
     return newCapacity;
@@ -848,8 +870,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public boolean intersects(MappeableArrayContainer value2) {
     MappeableArrayContainer value1 = this;
-    return BufferUtil.unsignedIntersects(value1.content, value1.getCardinality(), value2.content,
-        value2.getCardinality());
+    return BufferUtil.unsignedIntersects(
+        value1.content, value1.getCardinality(), value2.content, value2.getCardinality());
   }
 
   @Override
@@ -875,12 +897,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       if (BufferUtil.isBackedBySimpleArray(content)
           && BufferUtil.isBackedBySimpleArray(value2.content)) {
         cardinality =
-            Util.unsignedUnion2by2(content.array(), 0, cardinality, value2.content.array(), 0,
-                value2.cardinality, destination.array());
+            Util.unsignedUnion2by2(
+                content.array(),
+                0,
+                cardinality,
+                value2.content.array(),
+                0,
+                value2.cardinality,
+                destination.array());
       } else {
         cardinality =
-            BufferUtil.unsignedUnion2by2(content, 0, cardinality, value2.content, 0,
-                value2.cardinality, destination.array());
+            BufferUtil.unsignedUnion2by2(
+                content,
+                0,
+                cardinality,
+                value2.content,
+                0,
+                value2.cardinality,
+                destination.array());
       }
       this.content = destination;
     } else {
@@ -889,12 +923,24 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       if (BufferUtil.isBackedBySimpleArray(content)
           && BufferUtil.isBackedBySimpleArray(value2.content)) {
         cardinality =
-            Util.unsignedUnion2by2(content.array(), value2.cardinality, cardinality,
-                value2.content.array(), 0, value2.cardinality, content.array());
+            Util.unsignedUnion2by2(
+                content.array(),
+                value2.cardinality,
+                cardinality,
+                value2.content.array(),
+                0,
+                value2.cardinality,
+                content.array());
       } else {
         cardinality =
-            BufferUtil.unsignedUnion2by2(content, value2.cardinality, cardinality, value2.content,
-                0, value2.cardinality, content.array());
+            BufferUtil.unsignedUnion2by2(
+                content,
+                value2.cardinality,
+                cardinality,
+                value2.content,
+                0,
+                value2.cardinality,
+                content.array());
       }
     }
     return this;
@@ -923,15 +969,19 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
-        (char) (end - 1));
+    int indexend =
+        BufferUtil.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
       indexend++;
     }
     int rangelength = indexend - indexstart;
-    BufferUtil.arraycopy(content, indexstart + rangelength, content, indexstart,
+    BufferUtil.arraycopy(
+        content,
+        indexstart + rangelength,
+        content,
+        indexstart,
         cardinality - indexstart - rangelength);
     cardinality -= rangelength;
     return this;
@@ -941,7 +991,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   protected boolean isArrayBacked() {
     return BufferUtil.isBackedBySimpleArray(this.content);
   }
-
 
   @Override
   public Iterator<Character> iterator() {
@@ -972,7 +1021,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return this.xor(value2);
   }
 
-
   @Override
   public MappeableContainer ixor(MappeableBitmapContainer x) {
     return x.xor(this);
@@ -992,7 +1040,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
   }
 
-
   void loadData(final MappeableBitmapContainer bitmapContainer) {
     this.cardinality = bitmapContainer.cardinality;
     if (!BufferUtil.isBackedBySimpleArray(this.content)) {
@@ -1002,8 +1049,12 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   // for use in inot range known to be nonempty
-  private void negateRange(final CharBuffer buffer, final int startIndex, final int lastIndex,
-      final int startRange, final int lastRange) {
+  private void negateRange(
+      final CharBuffer buffer,
+      final int startIndex,
+      final int lastIndex,
+      final int startRange,
+      final int lastRange) {
     // compute the negation into buffer
 
     int outPos = 0;
@@ -1136,7 +1187,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
   }
 
-
   @Override
   public MappeableContainer or(final MappeableArrayContainer value2) {
     final MappeableArrayContainer value1 = this;
@@ -1149,17 +1199,23 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
       answer.cardinality =
           Util.unsignedUnion2by2(
-                  value1.content.array(), 0, value1.getCardinality(),
-                  value2.content.array(), 0, value2.getCardinality(),
-                  answer.content.array()
-          );
+              value1.content.array(),
+              0,
+              value1.getCardinality(),
+              value2.content.array(),
+              0,
+              value2.getCardinality(),
+              answer.content.array());
     } else {
       answer.cardinality =
-              BufferUtil.unsignedUnion2by2(
-                      value1.content, 0, value1.getCardinality(),
-                      value2.content, 0, value2.getCardinality(),
-                      answer.content.array()
-              );
+          BufferUtil.unsignedUnion2by2(
+              value1.content,
+              0,
+              value1.getCardinality(),
+              value2.content,
+              0,
+              value2.getCardinality(),
+              answer.content.array());
     }
     return answer;
   }
@@ -1174,22 +1230,27 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (BufferUtil.isBackedBySimpleArray(value1.content)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
       answer.cardinality =
-              Util.unsignedUnion2by2(
-                      value1.content.array(), 0, value1.getCardinality(),
-                      value2.content.array(), 0, value2.getCardinality(),
-                      answer.content.array()
-              );
+          Util.unsignedUnion2by2(
+              value1.content.array(),
+              0,
+              value1.getCardinality(),
+              value2.content.array(),
+              0,
+              value2.getCardinality(),
+              answer.content.array());
     } else {
       answer.cardinality =
-              BufferUtil.unsignedUnion2by2(
-                      value1.content, 0, value1.getCardinality(),
-                      value2.content, 0, value2.getCardinality(),
-                      answer.content.array()
-              );
+          BufferUtil.unsignedUnion2by2(
+              value1.content,
+              0,
+              value1.getCardinality(),
+              value2.content,
+              0,
+              value2.getCardinality(),
+              answer.content.array());
     }
     return answer;
   }
-
 
   @Override
   public MappeableContainer or(MappeableBitmapContainer x) {
@@ -1283,8 +1344,8 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (indexstart < 0) {
       indexstart = -indexstart - 1;
     }
-    int indexend = BufferUtil.unsignedBinarySearch(content, indexstart, cardinality,
-        (char) (end - 1));
+    int indexend =
+        BufferUtil.unsignedBinarySearch(content, indexstart, cardinality, (char) (end - 1));
     if (indexend < 0) {
       indexend = -indexend - 1;
     } else {
@@ -1292,7 +1353,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     }
     int rangelength = indexend - indexstart;
     MappeableArrayContainer answer = clone();
-    BufferUtil.arraycopy(content, indexstart + rangelength, answer.content, indexstart,
+    BufferUtil.arraycopy(
+        content,
+        indexstart + rangelength,
+        answer.content,
+        indexstart,
         cardinality - indexstart - rangelength);
     answer.cardinality = cardinality - rangelength;
     return answer;
@@ -1302,7 +1367,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     System.arraycopy(content.array(), loc + 1, content.array(), loc, cardinality - loc - 1);
     --cardinality;
   }
-
 
   @Override
   public MappeableContainer remove(final char x) {
@@ -1322,7 +1386,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         --cardinality;
       }
       return this;
-
     }
   }
 
@@ -1331,17 +1394,16 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     return this;
   }
 
-
   @Override
   public MappeableContainer runOptimize() {
     int numRuns = numberOfRuns();
     int sizeAsRunContainer = MappeableRunContainer.getArraySizeInBytes(numRuns);
     if (getArraySizeInBytes() > sizeAsRunContainer) {
       return new MappeableRunContainer(this, numRuns); // this could be
-                                                       // maybe faster if
-                                                       // initial
-                                                       // container is a
-                                                       // bitmap
+      // maybe faster if
+      // initial
+      // container is a
+      // bitmap
     } else {
       return this;
     }
@@ -1497,14 +1559,14 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     if (this.cardinality == 0) {
       return "{}";
     }
-    final StringBuilder sb = new StringBuilder("{}".length() + "-123456789,".length()
-        * cardinality);
+    final StringBuilder sb =
+        new StringBuilder("{}".length() + "-123456789,".length() * cardinality);
     sb.append('{');
     for (int i = 0; i < this.cardinality - 1; i++) {
-      sb.append((int)(this.content.get(i)));
+      sb.append((int) (this.content.get(i)));
       sb.append(',');
     }
-    sb.append((int)(this.content.get(this.cardinality - 1)));
+    sb.append((int) (this.content.get(this.cardinality - 1)));
     sb.append('}');
     return sb.toString();
   }
@@ -1580,12 +1642,21 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     final MappeableArrayContainer answer = new MappeableArrayContainer(totalCardinality);
     if (BufferUtil.isBackedBySimpleArray(value1.content)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
-      answer.cardinality = org.roaringbitmap.Util.unsignedExclusiveUnion2by2(value1.content.array(),
-          value1.getCardinality(), value2.content.array(), value2.getCardinality(),
-          answer.content.array());
+      answer.cardinality =
+          org.roaringbitmap.Util.unsignedExclusiveUnion2by2(
+              value1.content.array(),
+              value1.getCardinality(),
+              value2.content.array(),
+              value2.getCardinality(),
+              answer.content.array());
     } else {
-      answer.cardinality = BufferUtil.unsignedExclusiveUnion2by2(value1.content,
-          value1.getCardinality(), value2.content, value2.getCardinality(), answer.content.array());
+      answer.cardinality =
+          BufferUtil.unsignedExclusiveUnion2by2(
+              value1.content,
+              value1.getCardinality(),
+              value2.content,
+              value2.getCardinality(),
+              answer.content.array());
     }
     return answer;
   }
@@ -1599,7 +1670,6 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableContainer xor(final MappeableRunContainer value2) {
     return value2.xor(this);
   }
-
 
   protected MappeableContainer xor(CharIterator it) {
     return or(it, true);
@@ -1624,11 +1694,11 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public int andCardinality(MappeableArrayContainer value2) {
     if (BufferUtil.isBackedBySimpleArray(content)
         && BufferUtil.isBackedBySimpleArray(value2.content)) {
-      return Util.unsignedLocalIntersect2by2Cardinality(content.array(), cardinality,
-          value2.content.array(), value2.getCardinality());
+      return Util.unsignedLocalIntersect2by2Cardinality(
+          content.array(), cardinality, value2.content.array(), value2.getCardinality());
     }
-    return BufferUtil.unsignedLocalIntersect2by2Cardinality(content, cardinality,
-        value2.content, value2.getCardinality());
+    return BufferUtil.unsignedLocalIntersect2by2Cardinality(
+        content, cardinality, value2.content, value2.getCardinality());
   }
 
   @Override
@@ -1664,7 +1734,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       return false;
     }
     int i1 = 0, i2 = 0;
-    while(i1 < cardinality && i2 < arrayContainer.cardinality) {
+    while (i1 < cardinality && i2 < arrayContainer.cardinality) {
       if (content.get(i1) == arrayContainer.content.get(i2)) {
         ++i1;
         ++i2;
@@ -1684,10 +1754,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public boolean intersects(int minimum, int supremum) {
-    if((minimum < 0) || (supremum < minimum) || (supremum > (1<<16))) {
+    if ((minimum < 0) || (supremum < minimum) || (supremum > (1 << 16))) {
       throw new RuntimeException("This should never happen (bug).");
     }
-    int pos = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char)minimum);
+    int pos = BufferUtil.unsignedBinarySearch(content, 0, cardinality, (char) minimum);
     int index = pos >= 0 ? pos : -pos - 1;
     return index < cardinality && (content.get(index)) < supremum;
   }
@@ -1695,26 +1765,21 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public boolean contains(int minimum, int supremum) {
     int maximum = supremum - 1;
-    int start = BufferUtil.advanceUntil(content, -1, cardinality, (char)minimum);
-    int end = BufferUtil.advanceUntil(content, start - 1, cardinality, (char)maximum);
+    int start = BufferUtil.advanceUntil(content, -1, cardinality, (char) minimum);
+    int end = BufferUtil.advanceUntil(content, start - 1, cardinality, (char) maximum);
     return start < cardinality
-            && end < cardinality
-            && end - start == maximum - minimum
-            && content.get(start) == (char)minimum
-            && content.get(end) == (char)maximum;
+        && end < cardinality
+        && end - start == maximum - minimum
+        && content.get(start) == (char) minimum
+        && content.get(end) == (char) maximum;
   }
-
 }
-
 
 final class MappeableArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   private MappeableArrayContainer parent;
 
-  MappeableArrayContainerCharIterator() {
-
-  }
-
+  MappeableArrayContainerCharIterator() {}
 
   MappeableArrayContainerCharIterator(MappeableArrayContainer p) {
     wrap(p);
@@ -1730,7 +1795,7 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
     try {
       return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -1744,7 +1809,6 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
     return parent.content.get(pos++);
   }
 
-
   @Override
   public int nextAsInt() {
     return (parent.content.get(pos++));
@@ -1754,7 +1818,6 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
   public char peekNext() {
     return parent.content.get(pos);
   }
-
 
   @Override
   public void remove() {
@@ -1766,17 +1829,12 @@ final class MappeableArrayContainerCharIterator implements PeekableCharIterator 
     parent = p;
     pos = 0;
   }
-
-
-
 }
-
 
 final class RawArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   private MappeableArrayContainer parent;
   char[] content;
-
 
   RawArrayContainerCharIterator(MappeableArrayContainer p) {
     parent = p;
@@ -1786,7 +1844,6 @@ final class RawArrayContainerCharIterator implements PeekableCharIterator {
     content = p.content.array();
     pos = 0;
   }
-
 
   @Override
   public void advanceIfNeeded(char minval) {
@@ -1798,7 +1855,7 @@ final class RawArrayContainerCharIterator implements PeekableCharIterator {
     try {
       return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -1827,15 +1884,12 @@ final class RawArrayContainerCharIterator implements PeekableCharIterator {
     parent.removeAtIndex(pos - 1);
     pos--;
   }
-
 }
-
 
 final class RawReverseArrayContainerCharIterator implements CharIterator {
   int pos;
   private MappeableArrayContainer parent;
   char[] content;
-
 
   RawReverseArrayContainerCharIterator(MappeableArrayContainer p) {
     parent = p;
@@ -1851,7 +1905,7 @@ final class RawReverseArrayContainerCharIterator implements CharIterator {
     try {
       return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -1859,7 +1913,6 @@ final class RawReverseArrayContainerCharIterator implements CharIterator {
   public boolean hasNext() {
     return pos >= 0;
   }
-
 
   @Override
   public char next() {
@@ -1876,9 +1929,7 @@ final class RawReverseArrayContainerCharIterator implements CharIterator {
     parent.removeAtIndex(pos + 1);
     pos++;
   }
-
 }
-
 
 final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
 
@@ -1886,10 +1937,7 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
 
   private MappeableArrayContainer parent;
 
-  ReverseMappeableArrayContainerCharIterator() {
-
-  }
-
+  ReverseMappeableArrayContainerCharIterator() {}
 
   ReverseMappeableArrayContainerCharIterator(MappeableArrayContainer p) {
     wrap(p);
@@ -1900,7 +1948,7 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
     try {
       return (CharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -1913,7 +1961,6 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
   public char next() {
     return parent.content.get(pos--);
   }
-
 
   @Override
   public int nextAsInt() {
@@ -1930,5 +1977,4 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
     parent = p;
     pos = parent.cardinality - 1;
   }
-
 }

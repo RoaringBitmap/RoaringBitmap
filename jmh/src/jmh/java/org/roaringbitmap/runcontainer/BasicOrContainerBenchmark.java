@@ -2,7 +2,6 @@ package org.roaringbitmap.runcontainer;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -16,7 +15,6 @@ import org.roaringbitmap.RunContainer;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-
 public class BasicOrContainerBenchmark {
 
   @Benchmark
@@ -66,7 +64,6 @@ public class BasicOrContainerBenchmark {
     Container rc1, rc2, rc3, ac1, ac2, ac3, ac4;
     Random rand = new Random();
 
-
     public BenchmarkState() {
       final int max = 1 << 16;
       final int howmanywords = (1 << 16) / 64;
@@ -74,7 +71,6 @@ public class BasicOrContainerBenchmark {
       int[] values2 = RandomUtil.generateUniformHash(rand, bitsetperword2 * howmanywords, max);
       int[] values3 = RandomUtil.generateCrazyRun(rand, max);
       int[] values4 = RandomUtil.generateUniformHash(rand, bitsetperword3 * howmanywords, max);
-
 
       rc1 = new RunContainer();
       rc1 = RandomUtil.fillMeUp(rc1, values1);
@@ -91,13 +87,11 @@ public class BasicOrContainerBenchmark {
       if (!(ac1 instanceof BitmapContainer))
         throw new RuntimeException("expected bitmap container");
 
-
       ac2 = new ArrayContainer();
       ac2 = RandomUtil.fillMeUp(ac2, values2);
 
       if (!(ac2 instanceof BitmapContainer))
         throw new RuntimeException("expected bitmap container");
-
 
       ac3 = new ArrayContainer();
       ac3 = RandomUtil.fillMeUp(ac3, values3);
@@ -105,20 +99,14 @@ public class BasicOrContainerBenchmark {
       ac4 = new ArrayContainer();
       ac4 = RandomUtil.fillMeUp(ac4, values4);
 
-      if (!(ac4 instanceof ArrayContainer))
-        throw new RuntimeException("expected array container");
+      if (!(ac4 instanceof ArrayContainer)) throw new RuntimeException("expected array container");
 
-      if (!rc1.equals(ac1))
-        throw new RuntimeException("first containers do not match");
+      if (!rc1.equals(ac1)) throw new RuntimeException("first containers do not match");
 
-      if (!rc2.equals(ac2))
-        throw new RuntimeException("second containers do not match");
+      if (!rc2.equals(ac2)) throw new RuntimeException("second containers do not match");
 
-      if (!rc1.or(rc2).equals(ac1.or(ac2)))
-        throw new RuntimeException("ors do not match");
-      if (!ac1.or(rc2).equals(ac1.or(ac2)))
-        throw new RuntimeException("ors do not match");
+      if (!rc1.or(rc2).equals(ac1.or(ac2))) throw new RuntimeException("ors do not match");
+      if (!ac1.or(rc2).equals(ac1.or(ac2))) throw new RuntimeException("ors do not match");
     }
   }
-
 }

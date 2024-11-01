@@ -1,14 +1,12 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Test;
 
 public class TestRange {
   @Test
@@ -22,8 +20,8 @@ public class TestRange {
     assertFalse(i.hasNext());
   }
 
-  private static int fillWithRandomBits(final RoaringBitmap bitmap, final BitSet bitset,
-      final int bits) {
+  private static int fillWithRandomBits(
+      final RoaringBitmap bitmap, final BitSet bitset, final int bits) {
     int added = 0;
     Random r = new Random(1011);
     for (int j = 0; j < bits; j++) {
@@ -36,7 +34,6 @@ public class TestRange {
     return added;
   }
 
-
   @Test
   public void doubleadd() {
     RoaringBitmap rb = new RoaringBitmap();
@@ -48,7 +45,6 @@ public class TestRange {
     rb.remove(65530L, 65536L);
     assertEquals(0, rb.getCardinality());
   }
-
 
   @Test
   public void rangeAddRemoveBig() {
@@ -68,7 +64,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = RoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -80,7 +76,7 @@ public class TestRange {
       }
       rbinplace.remove(start, end);
       rbstatic = RoaringBitmap.remove(rbstatic, start, end);
-      bs.clear((int)start, (int)end);
+      bs.clear((int) start, (int) end);
 
       //
       start = r.nextInt(20) * 65536;
@@ -92,7 +88,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = RoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -104,7 +100,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = RoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
       //
       start = r.nextInt(20) * 65536;
       end = r.nextInt(65536 * 20);
@@ -115,7 +111,7 @@ public class TestRange {
       }
       rbinplace.remove(start, end);
       rbstatic = RoaringBitmap.remove(rbstatic, start, end);
-      bs.clear((int)start, (int)end);
+      bs.clear((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -127,7 +123,7 @@ public class TestRange {
       }
       rbinplace.remove(start, end);
       rbstatic = RoaringBitmap.remove(rbstatic, start, end);
-      bs.clear((int)start, (int)end);
+      bs.clear((int) start, (int) end);
     }
     assertTrue(TestRoaringBitmap.equals(bs, rbstatic));
     assertTrue(TestRoaringBitmap.equals(bs, rbinplace));
@@ -188,7 +184,6 @@ public class TestRange {
     assertTrue(TestRoaringBitmap.equals(bs, rb1));
   }
 
-
   @Test
   public void setTest2() {
     final RoaringBitmap rb = new RoaringBitmap();
@@ -216,7 +211,6 @@ public class TestRange {
     assertTrue(TestRoaringBitmap.equals(bs, rb));
   }
 
-
   @Test
   public void setTest3() {
     final RoaringBitmap rb = new RoaringBitmap();
@@ -233,7 +227,6 @@ public class TestRange {
 
     assertTrue(TestRoaringBitmap.equals(bs, rb));
   }
-
 
   @Test
   public void setTest3A() {
@@ -253,7 +246,6 @@ public class TestRange {
     }
     assertTrue(TestRoaringBitmap.equals(bs, rb2));
   }
-
 
   @Test
   public void setTest4() {
@@ -429,7 +421,6 @@ public class TestRange {
     assertEquals(rb2, rb3);
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
-
     rb3 = RoaringBitmap.add(rb3, 65536L * 3 + 195, 65536L * 3 + 245);
     bs.set(65536 * 3 + 195, 65536 * 3 + 245);
     rb2.add(65536L * 3 + 195, 65536L * 3 + 245);
@@ -441,7 +432,6 @@ public class TestRange {
     assertEquals(255, rbcard);
 
     // now removing
-
 
     rb3 = RoaringBitmap.remove(rb3, 65536L * 3 + 195, 65536L * 3 + 245);
     bs.clear(65536 * 3 + 195, 65536 * 3 + 245);
@@ -464,14 +454,11 @@ public class TestRange {
     assertEquals(rb2, rb3);
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
-
     rb2 = RoaringBitmap.remove(rb1, 130L, 185L);
     bs.clear(130, 185);
     rb.remove(130L, 185L);
     assertEquals(rb2, rb);
     assertTrue(TestRoaringBitmap.equals(bs, rb2));
-
-
   }
 
   @Test
@@ -569,7 +556,7 @@ public class TestRange {
   public void testClearRanges() {
     long N = 16;
     for (long end = 1; end < N; ++end) {
-        for (long start = 0; start < end; ++start) {
+      for (long start = 0; start < end; ++start) {
         RoaringBitmap bs1 = new RoaringBitmap();
         bs1.add(0L, N);
         for (int k = (int) start; k < end; ++k) {
@@ -708,7 +695,7 @@ public class TestRange {
     for (long end = 1; end < N; ++end) {
       for (long start = 0; start < end; ++start) {
         RoaringBitmap bs1 = new RoaringBitmap();
-        for (int k = (int)start; k < end; ++k) {
+        for (int k = (int) start; k < end; ++k) {
           bs1.add(k);
         }
         RoaringBitmap bs2 = new RoaringBitmap();
@@ -736,7 +723,6 @@ public class TestRange {
     }
   }
 
-
   @Test
   public void testStaticSetRanges() {
     int N = 256;
@@ -753,219 +739,204 @@ public class TestRange {
     }
   }
 
-    /* nb on 20 April 2016, all unit tests above [then] were switched from
-     * the original int-range functions to the wrapper int-range functions
-     * without test errors.  Then all code above switched use longs for
-     * range endpoints, again without test errors.
-     *
-     * Below, check the deprecated versions for undocumented behaviours that
-     * hopefully don't rely on...but might have
-     */
-
+  /* nb on 20 April 2016, all unit tests above [then] were switched from
+   * the original int-range functions to the wrapper int-range functions
+   * without test errors.  Then all code above switched use longs for
+   * range endpoints, again without test errors.
+   *
+   * Below, check the deprecated versions for undocumented behaviours that
+   * hopefully don't rely on...but might have
+   */
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticAdd() {
     RoaringBitmap rb1 = RoaringBitmap.add(new RoaringBitmap(), 300000, 500000);
     RoaringBitmap rb2 = RoaringBitmap.add(new RoaringBitmap(), 300000L, 500000L);
     assertEquals(rb1, rb2);
-    rb1 = RoaringBitmap.add( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-    rb2 = RoaringBitmap.add( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1 = RoaringBitmap.add(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2 = RoaringBitmap.add(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticFlip() {
     RoaringBitmap rb1 = RoaringBitmap.flip(new RoaringBitmap(), 300000, 500000);
     RoaringBitmap rb2 = RoaringBitmap.flip(new RoaringBitmap(), 300000L, 500000L);
     assertEquals(rb1, rb2);
-    rb1 = RoaringBitmap.flip(rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-    rb2 = RoaringBitmap.flip(rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1 = RoaringBitmap.flip(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2 = RoaringBitmap.flip(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedMemberFlip() {
     RoaringBitmap rb1 = new RoaringBitmap();
     rb1.flip(300000, 500000);
     RoaringBitmap rb2 = new RoaringBitmap();
     rb2.flip(300000L, 500000L);
     assertEquals(rb1, rb2);
-    rb1.flip(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-    rb2.flip(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.flip(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.flip(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticRemove() {
-      RoaringBitmap rb1 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
-      rb1 = RoaringBitmap.remove(rb1, 300000, 500000);
-      RoaringBitmap rb2 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
-      rb2 = RoaringBitmap.remove(rb2,300000L, 500000L);
+    RoaringBitmap rb1 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
+    rb1 = RoaringBitmap.remove(rb1, 300000, 500000);
+    RoaringBitmap rb2 = RoaringBitmap.add(new RoaringBitmap(), 200000L, 400000L);
+    rb2 = RoaringBitmap.remove(rb2, 300000L, 500000L);
     assertEquals(rb1, rb2);
 
-      rb1 = RoaringBitmap.add(rb1, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb2 = RoaringBitmap.add(rb2, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb1 = RoaringBitmap.remove(rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      rb2 = RoaringBitmap.remove(rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1 = RoaringBitmap.add(rb1, Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb2 = RoaringBitmap.add(rb2, Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb1 = RoaringBitmap.remove(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2 = RoaringBitmap.remove(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedAdd() {
-      RoaringBitmap rb1 = new RoaringBitmap();
-      rb1.add(300000, 500000);
-      RoaringBitmap rb2 = new RoaringBitmap();
-      rb2.add(300000L, 500000L);
+    RoaringBitmap rb1 = new RoaringBitmap();
+    rb1.add(300000, 500000);
+    RoaringBitmap rb2 = new RoaringBitmap();
+    rb2.add(300000L, 500000L);
     assertEquals(rb1, rb2);
-      rb1.add( Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      rb2.add( Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.add(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.add(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedRemove() {
-      RoaringBitmap rb1 = new RoaringBitmap();
-      rb1.add(200000L, 400000L);
-      rb1.remove(300000, 500000);
-      RoaringBitmap rb2 = new RoaringBitmap();
-      rb2.add(200000L, 400000L);
-      rb2.remove(300000L, 500000L);
+    RoaringBitmap rb1 = new RoaringBitmap();
+    rb1.add(200000L, 400000L);
+    rb1.remove(300000, 500000);
+    RoaringBitmap rb2 = new RoaringBitmap();
+    rb2.add(200000L, 400000L);
+    rb2.remove(300000L, 500000L);
     assertEquals(rb1, rb2);
 
-      rb1.add(Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb2.add(Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb1.remove(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      rb2.remove(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.add(Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb2.add(Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb1.remove(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.remove(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
-
-
-    // the other tests for ranged AND are in TestRoaringBitmap; the
-    // range-with-longs is assumed to be okay and only lightly checked here
+  // the other tests for ranged AND are in TestRoaringBitmap; the
+  // range-with-longs is assumed to be okay and only lightly checked here
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorAnd() {
 
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap rb2 = new RoaringBitmap();
+    RoaringBitmap rb1 = new RoaringBitmap();
+    RoaringBitmap rb2 = new RoaringBitmap();
 
-      List<RoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<RoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full overlap is on 300000 to 399999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full overlap is on 300000 to 399999
 
-      RoaringBitmap result = RoaringBitmap.and(list.iterator(), 350000L,  450000L);
-      RoaringBitmap resultInt = RoaringBitmap.and(list.iterator(), 350000,  450000);
+    RoaringBitmap result = RoaringBitmap.and(list.iterator(), 350000L, 450000L);
+    RoaringBitmap resultInt = RoaringBitmap.and(list.iterator(), 350000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(50000, result.getCardinality());
+    assertEquals(50000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = RoaringBitmap.and(list.iterator(), 300000, 200000);
-      result = RoaringBitmap.and(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = RoaringBitmap.and(list.iterator(), 300000, 200000);
+    result = RoaringBitmap.and(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorOr() {
 
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap rb2 = new RoaringBitmap();
+    RoaringBitmap rb1 = new RoaringBitmap();
+    RoaringBitmap rb2 = new RoaringBitmap();
 
-      List<RoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<RoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full union is 200000 to 499999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full union is 200000 to 499999
 
-      RoaringBitmap result = RoaringBitmap.or(list.iterator(), 250000L,  550000L);
-      RoaringBitmap resultInt = RoaringBitmap.or(list.iterator(), 250000,  550000);
+    RoaringBitmap result = RoaringBitmap.or(list.iterator(), 250000L, 550000L);
+    RoaringBitmap resultInt = RoaringBitmap.or(list.iterator(), 250000, 550000);
 
     assertEquals(result, resultInt);
-      assertEquals(250000, result.getCardinality());
+    assertEquals(250000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = RoaringBitmap.or(list.iterator(), 300000, 200000);
-      result = RoaringBitmap.or(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = RoaringBitmap.or(list.iterator(), 300000, 200000);
+    result = RoaringBitmap.or(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorAndNot() {
 
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap rb2 = new RoaringBitmap();
+    RoaringBitmap rb1 = new RoaringBitmap();
+    RoaringBitmap rb2 = new RoaringBitmap();
 
-      List<RoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<RoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full andNOToverlap is on 200000 to 299999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full andNOToverlap is on 200000 to 299999
 
-      RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, 250000L,  450000L);
-      RoaringBitmap resultInt = RoaringBitmap.andNot(rb1, rb2, 250000,  450000);
+    RoaringBitmap result = RoaringBitmap.andNot(rb1, rb2, 250000L, 450000L);
+    RoaringBitmap resultInt = RoaringBitmap.andNot(rb1, rb2, 250000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(50000, result.getCardinality());
+    assertEquals(50000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = RoaringBitmap.andNot(rb1, rb2, 300000, 200000);
-      result = RoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = RoaringBitmap.andNot(rb1, rb2, 300000, 200000);
+    result = RoaringBitmap.andNot(rb1, rb2, 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
-
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedIteratorXor() {
 
-      RoaringBitmap rb1 = new RoaringBitmap();
-      RoaringBitmap rb2 = new RoaringBitmap();
+    RoaringBitmap rb1 = new RoaringBitmap();
+    RoaringBitmap rb2 = new RoaringBitmap();
 
-      List<RoaringBitmap> list = new ArrayList<>();
-      list.add(rb1);
-      list.add(rb2);
+    List<RoaringBitmap> list = new ArrayList<>();
+    list.add(rb1);
+    list.add(rb2);
 
-      rb1.add(200000L, 400000L);  // two normal positive ranges
-      rb2.add(300000L, 500000L);  // full XOR is 200000 to 299999, 400000-4999999
+    rb1.add(200000L, 400000L); // two normal positive ranges
+    rb2.add(300000L, 500000L); // full XOR is 200000 to 299999, 400000-4999999
 
-      RoaringBitmap result = RoaringBitmap.xor(list.iterator(), 250000L,  450000L);
-      RoaringBitmap resultInt = RoaringBitmap.xor(list.iterator(), 250000,  450000);
+    RoaringBitmap result = RoaringBitmap.xor(list.iterator(), 250000L, 450000L);
+    RoaringBitmap resultInt = RoaringBitmap.xor(list.iterator(), 250000, 450000);
 
     assertEquals(result, resultInt);
-      assertEquals(100000, result.getCardinality());
+    assertEquals(100000, result.getCardinality());
 
-
-      // empty ranges get empty result
-      resultInt = RoaringBitmap.xor(list.iterator(), 300000, 200000);
-      result = RoaringBitmap.xor(list.iterator(), 300000L, 200000L);
+    // empty ranges get empty result
+    resultInt = RoaringBitmap.xor(list.iterator(), 300000, 200000);
+    result = RoaringBitmap.xor(list.iterator(), 300000L, 200000L);
     assertEquals(result, resultInt);
-      assertEquals(0, resultInt.getCardinality());
+    assertEquals(0, resultInt.getCardinality());
   }
-
-
-
-
 }

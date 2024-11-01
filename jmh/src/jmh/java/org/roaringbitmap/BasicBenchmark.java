@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import com.zaxxer.sparsebits.SparseBitSet;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -21,8 +21,6 @@ import org.openjdk.jmh.annotations.State;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-
-import com.zaxxer.sparsebits.SparseBitSet;
 
 /**
  * Created by Borislav Ivanov on 4/2/15.
@@ -232,11 +230,8 @@ public class BasicBenchmark {
 
       for (int k = 1; k < N; k += 10) {
         ors_standard.add(Arrays.copyOf(ewah_standard, k + 1));
-
       }
-
     }
-
   }
 
   @State(Scope.Benchmark)
@@ -256,7 +251,6 @@ public class BasicBenchmark {
           ewah_mutable[k].add(x * (N - k + 2));
         }
         ewah_mutable[k].trim();
-
       }
 
       ors_mutable = new ArrayList<MutableRoaringBitmap[]>();
@@ -264,9 +258,7 @@ public class BasicBenchmark {
       for (int k = 1; k < N; k += 10) {
         ors_mutable.add(Arrays.copyOf(ewah_mutable, k + 1));
       }
-
     }
-
   }
 
   @State(Scope.Benchmark)
@@ -285,7 +277,6 @@ public class BasicBenchmark {
       /**
        * Mutable & Immutable
        */
-
       for (int k = 0; k < N; ++k) {
         ewah_mutable[k] = new MutableRoaringBitmap();
         for (int x = 0; x < M; ++x) {
@@ -302,9 +293,7 @@ public class BasicBenchmark {
       ors_immutable = new ArrayList<ImmutableRoaringBitmap[]>();
       for (int k = 1; k < N; k += 10) {
         ors_immutable.add(Arrays.copyOf(ewah_immutable, k + 1));
-
       }
-
     }
 
     private ImmutableRoaringBitmap convertToMappedBitmap(MutableRoaringBitmap orig)
@@ -321,6 +310,5 @@ public class BasicBenchmark {
       memoryMappedFile.close();
       return new ImmutableRoaringBitmap(bb);
     }
-
   }
 }

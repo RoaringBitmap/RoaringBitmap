@@ -1,7 +1,6 @@
 package org.roaringbitmap.realdata;
 
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -18,5 +17,4 @@ public class RealDataBenchmarkWideOrNaive {
     BitmapAggregator aggregator = bs.bitmaps.get(0).naiveOrAggregator();
     return aggregator.aggregate(bs.bitmaps).cardinality();
   }
-
 }

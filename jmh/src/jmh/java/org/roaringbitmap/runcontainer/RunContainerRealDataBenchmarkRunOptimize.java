@@ -1,12 +1,10 @@
 package org.roaringbitmap.runcontainer;
 
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -107,10 +105,20 @@ public class RunContainerRealDataBenchmarkRunOptimize {
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    @Param({// putting the data sets in alpha. order
-        "census-income", "census1881", "dimension_008", "dimension_003", "dimension_033",
-        "uscensus2000", "weather_sept_85", "wikileaks-noquotes", "census-income_srt",
-        "census1881_srt", "weather_sept_85_srt", "wikileaks-noquotes_srt"})
+    @Param({ // putting the data sets in alpha. order
+      "census-income",
+      "census1881",
+      "dimension_008",
+      "dimension_003",
+      "dimension_033",
+      "uscensus2000",
+      "weather_sept_85",
+      "wikileaks-noquotes",
+      "census-income_srt",
+      "census1881_srt",
+      "weather_sept_85_srt",
+      "wikileaks-noquotes_srt"
+    })
     String dataset;
 
     ArrayList<RoaringBitmap> ac = new ArrayList<RoaringBitmap>();
@@ -132,7 +140,5 @@ public class RunContainerRealDataBenchmarkRunOptimize {
         rc.add(opti);
       }
     }
-
   }
-
 }

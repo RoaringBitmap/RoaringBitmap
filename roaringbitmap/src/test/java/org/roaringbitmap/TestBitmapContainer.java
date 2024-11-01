@@ -4,12 +4,9 @@
 
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,10 +17,12 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestBitmapContainer {
@@ -49,12 +48,12 @@ public class TestBitmapContainer {
 
   @Test
   public void testXOR() {
-    BitmapContainer bc = new BitmapContainer(100,10000);
+    BitmapContainer bc = new BitmapContainer(100, 10000);
     BitmapContainer bc2 = new BitmapContainer();
     BitmapContainer bc3 = new BitmapContainer();
 
-    for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0) {
+    for (int i = 100; i < 10000; ++i) {
+      if ((i % 2) == 0) {
         bc2.add((char) i);
       } else {
         bc3.add((char) i);
@@ -66,19 +65,19 @@ public class TestBitmapContainer {
 
   @Test
   public void testANDNOT() {
-    BitmapContainer bc = new BitmapContainer(100,10000);
+    BitmapContainer bc = new BitmapContainer(100, 10000);
     BitmapContainer bc2 = new BitmapContainer();
     BitmapContainer bc3 = new BitmapContainer();
 
-    for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0) {
+    for (int i = 100; i < 10000; ++i) {
+      if ((i % 2) == 0) {
         bc2.add((char) i);
       } else {
         bc3.add((char) i);
       }
     }
     RunContainer rc = new RunContainer();
-    rc.iadd(0, 1<<16);
+    rc.iadd(0, 1 << 16);
     bc = (BitmapContainer) bc.iand(rc);
     bc = (BitmapContainer) bc.iandNot(bc2);
     assertEquals(bc, bc3);
@@ -88,15 +87,14 @@ public class TestBitmapContainer {
     assertEquals(0, bc3.getCardinality());
   }
 
-
   @Test
   public void testAND() {
-    BitmapContainer bc = new BitmapContainer(100,10000);
+    BitmapContainer bc = new BitmapContainer(100, 10000);
     BitmapContainer bc2 = new BitmapContainer();
     BitmapContainer bc3 = new BitmapContainer();
 
-    for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0) {
+    for (int i = 100; i < 10000; ++i) {
+      if ((i % 2) == 0) {
         bc2.add((char) i);
       } else {
         bc3.add((char) i);
@@ -107,16 +105,14 @@ public class TestBitmapContainer {
     assertEquals(0, bc.iand(bc3).getCardinality());
   }
 
-
-
   @Test
   public void testOR() {
-    BitmapContainer bc = new BitmapContainer(100,10000);
+    BitmapContainer bc = new BitmapContainer(100, 10000);
     BitmapContainer bc2 = new BitmapContainer();
     BitmapContainer bc3 = new BitmapContainer();
 
-    for(int i = 100; i < 10000; ++i) {
-      if((i%2 ) == 0) {
+    for (int i = 100; i < 10000; ++i) {
+      if ((i % 2) == 0) {
         bc2.add((char) i);
       } else {
         bc3.add((char) i);
@@ -127,7 +123,7 @@ public class TestBitmapContainer {
     bc2 = (BitmapContainer) bc2.ior(bc);
     assertEquals(bc, bc2);
     RunContainer rc = new RunContainer();
-    rc.iadd(0, 1<<16);
+    rc.iadd(0, 1 << 16);
     assertEquals(0, bc.iandNot(rc).getCardinality());
   }
 
@@ -182,19 +178,19 @@ public class TestBitmapContainer {
   @Test
   public void runConstructorForBitmap() {
     System.out.println("runConstructorForBitmap");
-    for(int start = 0; start <= (1<<16); start += 4096 ) {
-      for(int end = start; end <= (1<<16); end += 4096 ) {
-        BitmapContainer bc = new BitmapContainer(start,end);
+    for (int start = 0; start <= (1 << 16); start += 4096) {
+      for (int end = start; end <= (1 << 16); end += 4096) {
+        BitmapContainer bc = new BitmapContainer(start, end);
         BitmapContainer bc2 = new BitmapContainer();
-        BitmapContainer bc3 = (BitmapContainer) bc2.add(start,end);
+        BitmapContainer bc3 = (BitmapContainer) bc2.add(start, end);
         bc2.iadd(start, end);
-        assertEquals(bc.getCardinality(), end-start);
-        assertEquals(bc2.getCardinality(), end-start);
+        assertEquals(bc.getCardinality(), end - start);
+        assertEquals(bc2.getCardinality(), end - start);
         assertEquals(bc, bc2);
         assertEquals(bc, bc3);
-        assertEquals(0,bc2.remove(start, end).getCardinality());
-        assertEquals(bc2.getCardinality(), end-start);
-        assertEquals(0,bc2.not(start, end).getCardinality());
+        assertEquals(0, bc2.remove(start, end).getCardinality());
+        assertEquals(bc2.getCardinality(), end - start);
+        assertEquals(0, bc2.not(start, end).getCardinality());
       }
     }
   }
@@ -202,73 +198,73 @@ public class TestBitmapContainer {
   @Test
   public void runConstructorForBitmap2() {
     System.out.println("runConstructorForBitmap2");
-    for(int start = 0; start <= (1<<16); start += 63 ) {
-      for(int end = start; end <= (1<<16); end += 63 ) {
-        BitmapContainer bc = new BitmapContainer(start,end);
+    for (int start = 0; start <= (1 << 16); start += 63) {
+      for (int end = start; end <= (1 << 16); end += 63) {
+        BitmapContainer bc = new BitmapContainer(start, end);
         BitmapContainer bc2 = new BitmapContainer();
-        BitmapContainer bc3 = (BitmapContainer) bc2.add(start,end);
+        BitmapContainer bc3 = (BitmapContainer) bc2.add(start, end);
         bc2.iadd(start, end);
-        assertEquals(bc.getCardinality(), end-start);
-        assertEquals(bc2.getCardinality(), end-start);
+        assertEquals(bc.getCardinality(), end - start);
+        assertEquals(bc2.getCardinality(), end - start);
         assertEquals(bc, bc2);
         assertEquals(bc, bc3);
-        assertEquals(0,bc2.remove(start, end).getCardinality());
-        assertEquals(bc2.getCardinality(), end-start);
-        assertEquals(0,bc2.not(start, end).getCardinality());
+        assertEquals(0, bc2.remove(start, end).getCardinality());
+        assertEquals(bc2.getCardinality(), end - start);
+        assertEquals(0, bc2.not(start, end).getCardinality());
       }
     }
   }
 
   @Test
   public void testRangeCardinality() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
     bc = (BitmapContainer) bc.add(200, 2000);
     assertEquals(8280, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality2() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
     bc.iadd(200, 2000);
     assertEquals(8280, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality3() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     bc.ior(rc);
     assertEquals(8677, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality4() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     bc = (BitmapContainer) bc.andNot(rc);
     assertEquals(5274, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality5() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     bc.iandNot(rc);
     assertEquals(5274, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality6() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 5200}, 3);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 5200}, 3);
     bc = (BitmapContainer) bc.iand(rc);
     assertEquals(5046, bc.cardinality);
   }
 
   @Test
   public void testRangeCardinality7() {
-    BitmapContainer bc = generateContainer((char)100, (char)10000, 5);
-    RunContainer rc = new RunContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    BitmapContainer bc = generateContainer((char) 100, (char) 10000, 5);
+    RunContainer rc = new RunContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     bc.ixor(rc);
     assertEquals(6031, bc.cardinality);
   }
@@ -299,10 +295,9 @@ public class TestBitmapContainer {
       // a big parameter like 100000 ensures that the full lower bound
       // is taken
 
-
       assertTrue(bc.numberOfRunsLowerBound(100000) <= bc.numberOfRuns());
-      assertEquals(bc.numberOfRuns(),
-          bc.numberOfRunsLowerBound(100000) + bc.numberOfRunsAdjustment());
+      assertEquals(
+          bc.numberOfRuns(), bc.numberOfRunsLowerBound(100000) + bc.numberOfRunsAdjustment());
 
       /*
        * the unrolled guys are commented out, did not help performance and slated for removal
@@ -315,49 +310,50 @@ public class TestBitmapContainer {
        * bc.numberOfRunsLowerBoundUnrolled2(100000));
        */
     }
-
   }
 
   @Test
   public void testNextTooLarge() {
-    assertThrows(ArrayIndexOutOfBoundsException.class,
-            () -> emptyContainer().nextSetBit(Short.MAX_VALUE + 1));
+    assertThrows(
+        ArrayIndexOutOfBoundsException.class,
+        () -> emptyContainer().nextSetBit(Short.MAX_VALUE + 1));
   }
 
   @Test
   public void testNextTooSmall() {
-    assertThrows(ArrayIndexOutOfBoundsException.class,
-            () -> emptyContainer().nextSetBit(-1));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> emptyContainer().nextSetBit(-1));
   }
 
   @Test
   public void testPreviousTooLarge() {
-    assertThrows(ArrayIndexOutOfBoundsException.class,
-            () -> emptyContainer().prevSetBit(Short.MAX_VALUE + 1));
+    assertThrows(
+        ArrayIndexOutOfBoundsException.class,
+        () -> emptyContainer().prevSetBit(Short.MAX_VALUE + 1));
   }
-
 
   @Test
   public void testPreviousTooSmall() {
-    assertThrows(ArrayIndexOutOfBoundsException.class,
-            () -> emptyContainer().prevSetBit(-1));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> emptyContainer().prevSetBit(-1));
   }
-
 
   @Test
   public void addInvalidRange() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container bc = new BitmapContainer();
-      bc.add(13, 1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container bc = new BitmapContainer();
+          bc.add(13, 1);
+        });
   }
 
   @Test
   public void iaddInvalidRange() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container bc = new BitmapContainer();
-      bc.iadd(13, 1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container bc = new BitmapContainer();
+          bc.iadd(13, 1);
+        });
   }
 
   @Test
@@ -526,7 +522,6 @@ public class TestBitmapContainer {
 
       assertFalse(iterator.hasNext());
     }
-
   }
 
   @Test
@@ -606,23 +601,25 @@ public class TestBitmapContainer {
   @Test
   public void iremoveEmptyRange() {
     Container bc = new BitmapContainer();
-    bc = bc.iremove(1,1);
+    bc = bc.iremove(1, 1);
     assertEquals(0, bc.getCardinality());
   }
 
   @Test
   public void iremoveInvalidRange() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container ac = new BitmapContainer();
-      ac.iremove(13, 1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container ac = new BitmapContainer();
+          ac.iremove(13, 1);
+        });
   }
 
   @Test
   public void iremove() {
     Container bc = new BitmapContainer();
-    bc = bc.add(1,10);
-    bc = bc.iremove(5,10);
+    bc = bc.add(1, 10);
+    bc = bc.iremove(5, 10);
     assertEquals(4, bc.getCardinality());
     for (int i = 1; i < 5; i++) {
       assertTrue(bc.contains((char) i));
@@ -632,8 +629,8 @@ public class TestBitmapContainer {
   @Test
   public void iremove2() {
     Container bc = new BitmapContainer();
-    bc = bc.add(1,8092);
-    bc = bc.iremove(1,10);
+    bc = bc.add(1, 8092);
+    bc = bc.iremove(1, 10);
     assertEquals(8082, bc.getCardinality());
     for (int i = 10; i < 8092; i++) {
       assertTrue(bc.contains((char) i));
@@ -643,7 +640,7 @@ public class TestBitmapContainer {
   @Test
   public void ixorRun() {
     Container bc = new BitmapContainer();
-    bc = bc.add(1,10);
+    bc = bc.add(1, 10);
     Container rc = new RunContainer();
     rc = rc.add(5, 15);
     bc = bc.ixor(rc);
@@ -659,7 +656,7 @@ public class TestBitmapContainer {
   @Test
   public void ixorRun2() {
     Container bc = new BitmapContainer();
-    bc = bc.add(1,8092);
+    bc = bc.add(1, 8092);
     Container rc = new RunContainer();
     rc = rc.add(1, 10);
     bc = bc.ixor(rc);
@@ -671,26 +668,30 @@ public class TestBitmapContainer {
 
   @Test
   public void selectInvalidPosition() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container bc = new BitmapContainer();
-      bc = bc.add(1, 13);
-      bc.select(100);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container bc = new BitmapContainer();
+          bc = bc.add(1, 13);
+          bc.select(100);
+        });
   }
 
   @Test
   public void removeInvalidRange() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      Container ac = new BitmapContainer();
-      ac.remove(13, 1);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Container ac = new BitmapContainer();
+          ac.remove(13, 1);
+        });
   }
 
   @Test
   public void remove() {
     Container bc = new BitmapContainer();
-    bc = bc.add(1,8092);
-    bc = bc.remove(1,10);
+    bc = bc.add(1, 8092);
+    bc = bc.remove(1, 10);
     assertEquals(8082, bc.getCardinality());
     for (int i = 10; i < 8092; i++) {
       assertTrue(bc.contains((char) i));
@@ -700,7 +701,7 @@ public class TestBitmapContainer {
   @Test
   public void iandRun() {
     Container bc = new BitmapContainer();
-    bc = bc.add(0,8092);
+    bc = bc.add(0, 8092);
     Container rc = new RunContainer();
     rc = rc.add(1, 10);
     bc = bc.iand(rc);
@@ -743,42 +744,42 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsBitmapContainer_IncludeProperSubset() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new BitmapContainer().add(0,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(0, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_IncludeSelf() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new BitmapContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new BitmapContainer().add(0, 10);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeSuperSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container superset = new BitmapContainer().add(0,20);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container superset = new BitmapContainer().add(0, 20);
     assertFalse(bc.contains(superset));
   }
 
   @Test
   public void testContainsBitmapContainer_IncludeProperSubsetDifferentStart() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new RunContainer().add(2,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new RunContainer().add(2, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeShiftedSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container shifted = new BitmapContainer().add(2,12);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container shifted = new BitmapContainer().add(2, 12);
     assertFalse(bc.contains(shifted));
   }
 
   @Test
   public void testContainsBitmapContainer_ExcludeDisJointSet() {
-    Container bc = new BitmapContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
     Container disjoint = new BitmapContainer().add(20, 40);
     assertFalse(bc.contains(disjoint));
     assertFalse(disjoint.contains(bc));
@@ -793,42 +794,42 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsRunContainer_IncludeProperSubset() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new RunContainer().add(0,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new RunContainer().add(0, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_IncludeSelf() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new RunContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new RunContainer().add(0, 10);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeSuperSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container superset = new RunContainer().add(0,20);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container superset = new RunContainer().add(0, 20);
     assertFalse(bc.contains(superset));
   }
 
   @Test
   public void testContainsRunContainer_IncludeProperSubsetDifferentStart() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new RunContainer().add(2,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new RunContainer().add(2, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeShiftedSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container shifted = new RunContainer().add(2,12);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container shifted = new RunContainer().add(2, 12);
     assertFalse(bc.contains(shifted));
   }
 
   @Test
   public void testContainsRunContainer_ExcludeDisJointSet() {
-    Container bc = new BitmapContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
     Container disjoint = new RunContainer().add(20, 40);
     assertFalse(bc.contains(disjoint));
     assertFalse(disjoint.contains(bc));
@@ -843,36 +844,36 @@ public class TestBitmapContainer {
 
   @Test
   public void testContainsArrayContainer_IncludeProperSubset() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new ArrayContainer().add(0,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(0, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_IncludeSelf() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new ArrayContainer().add(0,10);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(0, 10);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_ExcludeSuperSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container superset = new ArrayContainer().add(0,20);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container superset = new ArrayContainer().add(0, 20);
     assertFalse(bc.contains(superset));
   }
 
   @Test
   public void testContainsArrayContainer_IncludeProperSubsetDifferentStart() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container subset = new ArrayContainer().add(2,9);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container subset = new ArrayContainer().add(2, 9);
     assertTrue(bc.contains(subset));
   }
 
   @Test
   public void testContainsArrayContainer_ExcludeShiftedSet() {
-    Container bc = new BitmapContainer().add(0,10);
-    Container shifted = new ArrayContainer().add(2,12);
+    Container bc = new BitmapContainer().add(0, 10);
+    Container shifted = new ArrayContainer().add(2, 12);
     assertFalse(bc.contains(shifted));
   }
 
@@ -895,31 +896,30 @@ public class TestBitmapContainer {
 
   public static Stream<Arguments> bitmapsForRangeIntersection() {
     return Stream.of(
-            Arguments.of(new BitmapContainer().add((char)60), 0, 61, true),
-            Arguments.of(new BitmapContainer().add((char)60), 0, 60, false),
-            Arguments.of(new BitmapContainer().add((char)1000), 0, 1001, true),
-            Arguments.of(new BitmapContainer().add((char)1000), 0, 1000, false),
-            Arguments.of(new BitmapContainer().add((char)1000), 0, 10000, true)
-    );
+        Arguments.of(new BitmapContainer().add((char) 60), 0, 61, true),
+        Arguments.of(new BitmapContainer().add((char) 60), 0, 60, false),
+        Arguments.of(new BitmapContainer().add((char) 1000), 0, 1001, true),
+        Arguments.of(new BitmapContainer().add((char) 1000), 0, 1000, false),
+        Arguments.of(new BitmapContainer().add((char) 1000), 0, 10000, true));
   }
 
   @ParameterizedTest
   @MethodSource("bitmapsForRangeIntersection")
-  public void testIntersectsWithRangeUpperBoundaries(Container container, int min, int sup, boolean intersects) {
+  public void testIntersectsWithRangeUpperBoundaries(
+      Container container, int min, int sup, boolean intersects) {
     assertEquals(intersects, container.intersects(min, sup));
   }
 
   @Test
   public void testIntersectsWithRangeHitScan() {
-    Container container = new BitmapContainer().add(0, 10)
-            .add(500, 512).add(lower16Bits(-50), lower16Bits(-10));
+    Container container =
+        new BitmapContainer().add(0, 10).add(500, 512).add(lower16Bits(-50), lower16Bits(-10));
     assertTrue(container.intersects(0, 1));
     assertTrue(container.intersects(0, 101));
     assertTrue(container.intersects(0, 1 << 16));
     assertTrue(container.intersects(11, 1 << 16));
     assertTrue(container.intersects(501, 511));
   }
-
 
   @Test
   public void testIntersectsWithRangeUnsigned() {
@@ -928,7 +928,7 @@ public class TestBitmapContainer {
     assertTrue(container.intersects(0, lower16Bits(-40)));
     assertFalse(container.intersects(lower16Bits(-100), lower16Bits(-55)));
     assertFalse(container.intersects(lower16Bits(-9), lower16Bits(-1)));
-    //assertTrue(container.intersects(11, (char)-1)); // forbidden
+    // assertTrue(container.intersects(11, (char)-1)); // forbidden
   }
 
   @Test
@@ -939,7 +939,6 @@ public class TestBitmapContainer {
     assertTrue(container.intersects(lower16Bits(-11), lower16Bits(-1)));
     assertFalse(container.intersects(lower16Bits(-10), lower16Bits(-1)));
   }
-
 
   @Test
   public void testIntersectsAtEndWord2() {
@@ -977,7 +976,6 @@ public class TestBitmapContainer {
     assertTrue(container.contains(64 * 10, 64 * 12));
     assertFalse(container.contains(64 * 10, 2 + 64 * 13));
   }
-
 
   @Test
   public void testContainsRangeSubWord() {
@@ -1020,267 +1018,278 @@ public class TestBitmapContainer {
 
   @Test
   public void testNextValue() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(10, container.nextValue((char)10));
-    assertEquals(20, container.nextValue((char)11));
-    assertEquals(30, container.nextValue((char)30));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(10, container.nextValue((char) 10));
+    assertEquals(20, container.nextValue((char) 11));
+    assertEquals(30, container.nextValue((char) 30));
   }
 
   @Test
   public void testNextValueAfterEnd() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(-1, container.nextValue((char)31));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.nextValue((char) 31));
   }
 
   @Test
   public void testNextValue2() {
     BitmapContainer container = new BitmapContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(-1, container.nextValue((char)129));
-    assertEquals(-1, container.nextValue((char)5000));
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(-1, container.nextValue((char) 129));
+    assertEquals(-1, container.nextValue((char) 5000));
   }
 
   @Test
   public void testNextValueBetweenRuns() {
-    BitmapContainer container = new BitmapContainer().iadd(64, 129).iadd(256, 321).toBitmapContainer();
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(256, container.nextValue((char)129));
-    assertEquals(-1, container.nextValue((char)512));
+    BitmapContainer container =
+        new BitmapContainer().iadd(64, 129).iadd(256, 321).toBitmapContainer();
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(256, container.nextValue((char) 129));
+    assertEquals(-1, container.nextValue((char) 512));
   }
 
   @Test
   public void testNextValue3() {
-    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(64, container.nextValue((char)0));
-    assertEquals(64, container.nextValue((char)63));
-    assertEquals(64, container.nextValue((char)64));
-    assertEquals(65, container.nextValue((char)65));
-    assertEquals(128, container.nextValue((char)128));
-    assertEquals(200, container.nextValue((char)129));
-    assertEquals(200, container.nextValue((char)199));
-    assertEquals(200, container.nextValue((char)200));
-    assertEquals(250, container.nextValue((char)250));
-    assertEquals(5000, container.nextValue((char)2500));
-    assertEquals(5000, container.nextValue((char)5000));
-    assertEquals(5200, container.nextValue((char)5200));
-    assertEquals(-1, container.nextValue((char)5201));
+    BitmapContainer container =
+        new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(64, container.nextValue((char) 0));
+    assertEquals(64, container.nextValue((char) 63));
+    assertEquals(64, container.nextValue((char) 64));
+    assertEquals(65, container.nextValue((char) 65));
+    assertEquals(128, container.nextValue((char) 128));
+    assertEquals(200, container.nextValue((char) 129));
+    assertEquals(200, container.nextValue((char) 199));
+    assertEquals(200, container.nextValue((char) 200));
+    assertEquals(250, container.nextValue((char) 250));
+    assertEquals(5000, container.nextValue((char) 2500));
+    assertEquals(5000, container.nextValue((char) 5000));
+    assertEquals(5200, container.nextValue((char) 5200));
+    assertEquals(-1, container.nextValue((char) 5201));
   }
 
   @Test
   public void testNextValueUnsigned() {
-    BitmapContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}).toBitmapContainer();
-    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.nextValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.nextValue((char)((1 << 15) | 7)));
-    assertEquals(-1, container.nextValue((char)((1 << 15) | 8)));
+    BitmapContainer container =
+        new ArrayContainer(new char[] {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)})
+            .toBitmapContainer();
+    assertEquals(((1 << 15) | 5), container.nextValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.nextValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.nextValue((char) ((1 << 15) | 7)));
+    assertEquals(-1, container.nextValue((char) ((1 << 15) | 8)));
   }
 
   @Test
   public void testPreviousValue1() {
     BitmapContainer container = new ArrayContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(-1, container.previousValue((char)0));
-    assertEquals(-1, container.previousValue((char)63));
-    assertEquals(64, container.previousValue((char)64));
-    assertEquals(65, container.previousValue((char)65));
-    assertEquals(128, container.previousValue((char)128));
-    assertEquals(128, container.previousValue((char)129));
+    assertEquals(-1, container.previousValue((char) 0));
+    assertEquals(-1, container.previousValue((char) 63));
+    assertEquals(64, container.previousValue((char) 64));
+    assertEquals(65, container.previousValue((char) 65));
+    assertEquals(128, container.previousValue((char) 128));
+    assertEquals(128, container.previousValue((char) 129));
   }
 
   @Test
   public void testPreviousValue2() {
-    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(-1, container.previousValue((char)0));
-    assertEquals(-1, container.previousValue((char)63));
-    assertEquals(64, container.previousValue((char)64));
-    assertEquals(65, container.previousValue((char)65));
-    assertEquals(128, container.previousValue((char)128));
-    assertEquals(128, container.previousValue((char)129));
-    assertEquals(128, container.previousValue((char)199));
-    assertEquals(200, container.previousValue((char)200));
-    assertEquals(250, container.previousValue((char)250));
-    assertEquals(500, container.previousValue((char)2500));
-    assertEquals(5000, container.previousValue((char)5000));
-    assertEquals(5200, container.previousValue((char)5200));
+    BitmapContainer container =
+        new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(-1, container.previousValue((char) 0));
+    assertEquals(-1, container.previousValue((char) 63));
+    assertEquals(64, container.previousValue((char) 64));
+    assertEquals(65, container.previousValue((char) 65));
+    assertEquals(128, container.previousValue((char) 128));
+    assertEquals(128, container.previousValue((char) 129));
+    assertEquals(128, container.previousValue((char) 199));
+    assertEquals(200, container.previousValue((char) 200));
+    assertEquals(250, container.previousValue((char) 250));
+    assertEquals(500, container.previousValue((char) 2500));
+    assertEquals(5000, container.previousValue((char) 5000));
+    assertEquals(5200, container.previousValue((char) 5200));
   }
 
   @Test
   public void testPreviousValueBeforeStart() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(-1, container.previousValue((char)5));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.previousValue((char) 5));
   }
 
   @Test
   public void testPreviousValueSparse() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(-1, container.previousValue((char)9));
-    assertEquals(10, container.previousValue((char)10));
-    assertEquals(10, container.previousValue((char)11));
-    assertEquals(20, container.previousValue((char)21));
-    assertEquals(30, container.previousValue((char)30));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(-1, container.previousValue((char) 9));
+    assertEquals(10, container.previousValue((char) 10));
+    assertEquals(10, container.previousValue((char) 11));
+    assertEquals(20, container.previousValue((char) 21));
+    assertEquals(30, container.previousValue((char) 30));
   }
 
   @Test
   public void testPreviousValueAfterEnd() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(30, container.previousValue((char)31));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(30, container.previousValue((char) 31));
   }
 
   @Test
   public void testPreviousEvenBits() {
     BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
-    assertEquals(0, container.previousValue((char)0));
-    assertEquals(0, container.previousValue((char)1));
-    assertEquals(2, container.previousValue((char)2));
-    assertEquals(2, container.previousValue((char)3));
+    assertEquals(0, container.previousValue((char) 0));
+    assertEquals(0, container.previousValue((char) 1));
+    assertEquals(2, container.previousValue((char) 2));
+    assertEquals(2, container.previousValue((char) 3));
   }
 
   @Test
   public void testPreviousValueUnsigned() {
-    BitmapContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}).toBitmapContainer();
-    assertEquals(-1, container.previousValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 5), container.previousValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 7), container.previousValue((char)((1 << 15) | 8)));
+    BitmapContainer container =
+        new ArrayContainer(new char[] {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)})
+            .toBitmapContainer();
+    assertEquals(-1, container.previousValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 5), container.previousValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 7), container.previousValue((char) ((1 << 15) | 8)));
   }
-
 
   @Test
   public void testPreviousAbsentValue1() {
     BitmapContainer container = new ArrayContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(0, container.previousAbsentValue((char)0));
-    assertEquals(63, container.previousAbsentValue((char)63));
-    assertEquals(63, container.previousAbsentValue((char)64));
-    assertEquals(63, container.previousAbsentValue((char)65));
-    assertEquals(63, container.previousAbsentValue((char)128));
-    assertEquals(129, container.previousAbsentValue((char)129));
+    assertEquals(0, container.previousAbsentValue((char) 0));
+    assertEquals(63, container.previousAbsentValue((char) 63));
+    assertEquals(63, container.previousAbsentValue((char) 64));
+    assertEquals(63, container.previousAbsentValue((char) 65));
+    assertEquals(63, container.previousAbsentValue((char) 128));
+    assertEquals(129, container.previousAbsentValue((char) 129));
   }
 
   @Test
   public void testPreviousAbsentValue2() {
-    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(0, container.previousAbsentValue((char)0));
-    assertEquals(63, container.previousAbsentValue((char)63));
-    assertEquals(63, container.previousAbsentValue((char)64));
-    assertEquals(63, container.previousAbsentValue((char)65));
-    assertEquals(63, container.previousAbsentValue((char)128));
-    assertEquals(129, container.previousAbsentValue((char)129));
-    assertEquals(199, container.previousAbsentValue((char)199));
-    assertEquals(199, container.previousAbsentValue((char)200));
-    assertEquals(199, container.previousAbsentValue((char)250));
-    assertEquals(2500, container.previousAbsentValue((char)2500));
-    assertEquals(4999, container.previousAbsentValue((char)5000));
-    assertEquals(4999, container.previousAbsentValue((char)5200));
+    BitmapContainer container =
+        new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(0, container.previousAbsentValue((char) 0));
+    assertEquals(63, container.previousAbsentValue((char) 63));
+    assertEquals(63, container.previousAbsentValue((char) 64));
+    assertEquals(63, container.previousAbsentValue((char) 65));
+    assertEquals(63, container.previousAbsentValue((char) 128));
+    assertEquals(129, container.previousAbsentValue((char) 129));
+    assertEquals(199, container.previousAbsentValue((char) 199));
+    assertEquals(199, container.previousAbsentValue((char) 200));
+    assertEquals(199, container.previousAbsentValue((char) 250));
+    assertEquals(2500, container.previousAbsentValue((char) 2500));
+    assertEquals(4999, container.previousAbsentValue((char) 5000));
+    assertEquals(4999, container.previousAbsentValue((char) 5200));
   }
 
   @Test
   public void testPreviousAbsentValueEmpty() {
     BitmapContainer container = new ArrayContainer().toBitmapContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.previousAbsentValue((char)i));
+      assertEquals(i, container.previousAbsentValue((char) i));
     }
   }
 
   @Test
   public void testPreviousAbsentValueSparse() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(9, container.previousAbsentValue((char)9));
-    assertEquals(9, container.previousAbsentValue((char)10));
-    assertEquals(11, container.previousAbsentValue((char)11));
-    assertEquals(21, container.previousAbsentValue((char)21));
-    assertEquals(29, container.previousAbsentValue((char)30));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(9, container.previousAbsentValue((char) 9));
+    assertEquals(9, container.previousAbsentValue((char) 10));
+    assertEquals(11, container.previousAbsentValue((char) 11));
+    assertEquals(21, container.previousAbsentValue((char) 21));
+    assertEquals(29, container.previousAbsentValue((char) 30));
   }
 
   @Test
   public void testPreviousAbsentEvenBits() {
     BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
-    for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i - 1, container.previousAbsentValue((char)i));
-      assertEquals(i + 1, container.previousAbsentValue((char)(i+1)));
+    for (int i = 0; i < 1 << 10; i += 2) {
+      assertEquals(i - 1, container.previousAbsentValue((char) i));
+      assertEquals(i + 1, container.previousAbsentValue((char) (i + 1)));
     }
   }
 
   @Test
   public void testPreviousAbsentValueUnsigned() {
-    BitmapContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}).toBitmapContainer();
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char)((1 << 15) | 8)));
+    BitmapContainer container =
+        new ArrayContainer(new char[] {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)})
+            .toBitmapContainer();
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 4), container.previousAbsentValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 6), container.previousAbsentValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.previousAbsentValue((char) ((1 << 15) | 8)));
   }
-
 
   @Test
   public void testNextAbsentValue1() {
     BitmapContainer container = new ArrayContainer().iadd(64, 129).toBitmapContainer();
-    assertEquals(0, container.nextAbsentValue((char)0));
-    assertEquals(63, container.nextAbsentValue((char)63));
-    assertEquals(129, container.nextAbsentValue((char)64));
-    assertEquals(129, container.nextAbsentValue((char)65));
-    assertEquals(129, container.nextAbsentValue((char)128));
-    assertEquals(129, container.nextAbsentValue((char)129));
+    assertEquals(0, container.nextAbsentValue((char) 0));
+    assertEquals(63, container.nextAbsentValue((char) 63));
+    assertEquals(129, container.nextAbsentValue((char) 64));
+    assertEquals(129, container.nextAbsentValue((char) 65));
+    assertEquals(129, container.nextAbsentValue((char) 128));
+    assertEquals(129, container.nextAbsentValue((char) 129));
   }
 
   @Test
   public void testNextAbsentValue2() {
-    BitmapContainer container = new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
-    assertEquals(0, container.nextAbsentValue((char)0));
-    assertEquals(63, container.nextAbsentValue((char)63));
-    assertEquals(129, container.nextAbsentValue((char)64));
-    assertEquals(129, container.nextAbsentValue((char)65));
-    assertEquals(129, container.nextAbsentValue((char)128));
-    assertEquals(129, container.nextAbsentValue((char)129));
-    assertEquals(199, container.nextAbsentValue((char)199));
-    assertEquals(501, container.nextAbsentValue((char)200));
-    assertEquals(501, container.nextAbsentValue((char)250));
-    assertEquals(2500, container.nextAbsentValue((char)2500));
-    assertEquals(5201, container.nextAbsentValue((char)5000));
-    assertEquals(5201, container.nextAbsentValue((char)5200));
+    BitmapContainer container =
+        new ArrayContainer().iadd(64, 129).iadd(200, 501).iadd(5000, 5201).toBitmapContainer();
+    assertEquals(0, container.nextAbsentValue((char) 0));
+    assertEquals(63, container.nextAbsentValue((char) 63));
+    assertEquals(129, container.nextAbsentValue((char) 64));
+    assertEquals(129, container.nextAbsentValue((char) 65));
+    assertEquals(129, container.nextAbsentValue((char) 128));
+    assertEquals(129, container.nextAbsentValue((char) 129));
+    assertEquals(199, container.nextAbsentValue((char) 199));
+    assertEquals(501, container.nextAbsentValue((char) 200));
+    assertEquals(501, container.nextAbsentValue((char) 250));
+    assertEquals(2500, container.nextAbsentValue((char) 2500));
+    assertEquals(5201, container.nextAbsentValue((char) 5000));
+    assertEquals(5201, container.nextAbsentValue((char) 5200));
   }
 
   @Test
   public void testNextAbsentValueEmpty() {
     BitmapContainer container = new ArrayContainer().toBitmapContainer();
     for (int i = 0; i < 1000; i++) {
-      assertEquals(i, container.nextAbsentValue((char)i));
+      assertEquals(i, container.nextAbsentValue((char) i));
     }
   }
 
   @Test
   public void testNextAbsentValueSparse() {
-    BitmapContainer container = new ArrayContainer(new char[] { 10, 20, 30}).toBitmapContainer();
-    assertEquals(9, container.nextAbsentValue((char)9));
-    assertEquals(11, container.nextAbsentValue((char)10));
-    assertEquals(11, container.nextAbsentValue((char)11));
-    assertEquals(21, container.nextAbsentValue((char)21));
-    assertEquals(31, container.nextAbsentValue((char)30));
+    BitmapContainer container = new ArrayContainer(new char[] {10, 20, 30}).toBitmapContainer();
+    assertEquals(9, container.nextAbsentValue((char) 9));
+    assertEquals(11, container.nextAbsentValue((char) 10));
+    assertEquals(11, container.nextAbsentValue((char) 11));
+    assertEquals(21, container.nextAbsentValue((char) 21));
+    assertEquals(31, container.nextAbsentValue((char) 30));
   }
 
   @Test
   public void testNextAbsentEvenBits() {
     BitmapContainer container = new BitmapContainer(evenBits(), 1 << 15);
-    for (int i = 0; i < 1 << 10; i+=2) {
-      assertEquals(i + 1, container.nextAbsentValue((char)i));
-      assertEquals(i + 1, container.nextAbsentValue((char)(i+1)));
+    for (int i = 0; i < 1 << 10; i += 2) {
+      assertEquals(i + 1, container.nextAbsentValue((char) i));
+      assertEquals(i + 1, container.nextAbsentValue((char) (i + 1)));
     }
   }
 
   @Test
   public void testNextAbsentValueUnsigned() {
-    BitmapContainer container = new ArrayContainer(new char[] { (char)((1 << 15) | 5), (char)((1 << 15) | 7)}).toBitmapContainer();
-    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char)((1 << 15) | 4)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 5)));
-    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char)((1 << 15) | 6)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 7)));
-    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char)((1 << 15) | 8)));
+    BitmapContainer container =
+        new ArrayContainer(new char[] {(char) ((1 << 15) | 5), (char) ((1 << 15) | 7)})
+            .toBitmapContainer();
+    assertEquals(((1 << 15) | 4), container.nextAbsentValue((char) ((1 << 15) | 4)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char) ((1 << 15) | 5)));
+    assertEquals(((1 << 15) | 6), container.nextAbsentValue((char) ((1 << 15) | 6)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char) ((1 << 15) | 7)));
+    assertEquals(((1 << 15) | 8), container.nextAbsentValue((char) ((1 << 15) | 8)));
   }
 
   @Test
@@ -1288,43 +1297,52 @@ public class TestBitmapContainer {
     char[] entries = new char[] {3, 4, 7, 8, 10, 65530, 65534, 65535};
     BitmapContainer container = new ArrayContainer(entries).toBitmapContainer();
 
-    ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, PRESENT
-    });
+    ValidationRangeConsumer consumer =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {
+              ABSENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT, ABSENT, PRESENT, PRESENT, ABSENT,
+              PRESENT
+            });
     container.forAllUntil(0, (char) 11, consumer);
     assertEquals(11, consumer.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer2 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        PRESENT, ABSENT, ABSENT, PRESENT, PRESENT
-    });
+    ValidationRangeConsumer consumer2 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {PRESENT, ABSENT, ABSENT, PRESENT, PRESENT});
     container.forAllInRange((char) 4, (char) 9, consumer2);
     assertEquals(5, consumer2.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer3 = ValidationRangeConsumer.validate(new ValidationRangeConsumer.Value[] {
-        PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
-    });
+    ValidationRangeConsumer consumer3 =
+        ValidationRangeConsumer.validate(
+            new ValidationRangeConsumer.Value[] {
+              PRESENT, ABSENT, ABSENT, ABSENT, PRESENT, PRESENT
+            });
     container.forAllFrom((char) 65530, consumer3);
     assertEquals(6, consumer3.getNumberOfValuesConsumed());
 
-    ValidationRangeConsumer consumer4 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer4 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer4);
     consumer4.assertAllAbsentExcept(entries, 0);
 
-    ValidationRangeConsumer consumer5 = ValidationRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer5 =
+        ValidationRangeConsumer.ofSize(2 * BitmapContainer.MAX_CAPACITY);
     consumer5.acceptAllAbsent(0, BitmapContainer.MAX_CAPACITY);
     container.forAll(BitmapContainer.MAX_CAPACITY, consumer5);
     consumer5.assertAllAbsentExcept(entries, BitmapContainer.MAX_CAPACITY);
 
     // Completely Empty
     container = new BitmapContainer();
-    ValidationRangeConsumer consumer6 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer6 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer6);
     consumer6.assertAllAbsent();
 
     // Completely Full
     container = new BitmapContainer();
     container.iadd(0, BitmapContainer.MAX_CAPACITY);
-    ValidationRangeConsumer consumer7 = ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
+    ValidationRangeConsumer consumer7 =
+        ValidationRangeConsumer.ofSize(BitmapContainer.MAX_CAPACITY);
     container.forAll(0, consumer7);
     consumer7.assertAllPresent();
 
@@ -1350,6 +1368,6 @@ public class TestBitmapContainer {
   }
 
   private static int lower16Bits(int x) {
-    return (char)x;
+    return (char) x;
   }
 }

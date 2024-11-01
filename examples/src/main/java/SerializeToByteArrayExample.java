@@ -4,9 +4,9 @@
 /***************
  * for performance considerations, see https://github.com/RoaringBitmap/RoaringBitmap/issues/319
  **************/
-import org.roaringbitmap.RoaringBitmap;
 import java.io.*;
 import java.nio.*;
+import org.roaringbitmap.RoaringBitmap;
 
 public class SerializeToByteArrayExample {
 
@@ -19,12 +19,10 @@ public class SerializeToByteArrayExample {
     RoaringBitmap ret = new RoaringBitmap();
     try {
       ret.deserialize(ByteBuffer.wrap(array));
-    } catch(IOException ioe) {
+    } catch (IOException ioe) {
       ioe.printStackTrace(); // should not happen
     }
-    if (!ret.equals(mrb))
-      throw new RuntimeException("bug");
+    if (!ret.equals(mrb)) throw new RuntimeException("bug");
     System.out.println("decoded from byte array : " + ret);
-
   }
 }

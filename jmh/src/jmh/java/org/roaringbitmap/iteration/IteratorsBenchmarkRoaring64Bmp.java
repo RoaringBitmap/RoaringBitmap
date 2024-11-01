@@ -24,7 +24,6 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
   }
@@ -36,10 +35,8 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -48,7 +45,6 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
   }
@@ -60,10 +56,8 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -72,7 +66,6 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
   }
@@ -84,10 +77,8 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -97,7 +88,6 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
   }
@@ -109,10 +99,8 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -122,10 +110,8 @@ public class IteratorsBenchmarkRoaring64Bmp {
     long result = 0;
     while (longIterator.hasNext()) {
       result = longIterator.next();
-
     }
     return result;
-
   }
 
   @State(Scope.Benchmark)
@@ -143,13 +129,10 @@ public class IteratorsBenchmarkRoaring64Bmp {
       bitmap_a = Roaring64Bitmap.bitmapOf(data);
 
       bitmap_b = new Roaring64Bitmap();
-      for (int k = 0; k < (1 << 30); k += 32)
-        bitmap_b.addLong(k);
+      for (int k = 0; k < (1 << 30); k += 32) bitmap_b.addLong(k);
 
       bitmap_c = new Roaring64Bitmap();
-      for (int k = 0; k < (1 << 30); k += 3)
-        bitmap_c.addLong(k);
-
+      for (int k = 0; k < (1 << 30); k += 3) bitmap_c.addLong(k);
     }
 
     private long[] takeSortedAndDistinct(Random source, int count) {

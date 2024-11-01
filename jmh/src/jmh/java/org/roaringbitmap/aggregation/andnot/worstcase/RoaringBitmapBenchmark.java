@@ -1,7 +1,6 @@
 package org.roaringbitmap.aggregation.andnot.worstcase;
 
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -50,5 +49,4 @@ public class RoaringBitmapBenchmark {
   public RoaringBitmap justclone() {
     return bitmap1.clone();
   }
-
 }

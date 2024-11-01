@@ -2,7 +2,6 @@ package org.roaringbitmap.runcontainer;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -14,7 +13,6 @@ import org.roaringbitmap.RunContainer;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-
 public class BitmapToRuncontainerConversions {
 
   /*
@@ -46,12 +44,10 @@ public class BitmapToRuncontainerConversions {
     return benchmarkState.ac1.numberOfRunsLowerBound(1000);
   }
 
-
   @Benchmark
   public int numberOfRunsLowerBound1282(BenchmarkState benchmarkState) {
     return benchmarkState.ac2.numberOfRunsLowerBound(1000);
   }
-
 
   /*
    * soon to be deleted...
@@ -68,7 +64,6 @@ public class BitmapToRuncontainerConversions {
   public int numberOfRunsAdjustment(BenchmarkState benchmarkState) {
     return benchmarkState.ac2.numberOfRunsAdjustment();
   }
-
 
   /*
    * soon to be deleted...
@@ -94,8 +89,6 @@ public class BitmapToRuncontainerConversions {
     return benchmarkState.ac2.numberOfRunsLowerBound(1000);
   }
 
-
-
   @Benchmark
   public int runOptimize(BenchmarkState benchmarkState) {
     return benchmarkState.ac2.runOptimize() instanceof RunContainer ? 1 : 0;
@@ -118,8 +111,6 @@ public class BitmapToRuncontainerConversions {
    *
    */
 
-
-
   @State(Scope.Benchmark)
   public static class BenchmarkState {
     public int offvalues = 32;
@@ -128,7 +119,6 @@ public class BitmapToRuncontainerConversions {
 
     BitmapContainer ac1, ac2;
     Random rand = new Random();
-
 
     public BenchmarkState() {
       final int max = 1 << 16;
@@ -141,8 +131,6 @@ public class BitmapToRuncontainerConversions {
 
       ac2 = new BitmapContainer();
       ac2 = (BitmapContainer) RandomUtil.fillMeUp(ac2, values2);
-
     }
   }
-
 }

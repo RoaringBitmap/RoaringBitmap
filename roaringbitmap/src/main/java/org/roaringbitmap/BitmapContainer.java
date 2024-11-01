@@ -4,8 +4,8 @@
 
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
+import static java.lang.Long.bitCount;
+import static java.lang.Long.numberOfTrailingZeros;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -13,10 +13,8 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-
-import static java.lang.Long.bitCount;
-import static java.lang.Long.numberOfTrailingZeros;
-
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
 
 /**
  * Simple bitset-like container.
@@ -33,6 +31,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   // bail out early when the number of runs is excessive, without
   // an exact count (just a decent lower bound)
   private static final int BLOCKSIZE = 128;
+
   // 64 words can have max 32 runs per word, max 2k runs
 
   /**
@@ -74,7 +73,6 @@ public final class BitmapContainer extends Container implements Cloneable {
   // BitmapContainer.getArraySizeInBytes()
   private static final int MAXRUNS = (MAX_CAPACITY_BYTE - 2) / 4;
 
-
   /**
    * Create a bitmap container with all bits set to false
    */
@@ -82,8 +80,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.cardinality = 0;
     this.bitmap = new long[MAX_CAPACITY_LONG];
   }
-
-
 
   /**
    * Create a bitmap container with a run of ones from firstOfRun to lastOfRun. Caller must ensure
@@ -114,8 +110,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.bitmap = newBitmap;
   }
 
-
-
   /**
    * Creates a new non-mappeable container from a mappeable one. This copies the data.
    *
@@ -125,7 +119,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.cardinality = bc.getCardinality();
     this.bitmap = bc.toLongArray();
   }
-
 
   @Override
   public Container add(int begin, int end) {
@@ -143,15 +136,13 @@ public final class BitmapContainer extends Container implements Cloneable {
     return answer;
   }
 
-
-
   @Override
   public Container add(final char i) {
     final long previous = bitmap[i >>> 6];
     long newval = previous | (1L << i);
     bitmap[i >>> 6] = newval;
     if (USE_BRANCHLESS) {
-      cardinality += (int)((previous ^ newval) >>> i);
+      cardinality += (int) ((previous ^ newval) >>> i);
     } else if (previous != newval) {
       ++cardinality;
     }
@@ -165,7 +156,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
       answer.content[answer.cardinality] = v;
-      answer.cardinality += (int)this.bitValue(v);
+      answer.cardinality += (int) this.bitValue(v);
     }
     return answer;
   }
@@ -198,7 +189,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
-      answer += (int)this.bitValue(v);
+      answer += (int) this.bitValue(v);
     }
     return answer;
   }
@@ -345,13 +336,13 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   protected boolean contains(BitmapContainer bitmapContainer) {
-    if((cardinality != -1) && (bitmapContainer.cardinality != -1)) {
-      if(cardinality < bitmapContainer.cardinality) {
+    if ((cardinality != -1) && (bitmapContainer.cardinality != -1)) {
+      if (cardinality < bitmapContainer.cardinality) {
         return false;
       }
     }
-    for(int i = 0; i < bitmapContainer.bitmap.length; ++i ) {
-      if((this.bitmap[i] & bitmapContainer.bitmap[i]) != bitmapContainer.bitmap[i]) {
+    for (int i = 0; i < bitmapContainer.bitmap.length; ++i) {
+      if ((this.bitmap[i] & bitmapContainer.bitmap[i]) != bitmapContainer.bitmap[i]) {
         return false;
       }
     }
@@ -389,18 +380,16 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
     }
     for (int i = 0; i < arrayContainer.cardinality; ++i) {
-      if(!contains(arrayContainer.content[i])) {
+      if (!contains(arrayContainer.content[i])) {
         return false;
       }
     }
     return true;
   }
 
-
   int bitValue(final char i) {
-    return (int)(bitmap[i >>> 6] >>> i ) & 1;
+    return (int) (bitmap[i >>> 6] >>> i) & 1;
   }
-
 
   @Override
   public void deserialize(DataInput in) throws IOException {
@@ -427,7 +416,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     return false;
   }
 
-
   /**
    * Fill the array with set bits
    *
@@ -451,13 +439,12 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
   }
 
-
   @Override
   public Container flip(char i) {
     int index = i >>> 6;
     long bef = bitmap[index];
     long mask = 1L << i;
-    if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+    if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) { // this is
       // the
       // uncommon
       // path
@@ -468,7 +455,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       }
     }
     // TODO: check whether a branchy version could be faster
-    cardinality += 1 - 2 * (int)((bef & mask) >>> i);
+    cardinality += 1 - 2 * (int) ((bef & mask) >>> i);
     bitmap[index] ^= mask;
     return this;
   }
@@ -576,7 +563,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         int runEnd = runStart + (x.getLength(rlepos));
         for (int runValue = runStart; runValue <= runEnd; ++runValue) {
           answer.content[answer.cardinality] = (char) runValue;
-          answer.cardinality += (int)this.bitValue((char) runValue);
+          answer.cardinality += (int) this.bitValue((char) runValue);
         }
       }
       return answer;
@@ -655,7 +642,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   Container ilazyor(ArrayContainer value2) {
-    this.cardinality = -1;// invalid
+    this.cardinality = -1; // invalid
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
@@ -666,7 +653,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   Container ilazyor(BitmapContainer x) {
-    this.cardinality = -1;// invalid
+    this.cardinality = -1; // invalid
     for (int k = 0; k < this.bitmap.length; k++) {
       this.bitmap[k] |= x.bitmap[k];
     }
@@ -723,7 +710,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public boolean intersects(int minimum, int supremum) {
-    if((minimum < 0) || (supremum < minimum) || (supremum > (1<<16))) {
+    if ((minimum < 0) || (supremum < minimum) || (supremum > (1 << 16))) {
       throw new RuntimeException("This should never happen (bug).");
     }
     int start = minimum >>> 6;
@@ -755,7 +742,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       long aft = bef | (1L << value2.content[k]);
       this.bitmap[i] = aft;
       if (USE_BRANCHLESS) {
-        cardinality += (int)((bef - aft) >>> 63);
+        cardinality += (int) ((bef - aft) >>> 63);
       } else {
         if (bef != aft) {
           cardinality++;
@@ -842,7 +829,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final int index = (vc) >>> 6;
       long ba = this.bitmap[index];
       // TODO: check whether a branchy version could be faster
-      this.cardinality += 1 - 2 * (int)((ba & mask) >>> vc);
+      this.cardinality += 1 - 2 * (int) ((ba & mask) >>> vc);
       this.bitmap[index] = ba ^ mask;
     }
     if (this.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -850,7 +837,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     return this;
   }
-
 
   @Override
   public Container ixor(BitmapContainer b2) {
@@ -886,7 +872,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   protected Container lazyor(ArrayContainer value2) {
     BitmapContainer answer = this.clone();
-    answer.cardinality = -1;// invalid
+    answer.cardinality = -1; // invalid
     int c = value2.cardinality;
     for (int k = 0; k < c; ++k) {
       char v = value2.content[k];
@@ -898,13 +884,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   protected Container lazyor(BitmapContainer x) {
     BitmapContainer answer = new BitmapContainer();
-    answer.cardinality = -1;// invalid
+    answer.cardinality = -1; // invalid
     for (int k = 0; k < this.bitmap.length; k++) {
       answer.bitmap[k] = this.bitmap[k] | x.bitmap[k];
     }
     return answer;
   }
-
 
   protected Container lazyor(RunContainer x) {
     BitmapContainer bc = clone();
@@ -998,7 +983,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     return MAX_CAPACITY;
   }
 
-
   @Override
   public Container not(final int firstOfRange, final int lastOfRange) {
     BitmapContainer answer = clone();
@@ -1013,7 +997,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (int i = 0; i < bitmap.length - 1; i++) {
       long word = nextWord;
       nextWord = bitmap[i + 1];
-      numRuns += Long.bitCount((~word) & (word << 1)) + (int)((word >>> 63) & ~nextWord);
+      numRuns += Long.bitCount((~word) & (word << 1)) + (int) ((word >>> 63) & ~nextWord);
     }
 
     long word = nextWord;
@@ -1037,7 +1021,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final long word = nextWord;
 
       nextWord = bitmap[i + 1];
-      ans += (int)((word >>> 63) & ~nextWord);
+      ans += (int) ((word >>> 63) & ~nextWord);
     }
     final long word = nextWord;
 
@@ -1080,7 +1064,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       long aft = w | (1L << v);
       answer.bitmap[i] = aft;
       if (USE_BRANCHLESS) {
-        answer.cardinality += (int)((w - aft) >>> 63);
+        answer.cardinality += (int) ((w - aft) >>> 63);
       } else {
         if (w != aft) {
           answer.cardinality++;
@@ -1170,7 +1154,6 @@ public final class BitmapContainer extends Container implements Cloneable {
     deserialize(in);
   }
 
-
   @Override
   public Container remove(int begin, int end) {
     if (end == begin) {
@@ -1194,7 +1177,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     int index = i >>> 6;
     long bef = bitmap[index];
     long mask = 1L << i;
-    if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) {// this is
+    if (cardinality == ArrayContainer.DEFAULT_MAX_SIZE + 1) { // this is
       // the
       // uncommon
       // path
@@ -1214,7 +1197,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public Container repairAfterLazy() {
     if (getCardinality() < 0) {
       computeCardinality();
-      if(getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+      if (getCardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
         return this.toArrayContainer();
       } else if (isFull()) {
         return RunContainer.full();
@@ -1247,8 +1230,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public char select(int j) {
-    if (//cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
-        cardinality >>> 1 < j && j < cardinality) {
+    if ( // cardinality != -1 && // omitted as (-1>>>1) > j as j < (1<<16)
+    cardinality >>> 1 < j && j < cardinality) {
       int leftover = cardinality - j;
       for (int k = bitmap.length - 1; k >= 0; --k) {
         long w = bitmap[k];
@@ -1292,6 +1275,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     throw new IllegalArgumentException("Insufficient cardinality.");
   }
+
   @Override
   public void serialize(DataOutput out) throws IOException {
     // little endian
@@ -1344,7 +1328,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     final CharIterator i = this.getCharIterator();
     sb.append('{');
     while (i.hasNext()) {
-      sb.append((int)(i.next()));
+      sb.append((int) (i.next()));
       if (i.hasNext()) {
         sb.append(',');
       }
@@ -1354,9 +1338,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
-  public void trim() {
-
-  }
+  public void trim() {}
 
   @Override
   public void writeArray(DataOutput out) throws IOException {
@@ -1387,7 +1369,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       final long mask = 1L << vc;
       final long val = answer.bitmap[index];
       // TODO: check whether a branchy version could be faster
-      answer.cardinality += (int)(1 - 2 * ((val & mask) >>> vc));
+      answer.cardinality += (int) (1 - 2 * ((val & mask) >>> vc));
       answer.bitmap[index] = val ^ mask;
     }
     if (answer.cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
@@ -1636,19 +1618,13 @@ public final class BitmapContainer extends Container implements Cloneable {
         return;
       } else {
         addWholeWordToRangeConsumer(
-            word,
-            wordStart - startValue,
-            wordEndExclusive - startValue,
-            rrc);
+            word, wordStart - startValue, wordEndExclusive - startValue, rrc);
       }
     }
   }
 
   private void addWholeWordToRangeConsumer(
-          long word,
-          int bufferWordStart,
-          int bufferWordEnd,
-          final RelativeRangeConsumer rrc) {
+      long word, int bufferWordStart, int bufferWordEnd, final RelativeRangeConsumer rrc) {
     // some special cases for efficiency
     if (word == 0) {
       rrc.acceptAllAbsent(bufferWordStart, bufferWordEnd);
@@ -1710,7 +1686,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   public int first() {
     assertNonEmpty(cardinality == 0);
     int i = 0;
-    while(i < bitmap.length - 1 && bitmap[i] == 0) {
+    while (i < bitmap.length - 1 && bitmap[i] == 0) {
       ++i; // seek forward
     }
     // sizeof(long) * #empty words at start + number of bits preceding the first bit set
@@ -1721,14 +1697,13 @@ public final class BitmapContainer extends Container implements Cloneable {
   public int last() {
     assertNonEmpty(cardinality == 0);
     int i = bitmap.length - 1;
-    while(i > 0 && bitmap[i] == 0) {
+    while (i > 0 && bitmap[i] == 0) {
       --i; // seek backward
     }
     // sizeof(long) * #words from start - number of bits after the last bit set
     return (i + 1) * 64 - Long.numberOfLeadingZeros(bitmap[i]) - 1;
   }
 }
-
 
 class BitmapContainerCharIterator implements PeekableCharIterator {
 
@@ -1737,9 +1712,7 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
 
   long[] bitmap;
 
-  BitmapContainerCharIterator() {
-
-  }
+  BitmapContainerCharIterator() {}
 
   BitmapContainerCharIterator(long[] p) {
     wrap(p);
@@ -1750,7 +1723,7 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
     try {
       return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -1773,8 +1746,6 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
     return answer;
   }
 
-
-
   @Override
   public int nextAsInt() {
     return (next());
@@ -1785,7 +1756,6 @@ class BitmapContainerCharIterator implements PeekableCharIterator {
     // TODO: implement
     throw new RuntimeException("unsupported operation: remove");
   }
-
 
   public void wrap(long[] b) {
     bitmap = b;
@@ -1851,7 +1821,7 @@ final class BitmapContainerCharRankIterator extends BitmapContainerCharIterator
       if (minval >= (x + 1) * 64) {
         int nextX = minval / 64;
         nextRank += bitCount(w);
-        for(x = x + 1; x < nextX; x++) {
+        for (x = x + 1; x < nextX; x++) {
           w = bitmap[x];
           nextRank += bitCount(w);
         }
@@ -1883,9 +1853,7 @@ final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
 
   long[] bitmap;
 
-  ReverseBitmapContainerCharIterator() {
-
-  }
+  ReverseBitmapContainerCharIterator() {}
 
   ReverseBitmapContainerCharIterator(long[] bitmap) {
     wrap(bitmap);
@@ -1908,7 +1876,7 @@ final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
   @Override
   public char next() {
     int shift = Long.numberOfLeadingZeros(word) + 1;
-    char answer = (char)((position + 1) * 64 - shift);
+    char answer = (char) ((position + 1) * 64 - shift);
     word &= (0xFFFFFFFFFFFFFFFEL >>> shift);
     while (word == 0) {
       --position;

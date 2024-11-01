@@ -1,13 +1,12 @@
 package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.*;
-
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
+import org.openjdk.jmh.annotations.*;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -22,7 +21,6 @@ public class BitSetUtilBenchmark {
     return bogus;
   }
 
-
   @Benchmark
   public long BitSetToRoaringUsingBitSetUtil(Data d) {
     long bogus = 0;
@@ -32,16 +30,16 @@ public class BitSetUtilBenchmark {
     return bogus;
   }
 
-  private static final ThreadLocal<long[]> WORD_BLOCK = ThreadLocal.withInitial(() ->
-      new long[BitSetUtil.BLOCK_LENGTH]);
+  private static final ThreadLocal<long[]> WORD_BLOCK =
+      ThreadLocal.withInitial(() -> new long[BitSetUtil.BLOCK_LENGTH]);
 
   /*
-    Given an uncompressed bitset represented as a byte array (basically, as read on wire)
-    Below benchmarks the perf difference you will get when:
-    1. ByteArrayToRoaring - Directly convert the byte array to a roaring bitmap by wrapping it in a ByteBuffer
-    2. ByteArrayToBitsetToRoaring - Convert the byte array to a BitSet and then create the bitmap using it
-    3. ByteArrayToRoaringWithCachedBuffer - Directly convert and use a cached reused buffer
-   */
+   Given an uncompressed bitset represented as a byte array (basically, as read on wire)
+   Below benchmarks the perf difference you will get when:
+   1. ByteArrayToRoaring - Directly convert the byte array to a roaring bitmap by wrapping it in a ByteBuffer
+   2. ByteArrayToBitsetToRoaring - Convert the byte array to a BitSet and then create the bitmap using it
+   3. ByteArrayToRoaringWithCachedBuffer - Directly convert and use a cached reused buffer
+  */
 
   @Benchmark
   public long ByteArrayToRoaring(Data d) {
@@ -62,7 +60,6 @@ public class BitSetUtilBenchmark {
     }
     return bogus;
   }
-
 
   @Benchmark
   public long ByteArrayToBitsetToRoaring(Data d) {
@@ -86,14 +83,12 @@ public class BitSetUtilBenchmark {
     long word = 0;
     int index = 0;
     for (int i = 0, socket = 0; i < words.length && index < cardinality; i++, socket += Long.SIZE) {
-      if (words[i] == 0)
-        continue;
+      if (words[i] == 0) continue;
 
       // for each bit, unless updated word has become 0 (no more bits left) or we already have
       // reached cardinality
       word = words[i];
-      for (int bitIndex = 0; word != 0 && bitIndex < Long.SIZE; word >>=
-          1, bitIndex++) {
+      for (int bitIndex = 0; word != 0 && bitIndex < Long.SIZE; word >>= 1, bitIndex++) {
         if ((word & 1l) != 0) {
           bitmap.add(socket + bitIndex);
         }
@@ -125,18 +120,20 @@ public class BitSetUtilBenchmark {
     }
 
     private long[][] deserialize(final String bitsetResource) throws IOException {
-      final DataInputStream dos = new DataInputStream(
-          new GZIPInputStream(this.getClass().getResourceAsStream(bitsetResource)));
+      final DataInputStream dos =
+          new DataInputStream(
+              new GZIPInputStream(this.getClass().getResourceAsStream(bitsetResource)));
       try {
         /* Change this value to see number for small vs large bitsets
-           wordSize = 64 represents 4096 bits (512 bytes)
-           wordSize = 512 represents 32768 bits (~4kb)
-           wordSize = 8192 represents 524288 bits (~64kb)
-           wordSize = 131072 represents 8388608 bits (~8.3 million, ~1mb)
-         */
+          wordSize = 64 represents 4096 bits (512 bytes)
+          wordSize = 512 represents 32768 bits (~4kb)
+          wordSize = 8192 represents 524288 bits (~64kb)
+          wordSize = 131072 represents 8388608 bits (~8.3 million, ~1mb)
+        */
         final int minTotalWordSize = 512;
         // Try to keep size of bitsets created below 1 gb
-        final int bitsetCnt = Math.min((1024 * 1024 * 1024) / (minTotalWordSize * 8), dos.readInt());
+        final int bitsetCnt =
+            Math.min((1024 * 1024 * 1024) / (minTotalWordSize * 8), dos.readInt());
 
         final long[][] bitset = new long[bitsetCnt][];
         for (int i = 0; i < bitsetCnt; i++) {
@@ -150,8 +147,8 @@ public class BitSetUtilBenchmark {
           }
 
           // duplicate long[] n times to the right
-          for(int j = 0; j < clone; j++) {
-            System.arraycopy(words, 0, words, (j+1)*wordSize, wordSize);
+          for (int j = 0; j < clone; j++) {
+            System.arraycopy(words, 0, words, (j + 1) * wordSize, wordSize);
           }
           bitset[i] = words;
         }
@@ -161,5 +158,4 @@ public class BitSetUtilBenchmark {
       }
     }
   }
-
 }

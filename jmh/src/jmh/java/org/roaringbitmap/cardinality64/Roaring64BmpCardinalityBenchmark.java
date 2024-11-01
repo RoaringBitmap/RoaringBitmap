@@ -42,10 +42,15 @@ public class Roaring64BmpCardinalityBenchmark {
   }
 
   public static void main(String... args) throws Exception {
-    Options opts = new OptionsBuilder().include(".*Roaring64BmpCardinalityBenchmark.*")
-        .warmupTime(new TimeValue(1, TimeUnit.SECONDS)).warmupIterations(3)
-        .measurementTime(new TimeValue(1, TimeUnit.SECONDS)).measurementIterations(3).forks(1)
-        .build();
+    Options opts =
+        new OptionsBuilder()
+            .include(".*Roaring64BmpCardinalityBenchmark.*")
+            .warmupTime(new TimeValue(1, TimeUnit.SECONDS))
+            .warmupIterations(3)
+            .measurementTime(new TimeValue(1, TimeUnit.SECONDS))
+            .measurementIterations(3)
+            .forks(1)
+            .build();
 
     new Runner(opts).run();
   }

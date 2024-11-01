@@ -1,29 +1,31 @@
 package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.*;
-
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.*;
 
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 5, timeUnit = TimeUnit.MILLISECONDS, time = 5000)
 @Measurement(iterations = 10, timeUnit = TimeUnit.MILLISECONDS, time = 5000)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Benchmark)
-@Fork(value = 1, jvmArgsPrepend =
-    {
-        "-XX:-TieredCompilation",
-        "-XX:+UseSerialGC", // "-XX:+UseParallelGC",
-        "-mx2G",
-        "-ms2G",
-        "-XX:+AlwaysPreTouch"
+@Fork(
+    value = 1,
+    jvmArgsPrepend = {
+      "-XX:-TieredCompilation",
+      "-XX:+UseSerialGC", // "-XX:+UseParallelGC",
+      "-mx2G",
+      "-ms2G",
+      "-XX:+AlwaysPreTouch"
     })
 public class AddOffsetBenchmark {
   @Param({
-      "ARRAY_ALL_IN_LOW", "ARRAY_HALF_TO_HALF", "ARRAY_ALL_SHIFTED_TO_HIGH",
-      // all variant provided for completeness only, original and current implementation are the same
-      // "RUN_ALL_IN_LOW", "RUN_HALF_TO_HALF", "RUN_ALL_SHIFTED_TO_HIGH",
-      // "BITMAP_ALL_IN_LOW", "BITMAP_HALF_TO_HALF", "BITMAP_ALL_SHIFTED_TO_HIGH",
-      // "BITMAP_HALF_TO_HALF_MULTIPLE_OF_LONG", "BITMAP_ALL_SHIFTED_TO_HIGH_MULTIPLE_OF_LONG",
+    "ARRAY_ALL_IN_LOW",
+    "ARRAY_HALF_TO_HALF",
+    "ARRAY_ALL_SHIFTED_TO_HIGH",
+    // all variant provided for completeness only, original and current implementation are the same
+    // "RUN_ALL_IN_LOW", "RUN_HALF_TO_HALF", "RUN_ALL_SHIFTED_TO_HIGH",
+    // "BITMAP_ALL_IN_LOW", "BITMAP_HALF_TO_HALF", "BITMAP_ALL_SHIFTED_TO_HIGH",
+    // "BITMAP_HALF_TO_HALF_MULTIPLE_OF_LONG", "BITMAP_ALL_SHIFTED_TO_HIGH_MULTIPLE_OF_LONG",
   })
   Scenario scenario;
 
@@ -86,7 +88,8 @@ public class AddOffsetBenchmark {
         }
         return bc;
       }
-    }, ARRAY {
+    },
+    ARRAY {
       @Override
       public Container createContainer() {
         ArrayContainer ac = new ArrayContainer();
@@ -105,7 +108,6 @@ public class AddOffsetBenchmark {
 
   public Container container;
   public char offsets;
-
 
   @Setup(Level.Invocation)
   public void setUp() {
@@ -149,7 +151,7 @@ public class AddOffsetBenchmark {
           high.content[high.cardinality++] = (char) val;
         }
       }
-      return new Container[]{low, high};
+      return new Container[] {low, high};
     } else if (source instanceof BitmapContainer) {
       BitmapContainer c = (BitmapContainer) source;
       BitmapContainer low = new BitmapContainer();
@@ -167,13 +169,11 @@ public class AddOffsetBenchmark {
           low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64 - i));
         }
         for (int k = 1024 - b; k < 1024; k++) {
-          high.bitmap[k - (1024 - b)] =
-              (c.bitmap[k] << i)
-                  | (c.bitmap[k - 1] >>> (64 - i));
+          high.bitmap[k - (1024 - b)] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64 - i));
         }
         high.bitmap[b] = (c.bitmap[1024 - 1] >>> (64 - i));
       }
-      return new Container[]{low.repairAfterLazy(), high.repairAfterLazy()};
+      return new Container[] {low.repairAfterLazy(), high.repairAfterLazy()};
     } else if (source instanceof RunContainer) {
       RunContainer input = (RunContainer) source;
       RunContainer low = new RunContainer();
@@ -193,7 +193,7 @@ public class AddOffsetBenchmark {
           high.smartAppend((char) val, input.getLength(k));
         }
       }
-      return new Container[]{low, high};
+      return new Container[] {low, high};
     }
     throw new RuntimeException("unknown container type"); // never happens
   }
@@ -218,8 +218,8 @@ public class AddOffsetBenchmark {
       }
       low.cardinality = source.cardinality;
     } else {
-      int splitIndex = Util.unsignedBinarySearch(source.content, 0, source.cardinality,
-          (char) ~offsets);
+      int splitIndex =
+          Util.unsignedBinarySearch(source.content, 0, source.cardinality, (char) ~offsets);
       if (splitIndex < 0) {
         splitIndex = -splitIndex - 1;
       }
@@ -234,6 +234,6 @@ public class AddOffsetBenchmark {
         high.content[high.cardinality++] = (char) val;
       }
     }
-    return new Container[]{low, high};
+    return new Container[] {low, high};
   }
 }

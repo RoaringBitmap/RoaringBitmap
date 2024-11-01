@@ -1,8 +1,6 @@
 package org.roaringbitmap.bithacking;
 
-
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -16,7 +14,6 @@ import org.openjdk.jmh.annotations.State;
 public class UnsignedVSFlip {
   @Param({"1", "31", "65", "101", "103"})
   public short key;
-
 
   @Benchmark
   @BenchmarkMode(Mode.Throughput)
@@ -36,7 +33,6 @@ public class UnsignedVSFlip {
     return key ^ Short.MIN_VALUE;
   }
 
-
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public int flipTimeAvg() {
@@ -54,5 +50,4 @@ public class UnsignedVSFlip {
   public short flipTimeShortAvg() {
     return (short) (key ^ Short.MIN_VALUE);
   }
-
 }

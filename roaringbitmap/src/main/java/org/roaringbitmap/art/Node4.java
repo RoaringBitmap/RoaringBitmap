@@ -90,14 +90,14 @@ public class Node4 extends Node {
   public static Node insert(Node node, Node childNode, byte key) {
     Node4 current = (Node4) node;
     if (current.count < 4) {
-      //insert leaf into current node
+      // insert leaf into current node
       current.key = IntegerUtil.setByte(current.key, key, current.count);
       current.children[current.count] = childNode;
       current.count++;
       insertionSort(current);
       return current;
     } else {
-      //grow to Node16
+      // grow to Node16
       Node16 node16 = new Node16(current.prefixLength);
       node16.count = 4;
       node16.firstV = LongUtils.initWithFirst4Byte(current.key);
@@ -118,7 +118,7 @@ public class Node4 extends Node {
       children[pos] = children[pos + 1];
     }
     if (count == 1) {
-      //shrink to the child node
+      // shrink to the child node
       Node child = children[0];
       byte newLength = (byte) (child.prefixLength + this.prefixLength + 1);
       byte[] newPrefix = new byte[newLength];
@@ -163,7 +163,6 @@ public class Node4 extends Node {
   public int serializeNodeBodySizeInBytes() {
     return 4;
   }
-
 
   @Override
   public void replaceChildren(Node[] children) {

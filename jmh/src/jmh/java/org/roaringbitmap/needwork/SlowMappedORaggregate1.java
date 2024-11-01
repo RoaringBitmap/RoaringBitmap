@@ -1,6 +1,5 @@
 package org.roaringbitmap.needwork;
 
-
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,7 +10,6 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -34,12 +32,11 @@ public class SlowMappedORaggregate1 {
     return answer;
   }
 
-
-
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    @Param({// putting the data sets in alpha. order
-        "wikileaks-noquotes",})
+    @Param({ // putting the data sets in alpha. order
+      "wikileaks-noquotes",
+    })
     String dataset;
 
     public List<ImmutableRoaringBitmap> convertToImmutableRoaring(List<MutableRoaringBitmap> source)
@@ -49,8 +46,7 @@ public class SlowMappedORaggregate1 {
       final FileOutputStream fos = new FileOutputStream(tmpfile);
       final DataOutputStream dos = new DataOutputStream(fos);
 
-      for (MutableRoaringBitmap rb1 : source)
-        rb1.serialize(dos);
+      for (MutableRoaringBitmap rb1 : source) rb1.serialize(dos);
 
       final long totalcount = fos.getChannel().position();
       dos.close();
@@ -63,15 +59,13 @@ public class SlowMappedORaggregate1 {
         final ByteBuffer bb = out.slice();
         MutableRoaringBitmap equiv = source.get(answer.size());
         ImmutableRoaringBitmap newbitmap = new ImmutableRoaringBitmap(bb);
-        if (!equiv.equals(newbitmap))
-          throw new RuntimeException("bitmaps do not match");
+        if (!equiv.equals(newbitmap)) throw new RuntimeException("bitmaps do not match");
         answer.add(newbitmap);
         out.position(out.position() + newbitmap.serializedSizeInBytes());
       }
       memoryMappedFile.close();
       return answer;
     }
-
 
     List<ImmutableRoaringBitmap> rc;
 
@@ -91,6 +85,5 @@ public class SlowMappedORaggregate1 {
       }
       rc = convertToImmutableRoaring(tmprc);
     }
-
   }
 }

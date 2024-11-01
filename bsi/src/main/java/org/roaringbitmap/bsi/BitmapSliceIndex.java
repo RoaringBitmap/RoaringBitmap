@@ -41,7 +41,6 @@ public interface BitmapSliceIndex {
 
   long getLongCardinality();
 
-
   /**
    * set value for bsi, setValue will set each bit slice according to the input value
    * given that we have bsi as follow
@@ -76,7 +75,8 @@ public interface BitmapSliceIndex {
    * and avoiding bsi expend slice array capacity.
    */
   @Deprecated
-  void setValues(List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
+  void setValues(
+      List<Pair<Integer, Integer>> values, Integer currentMaxValue, Integer currentMinValue);
 
   /**
    * Set a batch of values.
@@ -89,7 +89,4 @@ public interface BitmapSliceIndex {
   void serialize(DataOutput output) throws IOException;
 
   int serializedSizeInBytes();
-
-
 }
-

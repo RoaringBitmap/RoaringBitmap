@@ -7,14 +7,14 @@ import java.nio.ByteBuffer;
 
 public abstract class Node {
 
-  //node type
+  // node type
   protected NodeType nodeType;
-  //length of compressed path(prefix)
+  // length of compressed path(prefix)
   protected byte prefixLength;
-  //the compressed path path (prefix)
+  // the compressed path path (prefix)
   protected byte[] prefix;
-  //number of non-null children, the largest value will not beyond 255
-  //to benefit calculation,we keep the value as a short type
+  // number of non-null children, the largest value will not beyond 255
+  // to benefit calculation,we keep the value as a short type
   protected short count;
   public static final int ILLEGAL_IDX = -1;
 
@@ -34,7 +34,8 @@ public abstract class Node {
   /**
    * sort the small arrays through the insertion sort alg.
    */
-  protected static byte[] sortSmallByteArray(byte[] key, Node[] children, int left, int right) {//x
+  protected static byte[] sortSmallByteArray(
+      byte[] key, Node[] children, int left, int right) { // x
     for (int i = left, j = i; i < right; j = ++i) {
       byte ai = key[i + 1];
       Node child = children[i + 1];
@@ -274,8 +275,7 @@ public abstract class Node {
    * @param k the target key byte value
    * @return the array offset of the target input key 'k' or -1 to not found
    */
-  public static int binarySearch(byte[] key, int fromIndex, int toIndex,
-      byte k) {
+  public static int binarySearch(byte[] key, int fromIndex, int toIndex, byte k) {
     int inputUnsignedByte = Byte.toUnsignedInt(k);
     int low = fromIndex;
     int high = toIndex - 1;
@@ -296,8 +296,7 @@ public abstract class Node {
     return ILLEGAL_IDX;
   }
 
-  static SearchResult binarySearchWithResult(byte[] key, int fromIndex, int toIndex,
-       byte k) {
+  static SearchResult binarySearchWithResult(byte[] key, int fromIndex, int toIndex, byte k) {
     int inputUnsignedByte = Byte.toUnsignedInt(k);
     int low = fromIndex;
     int high = toIndex - 1;
@@ -324,9 +323,9 @@ public abstract class Node {
   }
 
   private void serializeHeader(DataOutput dataOutput) throws IOException {
-    //first byte: node type
+    // first byte: node type
     dataOutput.writeByte((byte) this.nodeType.ordinal());
-    //non null object count
+    // non null object count
     dataOutput.writeShort(Short.reverseBytes(this.count));
     dataOutput.writeByte(this.prefixLength);
     if (prefixLength > 0) {

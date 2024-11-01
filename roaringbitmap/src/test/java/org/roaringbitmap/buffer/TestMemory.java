@@ -1,19 +1,21 @@
 package org.roaringbitmap.buffer;
 
-
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class TestMemory {
   @Test
   public void testGCStability() {
     final int N = 10000;
     final int M = 5000000;
-    System.out.println("[testGCStability] testing GC stability with " + N + " bitmaps containing ~"
-        + M / N + " values each on average");
+    System.out.println(
+        "[testGCStability] testing GC stability with "
+            + N
+            + " bitmaps containing ~"
+            + M / N
+            + " values each on average");
     System.out.println("Universe size = " + M);
     final MutableRoaringBitmap[] bitmaps = new MutableRoaringBitmap[N];
     for (int i = 0; i < N; i++) {

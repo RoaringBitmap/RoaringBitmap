@@ -1,17 +1,14 @@
 package org.roaringbitmap.insights;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.SeededTestData;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 @Execution(ExecutionMode.CONCURRENT)
 public class BitmapAnalyserTest {
@@ -25,7 +22,8 @@ public class BitmapAnalyserTest {
       rb.add(i);
     }
     BitmapStatistics result = BitmapAnalyser.analyse(rb);
-    BitmapStatistics expected = new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(1, 6), 1, 1);
+    BitmapStatistics expected =
+        new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(1, 6), 1, 1);
     assertEquals(expected, result);
   }
 
@@ -41,7 +39,10 @@ public class BitmapAnalyserTest {
 
     assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
     assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
-    assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
+    assertEquals(
+        arrayFraction,
+        result.containerFraction(result.getArrayContainersStats().getContainersCount()),
+        delta);
   }
 
   @Test
@@ -62,8 +63,10 @@ public class BitmapAnalyserTest {
 
     assertEquals(runFraction, result.containerFraction(result.getRunContainerCount()), delta);
     assertEquals(bitmapFraction, result.containerFraction(result.getBitmapContainerCount()), delta);
-    assertEquals(arrayFraction, result.containerFraction(result.getArrayContainersStats().getContainersCount()), delta);
+    assertEquals(
+        arrayFraction,
+        result.containerFraction(result.getArrayContainersStats().getContainersCount()),
+        delta);
     assertEquals(totalBitmaps, result.getBitmapsCount());
   }
-
 }

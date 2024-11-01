@@ -1,23 +1,22 @@
 package org.roaringbitmap;
 
-import com.google.common.collect.Lists;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
+import static org.roaringbitmap.SeededTestData.randomBitmap;
 
+import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.roaringbitmap.RoaringBitmapWriter.writer;
-import static org.roaringbitmap.SeededTestData.randomBitmap;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestRankIterator {
@@ -29,8 +28,8 @@ public class TestRankIterator {
     withFull.add(0L, 262144L);
 
     assertTrue(fast.isCacheDismissed());
-    return Lists.cartesianProduct(Arrays.asList(fast, withFull), computeAdvances())
-            .stream().map(list -> Arguments.of(list.get(0), list.get(1)));
+    return Lists.cartesianProduct(Arrays.asList(fast, withFull), computeAdvances()).stream()
+        .map(list -> Arguments.of(list.get(0), list.get(1)));
   }
 
   @ParameterizedTest(name = "{1}")
@@ -78,15 +77,15 @@ public class TestRankIterator {
 
   private static List<Integer> computeAdvances() {
     return IntStream.of(0, 1, 3, 5, 7, 11)
-            .flatMap(i -> IntStream.range(0, 18).map(j -> i * (1 << j)))
-            .boxed()
-            .distinct()
-            .collect(Collectors.toList());
+        .flatMap(i -> IntStream.range(0, 18).map(j -> i * (1 << j)))
+        .boxed()
+        .distinct()
+        .collect(Collectors.toList());
   }
 
   private static FastRankRoaringBitmap getBitmap() {
-    FastRankRoaringBitmap bitmap = randomBitmap(50,
-            writer().fastRank().initialCapacity(50).constantMemory().get());
+    FastRankRoaringBitmap bitmap =
+        randomBitmap(50, writer().fastRank().initialCapacity(50).constantMemory().get());
     assertTrue(bitmap.isCacheDismissed());
     return bitmap;
   }

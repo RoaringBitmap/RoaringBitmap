@@ -1,8 +1,8 @@
 package org.roaringbitmap;
 
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
 
 public class ValidationRangeConsumer implements RelativeRangeConsumer {
 

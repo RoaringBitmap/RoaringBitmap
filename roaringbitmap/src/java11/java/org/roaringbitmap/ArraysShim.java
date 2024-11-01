@@ -34,8 +34,8 @@ public class ArraysShim {
    * @param bToIndex exclusive
    * @return -1 if no mismatch found,othewise the mismatch offset
    */
-  public static int mismatch(byte[] a, int aFromIndex, int aToIndex,
-      byte[] b, int bFromIndex, int bToIndex) {
+  public static int mismatch(
+      byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex) {
     if (bFromIndex > bToIndex) {
       return -1;
     }

@@ -1,12 +1,10 @@
 package org.roaringbitmap.writer;
 
-
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
-
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.*;
+import org.roaringbitmap.*;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -25,8 +23,8 @@ public class WriteSequential {
       RoaringBitmapWriter<RoaringBitmap> newWriter() {
         return RoaringBitmapWriter.writer().optimiseForArrays().get();
       }
-    }
-    ;
+    };
+
     abstract RoaringBitmapWriter<RoaringBitmap> newWriter();
   }
 
@@ -92,5 +90,4 @@ public class WriteSequential {
     writer.flush();
     return writer.getUnderlying();
   }
-
 }

@@ -3,7 +3,6 @@ package org.roaringbitmap.realdata;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -48,5 +47,4 @@ public class RealDataBenchmarkContains {
       }
     }
   }
-
 }

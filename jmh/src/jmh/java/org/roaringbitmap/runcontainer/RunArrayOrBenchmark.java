@@ -1,10 +1,9 @@
 package org.roaringbitmap.runcontainer;
 
+import io.druid.extendedset.intset.ConciseSet;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
-import io.druid.extendedset.intset.ConciseSet;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -62,7 +61,6 @@ public class RunArrayOrBenchmark {
     Random rand = new Random();
     Container aggregate;
 
-
     public BenchmarkState() {
       int N = 30;
       Random rand = new Random(1234);
@@ -72,7 +70,7 @@ public class RunArrayOrBenchmark {
 
         for (int z = 0; z < 50; ++z) {
           int end = start + rand.nextInt(10000);
-          rb.add((long)start, (long)end);
+          rb.add((long) start, (long) end);
           start = end + rand.nextInt(1000);
         }
         cc.add(toConcise(rb.toArray()));
@@ -95,9 +93,7 @@ public class RunArrayOrBenchmark {
         rb = rb.clone();
         rb.runOptimize();
         rc.add(rb);
-
       }
     }
   }
-
 }
