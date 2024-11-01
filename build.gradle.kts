@@ -59,9 +59,9 @@ subprojects {
     apply(plugin = "com.diffplug.spotless")
 
     spotless {
-        // BEWARE We comment ratchetFrom to format the whole codebase
-        // It shall be uncommented before merging into master
-        // ratchetFrom("origin/master")
+        // Ratchetting from master means we check/apply only files which are changed relatively to master
+        // This is especially useful for performance, given the whole codebase has been formatted with Spotless.
+        ratchetFrom("origin/master")
 
         java {
             // Disbale javadoc formatting as most the javacode do not follow HTML syntax.
