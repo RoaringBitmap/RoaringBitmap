@@ -6,15 +6,17 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.util.*;
+import org.roaringbitmap.*;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.*;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.util.*;
 
 /**
  * Generic testing of the roaring bitmaps

@@ -8,6 +8,8 @@ import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -15,7 +17,6 @@ import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.util.Iterator;
-import org.roaringbitmap.*;
 
 /**
  * Simple bitset-like container. Unlike org.roaringbitmap.BitmapContainer, this class uses a

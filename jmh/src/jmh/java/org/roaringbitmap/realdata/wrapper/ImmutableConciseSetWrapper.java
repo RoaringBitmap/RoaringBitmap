@@ -3,13 +3,15 @@ package org.roaringbitmap.realdata.wrapper;
 import static io.druid.extendedset.intset.ImmutableConciseSet.intersection;
 import static io.druid.extendedset.intset.ImmutableConciseSet.union;
 
+import org.roaringbitmap.IntConsumer;
+
 import io.druid.extendedset.intset.ImmutableConciseSet;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-import org.roaringbitmap.IntConsumer;
 
 final class ImmutableConciseSetWrapper implements Bitmap {
 

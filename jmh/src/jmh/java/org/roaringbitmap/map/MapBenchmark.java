@@ -1,17 +1,19 @@
 // https://github.com/RoaringBitmap/RoaringBitmap/issues/160
 package org.roaringbitmap.map;
 
-import java.util.BitSet;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.BitSetUtil;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.RoaringBitmap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.BitSetUtil;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.RoaringBitmap;
+
+import java.util.BitSet;
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

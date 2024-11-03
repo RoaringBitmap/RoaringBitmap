@@ -2,12 +2,14 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 public class PreviousValueTest {
   @Test

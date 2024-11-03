@@ -1,5 +1,15 @@
 package org.roaringbitmap.longlong;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+import org.roaringbitmap.art.ContainerIterator;
+import org.roaringbitmap.art.Containers;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -7,14 +17,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.art.ContainerIterator;
-import org.roaringbitmap.art.Containers;
 
 public class ContainersTest {
 

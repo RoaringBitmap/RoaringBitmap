@@ -2,10 +2,12 @@ package org.roaringbitmap.iteration;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
+import org.roaringbitmap.*;
+
+import org.openjdk.jmh.annotations.*;
+
 import java.util.BitSet;
 import java.util.stream.IntStream;
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
 
 @State(Scope.Benchmark)
 @Fork(

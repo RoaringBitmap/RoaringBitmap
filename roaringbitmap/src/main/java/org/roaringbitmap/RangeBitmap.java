@@ -5,16 +5,17 @@ import static org.roaringbitmap.Util.cardinalityInBitmapRange;
 import static org.roaringbitmap.Util.resetBitmapRange;
 import static org.roaringbitmap.Util.setBitmapRange;
 
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
-import org.roaringbitmap.buffer.MappeableArrayContainer;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
-import org.roaringbitmap.buffer.MappeableRunContainer;
 
 /**
  * A 2D bitmap which associates values with a row index and can perform range queries.

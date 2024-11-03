@@ -2,10 +2,12 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.roaringbitmap.IntIterator;
+
+import org.junit.jupiter.api.Test;
+
 import java.util.BitSet;
 import java.util.Random;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.IntIterator;
 
 public class TestRange {
   @Test

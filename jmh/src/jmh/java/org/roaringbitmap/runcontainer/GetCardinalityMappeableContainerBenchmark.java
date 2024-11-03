@@ -1,10 +1,12 @@
 package org.roaringbitmap.runcontainer;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)

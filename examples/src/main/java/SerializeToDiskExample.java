@@ -4,10 +4,11 @@
  *
  *
  */
+import org.roaringbitmap.*;
+
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import org.roaringbitmap.*;
 
 public class SerializeToDiskExample {
 

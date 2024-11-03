@@ -1,16 +1,18 @@
 package org.roaringbitmap.rangebitmap;
 
-import java.util.Arrays;
-import java.util.Random;
-import java.util.SplittableRandom;
-import java.util.concurrent.TimeUnit;
-import java.util.function.LongSupplier;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RangeBitmap;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.RoaringBitmapSliceIndex;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Arrays;
+import java.util.Random;
+import java.util.SplittableRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @BenchmarkMode(Mode.AverageTime)

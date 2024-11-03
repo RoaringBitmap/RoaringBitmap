@@ -1,7 +1,8 @@
+import org.roaringbitmap.buffer.*;
+
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.FileChannel;
-import org.roaringbitmap.buffer.*;
 
 public class MemoryMappingExample {
 

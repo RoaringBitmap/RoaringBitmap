@@ -1,11 +1,12 @@
 package org.roaringbitmap.longlong;
 
 import com.google.common.primitives.Ints;
+import org.openjdk.jol.info.GraphLayout;
+
 import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import org.openjdk.jol.info.GraphLayout;
 
 /**
  * This runs benchmarks over {@link Roaring64NavigableMap} memory layout, as suggested in

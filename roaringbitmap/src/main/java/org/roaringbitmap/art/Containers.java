@@ -1,5 +1,10 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -7,10 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RunContainer;
 
 /**
  * To support the largest 2^48 different keys,we almost need 2^18 Container arrays which holds 2^31

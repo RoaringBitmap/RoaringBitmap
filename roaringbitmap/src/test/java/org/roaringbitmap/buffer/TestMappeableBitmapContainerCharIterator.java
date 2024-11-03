@@ -4,13 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
+import org.roaringbitmap.PeekableCharIterator;
+
 import com.google.common.primitives.Ints;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.PeekableCharIterator;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableBitmapContainerCharIterator {

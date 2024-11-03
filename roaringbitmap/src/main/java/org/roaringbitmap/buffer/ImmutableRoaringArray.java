@@ -4,6 +4,8 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.InvalidRoaringFormat;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,7 +16,6 @@ import java.nio.LongBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.NoSuchElementException;
-import org.roaringbitmap.InvalidRoaringFormat;
 
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This class is not meant for

@@ -6,16 +6,18 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.roaringbitmap.CharIterator;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.CharIterator;
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer, RunContainer and BitmapContainer

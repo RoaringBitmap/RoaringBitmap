@@ -1,5 +1,6 @@
-import java.text.DecimalFormat;
 import org.roaringbitmap.RoaringBitmap;
+
+import java.text.DecimalFormat;
 
 public class CompressionResults {
   public static final int universe_size = 262144;

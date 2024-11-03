@@ -2,13 +2,14 @@ package org.roaringbitmap.longlong;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
+import org.roaringbitmap.Container;
+import org.roaringbitmap.art.*;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.art.*;
 
 public class HighLowContainer {
 

@@ -4,10 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,6 +13,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class RoaringBitmapBatchIteratorTest {

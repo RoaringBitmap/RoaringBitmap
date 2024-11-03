@@ -1,13 +1,15 @@
 package org.roaringbitmap.aggregation;
 
-import java.util.Arrays;
-import java.util.SplittableRandom;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Arrays;
+import java.util.SplittableRandom;
 
 public class FastAggregationRLEStressTest {
 

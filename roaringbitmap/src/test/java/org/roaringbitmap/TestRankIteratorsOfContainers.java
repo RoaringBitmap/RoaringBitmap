@@ -3,8 +3,9 @@ package org.roaringbitmap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.util.Random;
 import org.junit.jupiter.api.Test;
+
+import java.util.Random;
 
 public class TestRankIteratorsOfContainers {
   private void testContainerRanksOnNext(Container c) {

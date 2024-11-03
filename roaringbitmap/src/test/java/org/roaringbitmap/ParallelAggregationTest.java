@@ -3,16 +3,18 @@ package org.roaringbitmap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.IntStream;
+import org.roaringbitmap.buffer.BufferFastAggregation;
+import org.roaringbitmap.buffer.BufferParallelAggregation;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.buffer.BufferFastAggregation;
-import org.roaringbitmap.buffer.BufferParallelAggregation;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.stream.IntStream;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class ParallelAggregationTest {

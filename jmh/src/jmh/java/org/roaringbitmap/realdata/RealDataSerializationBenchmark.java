@@ -13,15 +13,10 @@ import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
 import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
 import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ZipRealDataRetriever;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Mode;
@@ -34,9 +29,16 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 /**
  *

@@ -3,13 +3,15 @@ package org.roaringbitmap.buffer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.roaringbitmap.CharIterator;
+
 import com.google.common.primitives.Ints;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.CharIterator;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestReverseMappeableRunContainer {

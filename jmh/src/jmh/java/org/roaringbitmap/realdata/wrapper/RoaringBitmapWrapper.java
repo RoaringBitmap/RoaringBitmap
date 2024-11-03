@@ -1,11 +1,12 @@
 package org.roaringbitmap.realdata.wrapper;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Iterator;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.RoaringBitmap;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
 
 final class RoaringBitmapWrapper implements Bitmap {
 

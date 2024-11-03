@@ -4,14 +4,8 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.file.Files.delete;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
-import java.util.stream.Stream;
+import org.roaringbitmap.SeededTestData;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +15,15 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.roaringbitmap.SeededTestData;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestSerializationViaByteBuffer {

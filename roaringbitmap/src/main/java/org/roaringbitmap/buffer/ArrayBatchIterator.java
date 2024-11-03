@@ -2,8 +2,9 @@ package org.roaringbitmap.buffer;
 
 import static org.roaringbitmap.buffer.BufferUtil.unsignedBinarySearch;
 
-import java.nio.CharBuffer;
 import org.roaringbitmap.ContainerBatchIterator;
+
+import java.nio.CharBuffer;
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
 

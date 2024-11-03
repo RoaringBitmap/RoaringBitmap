@@ -2,18 +2,20 @@ package org.roaringbitmap.longlong;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.roaringbitmap.*;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
+
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import java.io.*;
-import java.util.*;
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.roaringbitmap.*;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
+
+import java.io.*;
+import java.util.*;
 
 public class TestRoaring64NavigableMap {
 

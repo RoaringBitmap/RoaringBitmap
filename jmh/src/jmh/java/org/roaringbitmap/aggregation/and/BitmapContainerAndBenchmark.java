@@ -1,9 +1,11 @@
 package org.roaringbitmap.aggregation.and;
 
-import java.util.SplittableRandom;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.SplittableRandom;
 
 @State(Scope.Benchmark)
 public class BitmapContainerAndBenchmark {

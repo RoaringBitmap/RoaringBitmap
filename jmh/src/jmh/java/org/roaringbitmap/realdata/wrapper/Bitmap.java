@@ -1,8 +1,9 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.IntConsumer;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.roaringbitmap.IntConsumer;
 
 public interface Bitmap {
 

@@ -1,5 +1,11 @@
 package org.roaringbitmap.longlong;
 
+import org.roaringbitmap.*;
+import org.roaringbitmap.art.ContainerIterator;
+import org.roaringbitmap.art.KeyIterator;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.Externalizable;
@@ -12,11 +18,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import org.roaringbitmap.*;
-import org.roaringbitmap.art.ContainerIterator;
-import org.roaringbitmap.art.KeyIterator;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
 
 /**
  * Roaring64Bitmap is a compressed 64 bit bitmap. It can contain all the numbers of long

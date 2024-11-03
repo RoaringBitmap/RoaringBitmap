@@ -1,11 +1,13 @@
 package org.roaringbitmap.bitmapcontainer;
 
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+
+import org.openjdk.jmh.annotations.*;
+
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)

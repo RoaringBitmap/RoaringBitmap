@@ -8,8 +8,9 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.KryoDataInput;
 import com.esotericsoftware.kryo.io.KryoDataOutput;
 import com.esotericsoftware.kryo.io.Output;
-import java.io.*;
 import org.junit.jupiter.api.Test;
+
+import java.io.*;
 
 public class KryoTest {
   public static Kryo createKryo() {

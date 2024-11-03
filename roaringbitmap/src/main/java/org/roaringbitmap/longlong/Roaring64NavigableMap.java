@@ -3,12 +3,13 @@
  */
 package org.roaringbitmap.longlong;
 
-import java.io.*;
-import java.util.*;
-import java.util.Map.Entry;
 import org.roaringbitmap.*;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapPrivate;
+
+import java.io.*;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It

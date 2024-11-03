@@ -1,5 +1,11 @@
 package org.roaringbitmap.bsi.buffer;
 
+import org.roaringbitmap.bsi.BitmapSliceIndex;
+import org.roaringbitmap.bsi.Pair;
+import org.roaringbitmap.bsi.WritableUtils;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -7,11 +13,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
-import org.roaringbitmap.bsi.BitmapSliceIndex;
-import org.roaringbitmap.bsi.Pair;
-import org.roaringbitmap.bsi.WritableUtils;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 /**
  * MutableBSI

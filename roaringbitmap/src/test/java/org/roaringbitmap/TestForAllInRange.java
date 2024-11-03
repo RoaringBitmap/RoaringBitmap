@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
+import org.roaringbitmap.ValidationRangeConsumer.Value;
+
 import com.google.common.primitives.UnsignedInteger;
-import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.roaringbitmap.ValidationRangeConsumer.Value;
+
+import java.util.Arrays;
 
 public class TestForAllInRange {
 

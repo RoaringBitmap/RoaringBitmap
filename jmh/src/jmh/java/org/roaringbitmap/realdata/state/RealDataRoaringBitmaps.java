@@ -2,12 +2,14 @@ package org.roaringbitmap.realdata.state;
 
 import static org.roaringbitmap.RealDataset.*;
 
-import java.util.Arrays;
-import java.util.stream.StreamSupport;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Arrays;
+import java.util.stream.StreamSupport;
 
 @State(Scope.Benchmark)
 public class RealDataRoaringBitmaps {

@@ -1,7 +1,9 @@
 package org.roaringbitmap.needwork;
 
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.FastAggregation;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ZipRealDataRetriever;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -10,9 +12,9 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.FastAggregation;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ZipRealDataRetriever;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

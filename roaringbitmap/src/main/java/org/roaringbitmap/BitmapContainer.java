@@ -7,14 +7,15 @@ package org.roaringbitmap;
 import static java.lang.Long.bitCount;
 import static java.lang.Long.numberOfTrailingZeros;
 
+import org.roaringbitmap.buffer.MappeableBitmapContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.roaringbitmap.buffer.MappeableBitmapContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
 
 /**
  * Simple bitset-like container.

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.roaringbitmap.RealDataset.*;
 
 import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
 public class RealDataBenchmarkIterateTest extends RealDataBenchmarkSanityTest {

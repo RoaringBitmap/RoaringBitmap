@@ -12,8 +12,17 @@ import static org.roaringbitmap.Util.toUnsignedLong;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ValidationRangeConsumer;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
+
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.apache.commons.lang3.SerializationUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -22,13 +31,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
-import org.apache.commons.lang3.SerializationUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ValidationRangeConsumer;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
 
 public class TestRoaring64Bitmap {
 

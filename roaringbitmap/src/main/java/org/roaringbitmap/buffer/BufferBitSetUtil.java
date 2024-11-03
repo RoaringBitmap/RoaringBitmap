@@ -1,12 +1,13 @@
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitSetUtil;
+import org.roaringbitmap.IntIterator;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.BitSet;
-import org.roaringbitmap.BitSetUtil;
-import org.roaringbitmap.IntIterator;
 
 /***
  *

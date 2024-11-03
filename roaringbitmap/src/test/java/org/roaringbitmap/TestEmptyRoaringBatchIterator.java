@@ -2,9 +2,10 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import org.junit.jupiter.api.Test;
 
 public class TestEmptyRoaringBatchIterator {
 

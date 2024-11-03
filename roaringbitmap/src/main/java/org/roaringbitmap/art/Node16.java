@@ -1,11 +1,12 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.longlong.LongUtils;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.roaringbitmap.longlong.LongUtils;
 
 public class Node16 extends Node {
 

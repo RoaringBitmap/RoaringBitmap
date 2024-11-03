@@ -3,12 +3,13 @@ package org.roaringbitmap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.*;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class RoaringBitmapSubsetTest {
 

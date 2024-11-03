@@ -1,8 +1,10 @@
 package org.roaringbitmap;
 
-import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.longlong.LongUtils;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 3, timeUnit = TimeUnit.MILLISECONDS, time = 1000)

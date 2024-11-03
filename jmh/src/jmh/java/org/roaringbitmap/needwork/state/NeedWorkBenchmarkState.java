@@ -15,11 +15,12 @@ import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.ROARING;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.ROARING_WITH_RUN;
 
+import org.roaringbitmap.AbstractBenchmarkState;
+
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.AbstractBenchmarkState;
 
 @State(Scope.Benchmark)
 public class NeedWorkBenchmarkState extends AbstractBenchmarkState {

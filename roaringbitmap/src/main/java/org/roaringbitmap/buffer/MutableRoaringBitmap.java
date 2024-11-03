@@ -4,10 +4,11 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.*;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import org.roaringbitmap.*;
 
 /**
  * MutableRoaringBitmap, a compressed alternative to the BitSet. It is similar to

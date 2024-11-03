@@ -10,12 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Test;
 
 public class TestStreams {
   private static List<Integer> asList(IntIterator ints) {

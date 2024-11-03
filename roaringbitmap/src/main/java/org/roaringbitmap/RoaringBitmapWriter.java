@@ -1,7 +1,8 @@
 package org.roaringbitmap;
 
-import java.util.function.Supplier;
 import org.roaringbitmap.buffer.*;
+
+import java.util.function.Supplier;
 
 public interface RoaringBitmapWriter<T extends BitmapDataProvider> extends Supplier<T> {
 

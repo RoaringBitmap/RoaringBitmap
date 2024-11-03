@@ -1,5 +1,7 @@
 package org.roaringbitmap.bsi;
 
+import org.roaringbitmap.RoaringBitmap;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -7,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
-import org.roaringbitmap.RoaringBitmap;
 
 /**
  * RoaringBitmapSliceIndex

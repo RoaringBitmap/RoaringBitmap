@@ -2,11 +2,12 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class TestBitSetUtil {
   private static BitSet appendRandomBitset(

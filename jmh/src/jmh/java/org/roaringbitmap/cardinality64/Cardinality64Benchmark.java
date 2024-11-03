@@ -1,7 +1,8 @@
 // https://github.com/RoaringBitmap/RoaringBitmap/pull/176
 package org.roaringbitmap.cardinality64;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -12,7 +13,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
-import org.roaringbitmap.longlong.Roaring64NavigableMap;
+
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

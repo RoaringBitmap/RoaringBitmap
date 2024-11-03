@@ -1,10 +1,11 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.ArraysShim;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import org.roaringbitmap.ArraysShim;
 
 /**
  * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.

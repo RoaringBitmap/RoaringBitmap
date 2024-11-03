@@ -1,12 +1,12 @@
 package org.roaringbitmap.arraycontainer;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.ZipRealDataRangeRetriever;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -14,9 +14,11 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.ZipRealDataRangeRetriever;
-import org.roaringbitmap.buffer.MappeableArrayContainer;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 public class AddBenchmark {

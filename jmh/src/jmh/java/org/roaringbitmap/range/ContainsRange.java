@@ -1,10 +1,12 @@
 package org.roaringbitmap.range;
 
-import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RandomData;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.concurrent.TimeUnit;
 
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @BenchmarkMode(Mode.AverageTime)

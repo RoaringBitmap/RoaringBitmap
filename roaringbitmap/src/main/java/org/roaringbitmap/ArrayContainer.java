@@ -4,14 +4,15 @@
 
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.roaringbitmap.buffer.MappeableArrayContainer;
-import org.roaringbitmap.buffer.MappeableContainer;
 
 /**
  * Simple container made of an array of 16-bit integers

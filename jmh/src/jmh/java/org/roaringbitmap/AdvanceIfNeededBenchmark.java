@@ -1,12 +1,14 @@
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 import com.google.common.primitives.Ints;
+import org.openjdk.jmh.annotations.*;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 @BenchmarkMode(Mode.AverageTime)
 @Warmup(iterations = 5, timeUnit = TimeUnit.MILLISECONDS, time = 2000)

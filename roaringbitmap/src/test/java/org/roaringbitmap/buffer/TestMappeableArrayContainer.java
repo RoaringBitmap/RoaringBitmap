@@ -2,16 +2,18 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.roaringbitmap.IntConsumer;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.CharBuffer;
 import java.util.Arrays;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.IntConsumer;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableArrayContainer {

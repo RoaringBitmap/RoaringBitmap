@@ -1,8 +1,9 @@
 package org.roaringbitmap.insights;
 
-import java.util.Collection;
 import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.RoaringBitmap;
+
+import java.util.Collection;
 
 public class BitmapAnalyser {
 

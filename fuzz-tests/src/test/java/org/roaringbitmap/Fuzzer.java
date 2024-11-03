@@ -7,11 +7,12 @@ import static org.roaringbitmap.RandomisedTestData.randomBitmap;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.jupiter.api.Test;
+
 import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Test;
 
 public class Fuzzer {
 

@@ -2,14 +2,16 @@ package org.roaringbitmap.realdata;
 
 import static org.roaringbitmap.Util.toUnsignedLong;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.realdata.state.RealDataRoaringBitmaps;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.infra.Blackhole;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.realdata.state.RealDataRoaringBitmaps;
+
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

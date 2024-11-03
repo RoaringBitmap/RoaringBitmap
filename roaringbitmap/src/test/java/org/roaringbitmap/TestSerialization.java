@@ -2,6 +2,12 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -9,10 +15,6 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 class ByteBufferBackedInputStream extends InputStream {
 

@@ -1,10 +1,11 @@
 package org.roaringbitmap;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 // From https://github.com/openjdk/jdk/blob/master/test/jdk/java/util/BitSet/BSMethods.java
 @SuppressWarnings("all")

@@ -1,12 +1,13 @@
 package org.roaringbitmap;
 
+import org.openjdk.jmh.annotations.*;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-import org.openjdk.jmh.annotations.*;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

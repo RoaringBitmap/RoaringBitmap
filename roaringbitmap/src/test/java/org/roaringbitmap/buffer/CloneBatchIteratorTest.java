@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
-import com.google.common.primitives.Ints;
-import java.util.Arrays;
-import org.junit.jupiter.api.Test;
 import org.roaringbitmap.BatchIterator;
+
+import com.google.common.primitives.Ints;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 public class CloneBatchIteratorTest {
 

@@ -3,8 +3,9 @@ package org.roaringbitmap.realdata;
 import static org.roaringbitmap.RealDataset.*;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
+import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
+import org.roaringbitmap.realdata.wrapper.BitmapFactory;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.parallel.Execution;
@@ -12,8 +13,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
-import org.roaringbitmap.realdata.wrapper.BitmapFactory;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 @Execution(ExecutionMode.CONCURRENT)
 public abstract class RealDataBenchmarkSanityTest {

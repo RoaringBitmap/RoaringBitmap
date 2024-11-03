@@ -2,16 +2,18 @@ package org.roaringbitmap;
 
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 @State(Scope.Benchmark)
 public abstract class RoaringOnlyBenchmarkState {

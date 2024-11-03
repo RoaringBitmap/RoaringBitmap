@@ -1,5 +1,10 @@
 package org.roaringbitmap.bsi;
 
+import org.roaringbitmap.bsi.longlong.Roaring64BitmapSliceIndex;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
+
+import org.junit.jupiter.api.*;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -8,9 +13,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import org.junit.jupiter.api.*;
-import org.roaringbitmap.bsi.longlong.Roaring64BitmapSliceIndex;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 public class R64BSITest {
   private Map<Long, Long> testDataSet = new HashMap<>();

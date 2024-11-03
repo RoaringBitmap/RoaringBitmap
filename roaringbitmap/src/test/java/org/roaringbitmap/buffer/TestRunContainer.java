@@ -3,18 +3,20 @@ package org.roaringbitmap.buffer;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.roaringbitmap.buffer.MappeableArrayContainer.DEFAULT_MAX_SIZE;
 
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RunContainer;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.*;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.CharIterator;
-import org.roaringbitmap.IntIterator;
-import org.roaringbitmap.RunContainer;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestRunContainer {

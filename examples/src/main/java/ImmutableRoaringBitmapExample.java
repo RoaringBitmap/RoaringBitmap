@@ -1,6 +1,7 @@
+import org.roaringbitmap.buffer.*;
+
 import java.io.*;
 import java.nio.*;
-import org.roaringbitmap.buffer.*;
 
 public class ImmutableRoaringBitmapExample {
   public static void main(String[] args) throws IOException {

@@ -6,6 +6,7 @@ import static org.roaringbitmap.RealDataset.*;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
 import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
 public class RealDataBenchmarkForEachTest extends RealDataBenchmarkSanityTest {

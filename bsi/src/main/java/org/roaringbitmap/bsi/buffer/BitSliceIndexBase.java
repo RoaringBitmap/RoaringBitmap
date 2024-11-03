@@ -1,5 +1,14 @@
 package org.roaringbitmap.bsi.buffer;
 
+import org.roaringbitmap.BatchIterator;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.bsi.BitmapSliceIndex;
+import org.roaringbitmap.bsi.BitmapSliceIndex.Operation;
+import org.roaringbitmap.bsi.Pair;
+import org.roaringbitmap.buffer.BufferFastAggregation;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -11,14 +20,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.roaringbitmap.BatchIterator;
-import org.roaringbitmap.IntConsumer;
-import org.roaringbitmap.bsi.BitmapSliceIndex;
-import org.roaringbitmap.bsi.BitmapSliceIndex.Operation;
-import org.roaringbitmap.bsi.Pair;
-import org.roaringbitmap.buffer.BufferFastAggregation;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 /**
  * ParallelAggregationBase

@@ -6,6 +6,8 @@ package org.roaringbitmap.buffer;
 
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -15,7 +17,6 @@ import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.roaringbitmap.*;
 
 /**
  * Simple container made of an array of 16-bit integers. Unlike org.roaringbitmap.ArrayContainer,

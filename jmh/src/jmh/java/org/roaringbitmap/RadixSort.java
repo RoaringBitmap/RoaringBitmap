@@ -1,7 +1,8 @@
 package org.roaringbitmap;
 
-import java.util.SplittableRandom;
 import org.openjdk.jmh.annotations.*;
+
+import java.util.SplittableRandom;
 
 @State(Scope.Benchmark)
 public class RadixSort {

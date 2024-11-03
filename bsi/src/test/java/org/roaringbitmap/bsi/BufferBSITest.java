@@ -1,5 +1,14 @@
 package org.roaringbitmap.bsi;
 
+import org.roaringbitmap.bsi.buffer.ImmutableBitSliceIndex;
+import org.roaringbitmap.bsi.buffer.MutableBitSliceIndex;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -8,13 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.bsi.buffer.ImmutableBitSliceIndex;
-import org.roaringbitmap.bsi.buffer.MutableBitSliceIndex;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 /**
  * TestBase

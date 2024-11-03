@@ -3,14 +3,15 @@
  */
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.MappeableContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import org.roaringbitmap.buffer.MappeableContainer;
-import org.roaringbitmap.buffer.MappeableRunContainer;
 
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).

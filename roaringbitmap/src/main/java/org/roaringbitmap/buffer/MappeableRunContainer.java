@@ -7,6 +7,8 @@ import static java.nio.ByteOrder.LITTLE_ENDIAN;
 import static org.roaringbitmap.Util.*;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -16,7 +18,6 @@ import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
-import org.roaringbitmap.*;
 
 /**
  * This container takes the form of runs of consecutive values (effectively, run-length encoding).

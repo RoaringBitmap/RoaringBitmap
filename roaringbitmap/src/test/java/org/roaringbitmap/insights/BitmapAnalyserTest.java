@@ -2,13 +2,15 @@ package org.roaringbitmap.insights;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.SeededTestData;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.SeededTestData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class BitmapAnalyserTest {

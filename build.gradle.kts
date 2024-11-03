@@ -69,6 +69,7 @@ subprojects {
             // Disbale javadoc formatting as most the javacode do not follow HTML syntax.
             googleJavaFormat().reflowLongStrings().formatJavadoc(false)
             formatAnnotations()
+            importOrder("\\#", "org.roaringbitmap", "", "java", "javax")
         }
     }
 }

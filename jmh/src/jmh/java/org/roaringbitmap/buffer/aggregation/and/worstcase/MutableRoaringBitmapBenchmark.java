@@ -1,6 +1,7 @@
 package org.roaringbitmap.buffer.aggregation.and.worstcase;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -8,7 +9,8 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 public class MutableRoaringBitmapBenchmark {

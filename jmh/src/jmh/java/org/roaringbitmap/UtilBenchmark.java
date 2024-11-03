@@ -1,7 +1,5 @@
 package org.roaringbitmap;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import me.lemire.integercompression.synth.ClusteredDataGenerator;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
@@ -14,6 +12,9 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The experiment to test the threshold when it is worth to use galloping strategy of intersecting

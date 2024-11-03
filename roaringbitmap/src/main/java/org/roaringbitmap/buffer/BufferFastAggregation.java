@@ -4,11 +4,12 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.BitSetUtil;
+import org.roaringbitmap.Util;
+
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.*;
-import org.roaringbitmap.BitSetUtil;
-import org.roaringbitmap.Util;
 
 /**
  * Fast algorithms to aggregate many bitmaps.

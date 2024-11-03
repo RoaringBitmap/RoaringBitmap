@@ -1,5 +1,13 @@
 package org.roaringbitmap.longlong;
 
+import org.roaringbitmap.art.Art;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
+import org.roaringbitmap.art.Node;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -7,12 +15,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.art.Art;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
-import org.roaringbitmap.art.Node;
 
 public class ArtTest {
 

@@ -5,10 +5,11 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+
+import java.util.Random;
 
 /**
  * Check FastRankRoaringBitmap dismiss the caches cardinalities when necessary

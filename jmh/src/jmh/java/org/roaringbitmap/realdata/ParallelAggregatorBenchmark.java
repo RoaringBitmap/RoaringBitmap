@@ -2,12 +2,6 @@ package org.roaringbitmap.realdata;
 
 import static org.roaringbitmap.RealDataset.*;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.ParallelAggregation;
 import org.roaringbitmap.RoaringBitmap;
@@ -16,6 +10,14 @@ import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.BufferParallelAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.openjdk.jmh.annotations.*;
+
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)

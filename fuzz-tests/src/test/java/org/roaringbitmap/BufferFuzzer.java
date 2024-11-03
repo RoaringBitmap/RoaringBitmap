@@ -5,15 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RandomisedTestData.ITERATIONS;
 import static org.roaringbitmap.Util.toUnsignedLong;
 
+import org.roaringbitmap.buffer.BufferFastAggregation;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
 import com.google.common.collect.ImmutableMap;
+import org.junit.jupiter.api.Test;
+
 import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.buffer.BufferFastAggregation;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 public class BufferFuzzer {
 

@@ -1,10 +1,12 @@
 package org.roaringbitmap.writer;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.Util;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

@@ -1,9 +1,11 @@
 package org.roaringbitmap.aggregation.xor;
 
-import java.util.concurrent.ThreadLocalRandom;
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
+
+import org.openjdk.jmh.annotations.*;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 @State(Scope.Benchmark)
 public class BitmapContainerXorBenchmark {

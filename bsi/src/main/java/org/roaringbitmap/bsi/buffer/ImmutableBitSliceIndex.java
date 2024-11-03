@@ -1,14 +1,15 @@
 package org.roaringbitmap.bsi.buffer;
 
-import java.io.DataOutput;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.Pair;
 import org.roaringbitmap.bsi.WritableUtils;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import java.io.DataOutput;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * ImmutableBSI

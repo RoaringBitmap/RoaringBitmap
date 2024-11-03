@@ -3,16 +3,17 @@ package org.roaringbitmap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.primitives.Chars;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Random;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Random;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class TestReverseIteratorsOfContainers {
 

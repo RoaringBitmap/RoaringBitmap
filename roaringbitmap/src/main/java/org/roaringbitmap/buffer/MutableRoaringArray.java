@@ -6,15 +6,16 @@ package org.roaringbitmap.buffer;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
+import org.roaringbitmap.AppendableStorage;
+import org.roaringbitmap.InvalidRoaringFormat;
+import org.roaringbitmap.Util;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-import org.roaringbitmap.AppendableStorage;
-import org.roaringbitmap.InvalidRoaringFormat;
-import org.roaringbitmap.Util;
 
 /**
  * Specialized array to store the containers used by a RoaringBitmap. This class is similar to

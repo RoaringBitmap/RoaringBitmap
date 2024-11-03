@@ -1,9 +1,10 @@
 /**
  * This example shows how to serialize a Roaring bitmap to a ByteBuffer
  */
+import org.roaringbitmap.buffer.*;
+
 import java.io.*;
 import java.nio.*;
-import org.roaringbitmap.buffer.*;
 
 public class SerializeToByteBufferExample {
 

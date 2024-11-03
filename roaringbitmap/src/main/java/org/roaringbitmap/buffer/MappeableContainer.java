@@ -4,12 +4,13 @@
 
 package org.roaringbitmap.buffer;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
-import org.roaringbitmap.*;
 
 /**
  * Base container class. This class is similar to org.roaringbitmap.Container but meant to be used

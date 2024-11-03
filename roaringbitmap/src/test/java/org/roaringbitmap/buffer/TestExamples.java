@@ -4,10 +4,11 @@
 
 package org.roaringbitmap.buffer;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import org.junit.jupiter.api.Test;
 
 public class TestExamples {
   @Test

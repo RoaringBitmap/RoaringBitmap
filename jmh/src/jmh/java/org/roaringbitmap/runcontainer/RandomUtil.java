@@ -1,10 +1,11 @@
 package org.roaringbitmap.runcontainer;
 
+import org.roaringbitmap.Container;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-import org.roaringbitmap.Container;
 
 public class RandomUtil {
   /**

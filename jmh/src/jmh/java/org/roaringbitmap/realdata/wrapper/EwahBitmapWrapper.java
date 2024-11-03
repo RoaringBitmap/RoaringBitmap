@@ -1,11 +1,13 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.IntConsumer;
+
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.FastAggregation;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-import org.roaringbitmap.IntConsumer;
 
 final class EwahBitmapWrapper implements Bitmap {
 

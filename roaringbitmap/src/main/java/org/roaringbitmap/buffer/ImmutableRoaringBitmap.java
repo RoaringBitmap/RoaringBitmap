@@ -8,11 +8,12 @@ import static org.roaringbitmap.Util.toUnsignedLong;
 import static org.roaringbitmap.buffer.BufferUtil.*;
 import static org.roaringbitmap.buffer.MutableRoaringBitmap.rangeSanityCheck;
 
+import org.roaringbitmap.*;
+
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import org.roaringbitmap.*;
 
 /**
  * ImmutableRoaringBitmap provides a compressed immutable (cannot be modified) bitmap. It is meant

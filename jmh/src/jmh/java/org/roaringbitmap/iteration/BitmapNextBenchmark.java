@@ -1,10 +1,12 @@
 package org.roaringbitmap.iteration;
 
+import org.roaringbitmap.*;
+
+import org.openjdk.jmh.annotations.*;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
 
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

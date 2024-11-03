@@ -1,5 +1,9 @@
 package org.roaringbitmap.bsi;
 
+import org.roaringbitmap.RoaringBitmap;
+
+import org.junit.jupiter.api.*;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -7,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.*;
-import org.roaringbitmap.RoaringBitmap;
 
 /**
  * RBBsiTest

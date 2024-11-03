@@ -4,8 +4,9 @@ package org.roaringbitmap.contains;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.openjdk.jmh.annotations.Mode.AverageTime;
 
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.*;
+
+import org.openjdk.jmh.annotations.*;
 
 @BenchmarkMode(AverageTime)
 @OutputTimeUnit(MICROSECONDS)

@@ -1,10 +1,11 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.longlong.LongUtils;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import org.roaringbitmap.longlong.LongUtils;
 
 public class LeafNode extends Node {
 

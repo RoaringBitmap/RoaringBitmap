@@ -1,11 +1,12 @@
 package org.roaringbitmap.runcontainer;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.realdata.state.RealDataRoaringOnlyBenchmarkState;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
 
 @BenchmarkMode(Mode.Throughput)
 public class ArrayContainerAndNotRunContainerBenchmark {

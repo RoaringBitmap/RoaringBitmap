@@ -6,13 +6,14 @@ package org.roaringbitmap.buffer;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
+import org.roaringbitmap.BitSetUtil;
+import org.roaringbitmap.Util;
+
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
-import org.roaringbitmap.BitSetUtil;
-import org.roaringbitmap.Util;
 
 /**
  * Various useful methods for roaring bitmaps.
