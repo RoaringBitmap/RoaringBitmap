@@ -3,7 +3,13 @@ package org.roaringbitmap.longlong;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 import org.roaringbitmap.Container;
-import org.roaringbitmap.art.*;
+import org.roaringbitmap.art.Art;
+import org.roaringbitmap.art.ContainerIterator;
+import org.roaringbitmap.art.Containers;
+import org.roaringbitmap.art.KeyIterator;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
+import org.roaringbitmap.art.Node;
 
 import java.io.DataInput;
 import java.io.DataOutput;

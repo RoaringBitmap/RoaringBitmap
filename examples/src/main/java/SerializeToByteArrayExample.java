@@ -4,10 +4,11 @@
 /***************
  * for performance considerations, see https://github.com/RoaringBitmap/RoaringBitmap/issues/319
  **************/
+
 import org.roaringbitmap.RoaringBitmap;
 
-import java.io.*;
-import java.nio.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class SerializeToByteArrayExample {
 

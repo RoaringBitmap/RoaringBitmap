@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public class Fuzzer {

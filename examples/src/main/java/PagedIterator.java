@@ -1,4 +1,5 @@
-import org.roaringbitmap.*;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
 
 // demonstrates how to iterator over blocks of pageSize integers efficiently
 public class PagedIterator {

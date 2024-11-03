@@ -1,7 +1,5 @@
 package org.roaringbitmap;
 
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
-
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import com.google.common.cache.Cache;

@@ -1,7 +1,10 @@
-import org.roaringbitmap.buffer.*;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.io.*;
-import java.nio.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class ImmutableRoaringBitmapExample {
   public static void main(String[] args) throws IOException {

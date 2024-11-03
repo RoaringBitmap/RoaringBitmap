@@ -1,4 +1,6 @@
-import org.roaringbitmap.longlong.*;
+import org.roaringbitmap.longlong.LongBitmapDataProvider;
+import org.roaringbitmap.longlong.LongIterator;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 public class Bitmap64 {
 

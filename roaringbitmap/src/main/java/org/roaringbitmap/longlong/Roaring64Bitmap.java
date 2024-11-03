@@ -1,6 +1,12 @@
 package org.roaringbitmap.longlong;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.RelativeRangeConsumer;
+import org.roaringbitmap.RunContainer;
+import org.roaringbitmap.Util;
 import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.KeyIterator;
 import org.roaringbitmap.art.LeafNode;

@@ -1,6 +1,17 @@
 package org.roaringbitmap.realdata;
 
-import static org.roaringbitmap.RealDataset.*;
+import static org.roaringbitmap.RealDataset.CENSUS1881;
+import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
+import static org.roaringbitmap.RealDataset.DIMENSION_003;
+import static org.roaringbitmap.RealDataset.DIMENSION_008;
+import static org.roaringbitmap.RealDataset.DIMENSION_033;
+import static org.roaringbitmap.RealDataset.USCENSUS2000;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
 
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.ParallelAggregation;
@@ -13,7 +24,15 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;

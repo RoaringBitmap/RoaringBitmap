@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
-import static org.roaringbitmap.Util.*;
+import static org.roaringbitmap.Util.highbits;
+import static org.roaringbitmap.Util.lowbits;
+import static org.roaringbitmap.Util.partialRadixSort;
 
 import java.util.Arrays;
 import java.util.function.Supplier;

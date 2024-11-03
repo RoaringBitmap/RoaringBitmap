@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
-import static java.lang.Integer.*;
+import static java.lang.Integer.MAX_VALUE;
+import static java.lang.Integer.MIN_VALUE;
+import static java.lang.Integer.toUnsignedLong;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.RoaringBitmapWriter.bufferWriter;

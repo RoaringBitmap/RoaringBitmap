@@ -5,10 +5,20 @@
 package org.roaringbitmap.buffer;
 
 import static org.roaringbitmap.Util.toUnsignedLong;
-import static org.roaringbitmap.buffer.BufferUtil.*;
+import static org.roaringbitmap.buffer.BufferUtil.highbits;
+import static org.roaringbitmap.buffer.BufferUtil.lowbits;
+import static org.roaringbitmap.buffer.BufferUtil.lowbitsAsInteger;
 import static org.roaringbitmap.buffer.MutableRoaringBitmap.rangeSanityCheck;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.BatchIterator;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.ImmutableBitmapDataProvider;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.PeekableIntIterator;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.Util;
 
 import java.io.DataOutput;
 import java.io.IOException;

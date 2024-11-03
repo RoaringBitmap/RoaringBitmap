@@ -4,7 +4,13 @@
 
 package org.roaringbitmap;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Fast algorithms to aggregate many bitmaps.

@@ -1,6 +1,9 @@
 package org.roaringbitmap.iteration;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.IntIteratorFlyweight;
+import org.roaringbitmap.ReverseIntIteratorFlyweight;
+import org.roaringbitmap.RoaringBitmap;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;

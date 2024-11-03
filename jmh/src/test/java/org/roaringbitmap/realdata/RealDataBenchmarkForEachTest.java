@@ -2,8 +2,22 @@ package org.roaringbitmap.realdata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.roaringbitmap.RealDataset.*;
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
+import static org.roaringbitmap.RealDataset.CENSUS1881;
+import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
+import static org.roaringbitmap.RealDataset.DIMENSION_003;
+import static org.roaringbitmap.RealDataset.DIMENSION_008;
+import static org.roaringbitmap.RealDataset.DIMENSION_033;
+import static org.roaringbitmap.RealDataset.USCENSUS2000;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
+import static org.roaringbitmap.realdata.wrapper.BitmapFactory.CONCISE;
+import static org.roaringbitmap.realdata.wrapper.BitmapFactory.EWAH;
+import static org.roaringbitmap.realdata.wrapper.BitmapFactory.EWAH32;
+import static org.roaringbitmap.realdata.wrapper.BitmapFactory.WAH;
 
 import com.google.common.collect.ImmutableMap;
 

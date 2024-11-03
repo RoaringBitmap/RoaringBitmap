@@ -10,7 +10,12 @@ import org.roaringbitmap.AppendableStorage;
 import org.roaringbitmap.InvalidRoaringFormat;
 import org.roaringbitmap.Util;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;

@@ -4,9 +4,19 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.AppendableStorage;
+import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.ContainerPointer;
+import org.roaringbitmap.InvalidRoaringFormat;
+import org.roaringbitmap.RoaringBitmap;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 

@@ -1,12 +1,27 @@
 package org.roaringbitmap.realdata.state;
 
-import static org.roaringbitmap.RealDataset.*;
+import static org.roaringbitmap.RealDataset.CENSUS1881;
+import static org.roaringbitmap.RealDataset.CENSUS1881_SRT;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME;
+import static org.roaringbitmap.RealDataset.CENSUS_INCOME_SRT;
+import static org.roaringbitmap.RealDataset.DIMENSION_003;
+import static org.roaringbitmap.RealDataset.DIMENSION_008;
+import static org.roaringbitmap.RealDataset.DIMENSION_033;
+import static org.roaringbitmap.RealDataset.USCENSUS2000;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85;
+import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
+import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
 
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ZipRealDataRetriever;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 
 import java.util.Arrays;
 import java.util.stream.StreamSupport;

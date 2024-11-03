@@ -3,13 +3,35 @@
  */
 package org.roaringbitmap.longlong;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.BitmapDataProviderSupplier;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RoaringBitmapPrivate;
+import org.roaringbitmap.RoaringBitmapSupplier;
+import org.roaringbitmap.Util;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapPrivate;
 
-import java.io.*;
-import java.util.*;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.io.UnsupportedEncodingException;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It

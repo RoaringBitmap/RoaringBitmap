@@ -2,9 +2,20 @@ package org.roaringbitmap.iteration;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.PeekableIntIterator;
+import org.roaringbitmap.RandomData;
+import org.roaringbitmap.RoaringBatchIterator;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RoaringBitmapWriter;
 
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 
 import java.util.BitSet;
 import java.util.stream.IntStream;

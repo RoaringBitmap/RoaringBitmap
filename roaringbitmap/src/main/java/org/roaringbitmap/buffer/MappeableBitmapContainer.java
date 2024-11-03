@@ -8,7 +8,14 @@ import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.BitSetUtil;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.ContainerBatchIterator;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.Util;
 
 import java.io.DataOutput;
 import java.io.IOException;

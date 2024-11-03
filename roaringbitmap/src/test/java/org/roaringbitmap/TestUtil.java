@@ -1,7 +1,11 @@
 package org.roaringbitmap;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.SeededTestData.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.SeededTestData.denseRegion;
+import static org.roaringbitmap.SeededTestData.rleRegion;
 import static org.roaringbitmap.SeededTestData.sparseRegion;
 
 import org.junit.jupiter.api.Test;

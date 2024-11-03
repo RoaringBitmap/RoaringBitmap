@@ -10,7 +10,11 @@ import com.esotericsoftware.kryo.io.KryoDataOutput;
 import com.esotericsoftware.kryo.io.Output;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class KryoTest {
   public static Kryo createKryo() {

@@ -4,7 +4,12 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.ContainerBatchIterator;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.WordStorage;
 
 import java.io.DataOutput;
 import java.io.Externalizable;

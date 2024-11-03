@@ -6,7 +6,13 @@ package org.roaringbitmap.buffer;
 
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.ContainerBatchIterator;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.Util;
 
 import java.io.DataOutput;
 import java.io.IOException;

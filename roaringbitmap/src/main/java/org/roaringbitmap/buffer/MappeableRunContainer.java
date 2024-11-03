@@ -4,10 +4,16 @@
 package org.roaringbitmap.buffer;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
-import static org.roaringbitmap.Util.*;
+import static org.roaringbitmap.Util.resetBitmapRange;
+import static org.roaringbitmap.Util.setBitmapRange;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
-import org.roaringbitmap.*;
+import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.ContainerBatchIterator;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.PeekableCharIterator;
+import org.roaringbitmap.RunContainer;
 
 import java.io.DataOutput;
 import java.io.IOException;

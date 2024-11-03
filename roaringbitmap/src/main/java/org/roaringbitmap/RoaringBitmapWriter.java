@@ -1,6 +1,10 @@
 package org.roaringbitmap;
 
-import org.roaringbitmap.buffer.*;
+import org.roaringbitmap.buffer.MappeableArrayContainer;
+import org.roaringbitmap.buffer.MappeableContainer;
+import org.roaringbitmap.buffer.MappeableRunContainer;
+import org.roaringbitmap.buffer.MutableRoaringArray;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import java.util.function.Supplier;
 

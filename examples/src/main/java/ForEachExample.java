@@ -4,11 +4,10 @@
  *
  *
  */
-import org.roaringbitmap.*;
+import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.RoaringBitmap;
 
-import java.io.*;
-import java.nio.*;
-import java.util.*;
+import java.io.IOException;
 
 public class ForEachExample {
 
