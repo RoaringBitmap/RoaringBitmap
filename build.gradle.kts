@@ -5,7 +5,7 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
-    id("com.diffplug.spotless") version "7.0.0.BETA4"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 
