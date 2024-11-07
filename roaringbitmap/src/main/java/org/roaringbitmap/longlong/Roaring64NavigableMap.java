@@ -1559,7 +1559,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     // Other NavigableMap may accept a target capacity
     highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
 
-    for (int i = 0; i < nbHighs; i++) {
+    for (long i = 0; i < nbHighs; i++) {
       int high = Integer.reverseBytes(byteBuffer.getInt());
       BitmapDataProvider provider = newRoaringBitmap();
       if (provider instanceof RoaringBitmap) {

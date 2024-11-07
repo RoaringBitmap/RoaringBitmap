@@ -242,13 +242,13 @@ public class Roaring64NavigableMapSliceIndex {
     this.ebM = ebm;
 
     List<Roaring64NavigableMap> baList = new ArrayList<>();
-    DataInputStream is = new DataInputStream((InputStream) in);
-    while (is.available() > 0) {
-      Roaring64NavigableMap rb = new Roaring64NavigableMap();
-      rb.deserialize(in);
-      baList.add(rb);
+    try( DataInputStream is = new DataInputStream((InputStream) in); ){
+      while (is.available() > 0) {
+        Roaring64NavigableMap rb = new Roaring64NavigableMap();
+        rb.deserialize(in);
+        baList.add(rb);
+      }
     }
-    is.close();
     this.bA = baList.toArray(new Roaring64NavigableMap[0]);
   }
 
