@@ -12,9 +12,12 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapSupplier;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.longlong.TestRoaring64Bitmap.getSourceForAllKindsOfNodeTypes;
 
 
 public class TestRoaring64NavigableMap {
@@ -24,7 +27,7 @@ public class TestRoaring64NavigableMap {
     return new Roaring64NavigableMap();
   }
 
-  // Testing the nocache behavior should not depends on bitmap being on-heap of buffered
+  // Testing the nocache behavior should not depend on bitmap being on-heap of buffered
   private Roaring64NavigableMap newNoCache() {
     return new Roaring64NavigableMap(true, false);
   }
@@ -70,6 +73,12 @@ public class TestRoaring64NavigableMap {
     }
 
     assertEquals(baos.toByteArray().length, bitmap.serializedSizeInBytes());
+  }
+
+  public static void checkSerializeBufferBytes(ImmutableLongBitmapDataProvider bitmap) throws IOException {
+    ByteBuffer buffer = ByteBuffer.allocate((int) bitmap.serializedSizeInBytes());
+    ((Roaring64NavigableMap)bitmap).serialize(buffer);
+    assertEquals(buffer.position(), bitmap.serializedSizeInBytes());
   }
 
   @Test
@@ -817,6 +826,22 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testOr_Static_SameBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    right.addLong(234);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(2, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(234, result.select(1));
+  }
+
+  @Test
   public void testOr_MultipleBuckets() {
     Roaring64NavigableMap left = newDefaultCtor();
     Roaring64NavigableMap right = newDefaultCtor();
@@ -835,6 +860,24 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testOr_Static_MultipleBuckets() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    left.addLong(Long.MAX_VALUE);
+    right.addLong(234);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(3, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(234, result.select(1));
+    assertEquals(Long.MAX_VALUE, result.select(2));
+  }
+
+  @Test
   public void testOr_DifferentBucket_NotBuffer() {
     Roaring64NavigableMap left = newSignedBuffered();
     Roaring64NavigableMap right = newSignedBuffered();
@@ -850,6 +893,21 @@ public class TestRoaring64NavigableMap {
     assertEquals(Long.MAX_VALUE / 2, left.select(1));
   }
 
+  @Test
+  public void testOr_Static_DifferentBucket_NotBuffer() {
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE / 2);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(2, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(Long.MAX_VALUE / 2, result.select(1));
+  }
 
   @Test
   public void testOr_SameBucket_NotBuffer() {
@@ -865,6 +923,22 @@ public class TestRoaring64NavigableMap {
 
     assertEquals(123, left.select(0));
     assertEquals(234, left.select(1));
+  }
+
+  @Test
+  public void testOr_Static_SameBucket_NotBuffer() {
+    Roaring64NavigableMap left = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
+    Roaring64NavigableMap right = new Roaring64NavigableMap(true, new RoaringBitmapSupplier());
+
+    left.addLong(123);
+    right.addLong(234);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(2, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(234, result.select(1));
   }
 
   @Test
@@ -884,6 +958,22 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testOr_Static_DifferentBucket_Buffer() {
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(2, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(Long.MAX_VALUE, result.select(1));
+  }
+
+  @Test
   public void testOr_SameBucket_Buffer() {
     Roaring64NavigableMap left = newSignedBuffered();
     Roaring64NavigableMap right = newSignedBuffered();
@@ -897,6 +987,22 @@ public class TestRoaring64NavigableMap {
 
     assertEquals(123, left.select(0));
     assertEquals(234, left.select(1));
+  }
+
+  @Test
+  public void testOr_Static_SameBucket_Buffer() {
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
+
+    left.addLong(123);
+    right.addLong(234);
+
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    assertEquals(2, result.getLongCardinality());
+
+    assertEquals(123, result.select(0));
+    assertEquals(234, result.select(1));
   }
 
   @Test
@@ -920,6 +1026,26 @@ public class TestRoaring64NavigableMap {
     assertEquals(123, right.select(0));
   }
 
+  @Test
+  public void testOr_Static_CloneInput() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    right.addLong(123);
+
+    // We push in left a bucket which does not exist
+    Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+
+    // Then we mutate left: ensure it does not impact right as it should remain unchanged
+    result.addLong(234);
+
+    assertEquals(2, result.getLongCardinality());
+    assertEquals(123, result.select(0));
+    assertEquals(234, result.select(1));
+
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(123, right.select(0));
+  }
 
   @Test
   public void testXor_SingleBucket() {
@@ -1007,6 +1133,23 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAnd_Static_SingleBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    left.addLong(234);
+    right.addLong(234);
+    right.addLong(345);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(234, result.select(0));
+  }
+
+  @Test
   public void testAnd_Buffer() {
     Roaring64NavigableMap left = newSignedBuffered();
     Roaring64NavigableMap right = newSignedBuffered();
@@ -1022,6 +1165,21 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAnd_Static_Buffer() {
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
+
+    left.addLong(123);
+    right.addLong(123);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(123, result.select(0));
+  }
+
+  @Test
   public void testAnd_DifferentBucket() {
     Roaring64NavigableMap left = newDefaultCtor();
     Roaring64NavigableMap right = newDefaultCtor();
@@ -1033,6 +1191,20 @@ public class TestRoaring64NavigableMap {
     left.and(right);
 
     assertEquals(0, left.getLongCardinality());
+  }
+
+  @Test
+  public void testAnd_Static_DifferentBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+
+    assertEquals(0, result.getLongCardinality());
   }
 
   @Test
@@ -1051,6 +1223,21 @@ public class TestRoaring64NavigableMap {
     assertEquals(Long.MAX_VALUE, left.select(0));
   }
 
+  @Test
+  public void testAnd_Static_MultipleBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    left.addLong(Long.MAX_VALUE);
+    right.addLong(Long.MAX_VALUE);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, result.select(0));
+  }
 
   @Test
   public void testAndNot_SingleBucket() {
@@ -1070,6 +1257,23 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAndNot_Static_SingleBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    left.addLong(234);
+    right.addLong(234);
+    right.addLong(345);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(123, result.select(0));
+  }
+
+  @Test
   public void testAndNot_Buffer() {
     Roaring64NavigableMap left = newSignedBuffered();
     Roaring64NavigableMap right = newSignedBuffered();
@@ -1082,6 +1286,21 @@ public class TestRoaring64NavigableMap {
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+  }
+
+  @Test
+  public void testAndNot_Static_Buffer() {
+    Roaring64NavigableMap left = newSignedBuffered();
+    Roaring64NavigableMap right = newSignedBuffered();
+
+    left.addLong(123);
+    right.addLong(234);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(123, result.select(0));
   }
 
   @Test
@@ -1100,6 +1319,21 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAndNot_Static_DifferentBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    right.addLong(Long.MAX_VALUE);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(123, result.select(0));
+  }
+
+  @Test
   public void testAndNot_MultipleBucket() {
     Roaring64NavigableMap left = newDefaultCtor();
     Roaring64NavigableMap right = newDefaultCtor();
@@ -1113,6 +1347,22 @@ public class TestRoaring64NavigableMap {
 
     assertEquals(1, left.getLongCardinality());
     assertEquals(123, left.select(0));
+  }
+
+  @Test
+  public void testAndNot_Static_MultipleBucket() {
+    Roaring64NavigableMap left = newDefaultCtor();
+    Roaring64NavigableMap right = newDefaultCtor();
+
+    left.addLong(123);
+    left.addLong(Long.MAX_VALUE);
+    right.addLong(Long.MAX_VALUE);
+
+    // We have 1 shared value: 234
+    Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+
+    assertEquals(1, result.getLongCardinality());
+    assertEquals(123, result.select(0));
   }
 
   @Test
@@ -1546,6 +1796,26 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAnd_Static_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.addRange(123, 124);
+    Assertions.assertTrue(x.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = Roaring64NavigableMap.bitmapOf(4L);
+    Assertions.assertTrue(y.getHighToBitmap().values().iterator().next() instanceof RoaringBitmap);
+
+    {
+      Roaring64NavigableMap result = Roaring64NavigableMap.and(x, y);
+
+      BitmapDataProvider singleBitmap = result.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertTrue(singleBitmap.isEmpty());
+    }
+  }
+
+  @Test
   public void testAnd_MutableRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
@@ -1558,6 +1828,21 @@ public class TestRoaring64NavigableMap {
     Assertions.assertEquals(16L, x.getLongCardinality());
     x.and(y);
     Assertions.assertEquals(8L, x.getLongCardinality());
+  }
+
+  @Test
+  public void testAnd_Static_MutableRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    x.addRange(0, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    y.addRange(8, 32);
+
+    Assertions.assertEquals(16L, x.getLongCardinality());
+    Roaring64NavigableMap result = Roaring64NavigableMap.and(x, y);
+    Assertions.assertEquals(8L, result.getLongCardinality());
   }
 
   @Test
@@ -1574,6 +1859,19 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testAnd_Static_IncompatibleImplementations() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap(new RoaringBitmapSupplier());
+    x.addRange(0, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap(new MutableRoaringBitmapSupplier());
+    y.addRange(8, 32);
+
+    Assertions.assertThrows(UnsupportedOperationException.class, () -> Roaring64NavigableMap.and(x, y));
+  }
+
+  @Test
   public void testAndNot_ImplicitRoaringBitmap() {
     // Based on RoaringBitmap
     Roaring64NavigableMap x = new Roaring64NavigableMap();
@@ -1587,6 +1885,27 @@ public class TestRoaring64NavigableMap {
       x.andNot(y);
 
       BitmapDataProvider singleBitmap = x.getHighToBitmap().values().iterator().next();
+      Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
+      Assertions.assertEquals(4L, singleBitmap.getLongCardinality());
+      Assertions.assertEquals(8L, singleBitmap.select(0));
+      Assertions.assertEquals(11L, singleBitmap.select(3));
+    }
+  }
+
+  @Test
+  public void testAndNot_Static_ImplicitRoaringBitmap() {
+    // Based on RoaringBitmap
+    Roaring64NavigableMap x = new Roaring64NavigableMap();
+    x.addRange(8, 16);
+
+    // Based on MutableRoaringBitmap
+    Roaring64NavigableMap y = new Roaring64NavigableMap();
+    y.addRange(12, 32);
+
+    {
+      Roaring64NavigableMap result = Roaring64NavigableMap.andNot(x, y);
+
+      BitmapDataProvider singleBitmap = result.getHighToBitmap().values().iterator().next();
       Assertions.assertTrue(singleBitmap instanceof RoaringBitmap);
       Assertions.assertEquals(4L, singleBitmap.getLongCardinality());
       Assertions.assertEquals(8L, singleBitmap.select(0));
@@ -1680,13 +1999,140 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testSerializationBufferEmpty() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    TestRoaring64NavigableMap.checkSerializeBufferBytes(map);
+
+    final Roaring64NavigableMap clone = SerializationUtils.clone(map);
+    // Check the test has not simply copied the ref
+    assertNotSame(map, clone);
+    assertEquals(0, clone.getLongCardinality());
+  }
+
+  @Test
+  public void testSerializationBuffer() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    map.addLong(123);
+    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes());
+    map.serialize(buffer);
+    assertEquals(map.serializedSizeInBytes(), buffer.position());
+  }
+
+  @Test
+  public void testSerializationBuffer_ToBigEndianBuffer() throws IOException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    map.addLong(123);
+    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes())
+            .order(ByteOrder.BIG_ENDIAN);
+    map.serialize(buffer);
+    assertEquals(map.serializedSizeInBytes(), buffer.position());
+  }
+
+  @Test
+  public void testSerializationBuffer_OneValue() throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    map.addLong(123);
+    TestRoaring64NavigableMap.checkSerializeBufferBytes(map);
+
+    final Roaring64NavigableMap clone = SerializationUtils.clone(map);
+    // Check the test has not simply copied the ref
+    assertNotSame(map, clone);
+    assertEquals(1, clone.getLongCardinality());
+    assertEquals(123, clone.select(0));
+  }
+
+  @Test
+  public void testAllKindOfNodeTypesSerDeser() throws Exception {
+    Set<Long> source = getSourceForAllKindsOfNodeTypes();
+
+    Roaring64NavigableMap map = new Roaring64NavigableMap();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    for(long x : source) {
+      map.addLong(x);
+    }
+
+    LongIterator longIterator = map.getLongIterator();
+    int i = 0;
+    while (longIterator.hasNext()) {
+      long actual = longIterator.next();
+      Assertions.assertTrue(source.contains(actual));
+      i++;
+    }
+    Assertions.assertEquals(source.size(), i);
+    //test all kind of nodes' serialization/deserialization
+    long sizeL = map.serializedSizeInBytes();
+    if (sizeL > Integer.MAX_VALUE) {
+      return;
+    }
+
+    int sizeInt = (int) sizeL;
+    long select2 = map.select(2);
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInt);
+    DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+    map.serialize(dataOutputStream);
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
+            byteArrayOutputStream.toByteArray());
+    DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
+    Roaring64NavigableMap deserStreamOne = new Roaring64NavigableMap();
+    deserStreamOne.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    deserStreamOne.deserialize(dataInputStream);
+    Assertions.assertEquals(select2, deserStreamOne.select(2));
+    deserStreamOne = null;
+    byteArrayInputStream = null;
+    byteArrayOutputStream = null;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInt).order(ByteOrder.LITTLE_ENDIAN);
+    map.serialize(byteBuffer);
+    map = null;
+    byteBuffer.flip();
+    Roaring64NavigableMap deserBBOne = new Roaring64NavigableMap();
+    deserBBOne.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    deserBBOne.deserialize(byteBuffer);
+    Assertions.assertEquals(select2, deserBBOne.select(2));
+  }
+
+  @Test
+  public void testSerializationMultipleBuckets()
+          throws IOException, ClassNotFoundException {
+    final Roaring64NavigableMap map = newDefaultCtor();
+    map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    map.addLong(123);
+    long val = Integer.MAX_VALUE * 2L + 3L;
+    map.addLong(val);
+    map.addLong(Long.MAX_VALUE);
+
+    TestRoaring64NavigableMap.checkSerializeBufferBytes(map);
+    final Roaring64NavigableMap clone = SerializationUtils.clone(map);
+    // Check the test has not simply copied the ref
+    assertNotSame(map, clone);
+    assertEquals(3, clone.getLongCardinality());
+    assertEquals(123, clone.select(0));
+    assertEquals(val, clone.select(1));
+    assertEquals(Long.MAX_VALUE, clone.select(2));
+
+    int sizeInByteInt = (int)map.serializedSizeInBytes();
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInByteInt).order(ByteOrder.LITTLE_ENDIAN);
+    map.serialize(byteBuffer);
+    byteBuffer.flip();
+    Roaring64NavigableMap anotherDeserMap = newDefaultCtor();
+    anotherDeserMap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    anotherDeserMap.deserialize(byteBuffer);
+    assertEquals(3, anotherDeserMap.getLongCardinality());
+    assertEquals(123, anotherDeserMap.select(0));
+    assertEquals(val, anotherDeserMap.select(1));
+    assertEquals(Long.MAX_VALUE, anotherDeserMap.select(2));
+  }
+
+  @Test
   public void testSerialization_spreadvals() throws IOException, ClassNotFoundException {
     // This example binary comes from https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
     String resourceName = "/testdata/64mapspreadvals.bin";
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-
     Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
     bitmap.deserialize(new DataInputStream(inputStream));
 
@@ -1709,7 +2155,6 @@ public class TestRoaring64NavigableMap {
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-
     Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
     bitmap.deserialize(new DataInputStream(inputStream));
 

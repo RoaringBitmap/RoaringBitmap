@@ -38,7 +38,7 @@ public class TestRoaring64Bitmap {
     return new Roaring64Bitmap();
   }
 
-  private Set<Long> getSourceForAllKindsOfNodeTypes() {
+  public static Set<Long> getSourceForAllKindsOfNodeTypes() {
     Random random = new Random(1234);
     Set<Long> source = new HashSet<>();
     int total = 10000;

@@ -8,8 +8,11 @@ import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmapPrivate;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 /**
  * Roaring64NavigableMap extends RoaringBitmap to the whole range of longs (or unsigned longs). It
@@ -157,6 +160,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
     this.doCacheCardinalities = cacheCardinalities;
     resetPerfHelpers();
+  }
+
+  public void setSerializationMode(int mode) {
+    SERIALIZATION_MODE = mode;
   }
 
   private void resetPerfHelpers() {
@@ -823,6 +830,84 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * Bitwise OR (union) operation. The provided bitmaps are *not* modified. This operation is
+   * thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64NavigableMap or(final Roaring64NavigableMap x1, final Roaring64NavigableMap x2) {
+    Roaring64NavigableMap result = new Roaring64NavigableMap();
+    if (x1 == x2) { return x1; }
+    if (x1 == null) { return x2; }
+    if (x2 == null) { return x1; }
+
+    Iterator<Entry<Integer, BitmapDataProvider>> x1Iterator = x1.getHighToBitmap().entrySet().iterator();
+    Iterator<Entry<Integer, BitmapDataProvider>> x2Iterator = x2.getHighToBitmap().entrySet().iterator();
+    Entry<Integer, BitmapDataProvider> x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+    Entry<Integer, BitmapDataProvider> x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+
+    while(x1Entry != null || x2Entry != null) {
+      if (x1Entry == null) {
+        pushClonedEntry(x2Entry, result);
+        x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+      } else if (x2Entry == null) {
+        pushClonedEntry(x1Entry, result);
+        x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+      } else {
+        // compare & merge
+        int compare = Integer.compareUnsigned(x1Entry.getKey(), x2Entry.getKey());
+        if (compare == 0) {
+          if (x1Entry.getValue() instanceof RoaringBitmap && x2Entry.getValue() instanceof RoaringBitmap) {
+            result.pushBitmapForHigh(x1Entry.getKey(),
+                    RoaringBitmap.or((RoaringBitmap) x1Entry.getValue(),
+                            (RoaringBitmap) x2Entry.getValue()));
+          } else if (x1Entry.getValue() instanceof MutableRoaringBitmap
+                  && x2Entry.getValue() instanceof MutableRoaringBitmap) {
+            result.pushBitmapForHigh(x1Entry.getKey(),
+                    MutableRoaringBitmap.or((MutableRoaringBitmap) x1Entry.getValue(),
+                            (MutableRoaringBitmap) x2Entry.getValue()));
+          } else {
+            throw new UnsupportedOperationException(
+                    ".or(...) over " + getClassName(x1Entry.getValue()) + " and " + getClassName(x2Entry.getValue()));
+          }
+          x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+          x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+        } else if (compare < 0) {
+          pushClonedEntry(x1Entry, result);
+          x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+        } else {
+          pushClonedEntry(x2Entry, result);
+          x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+        }
+      }
+    }
+
+    result.resetPerfHelpers();
+    return result;
+  }
+
+  /**
+   * static method for push a new entry(cloned) into target Roaring64NavigableMap
+   *
+   * @param entry the original entry item of a Roaring64NavigableMap instance
+   * @param result the target Roaring64NavigableMap
+   */
+  private static void pushClonedEntry(
+          Entry<Integer, BitmapDataProvider> entry,
+          Roaring64NavigableMap result) {
+    if (entry.getValue() instanceof RoaringBitmap) {
+      result.pushBitmapForHigh(entry.getKey(), ((RoaringBitmap) (entry.getValue())).clone());
+    } else if (entry.getValue() instanceof MutableRoaringBitmap) {
+      result.pushBitmapForHigh(entry.getKey(), ((MutableRoaringBitmap) (entry.getValue())).clone());
+    } else {
+      throw new UnsupportedOperationException(
+              ". Unsupported type for pushClonedEntry: " + getClassName(entry.getValue()));
+    }
+  }
+
+  /**
    * In-place bitwise XOR (symmetric difference) operation. The current bitmap is modified.
    *
    * @param x2 other bitmap
@@ -881,6 +966,51 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+
+  /**
+   * Checks whether the two bitmaps intersect. This can be much faster than calling "and" and
+   * checking the cardinality of the result.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return true if they intersect
+   */
+  public static boolean intersects(final Roaring64NavigableMap x1, final Roaring64NavigableMap x2) {
+    if (x2 == x1) {
+      return true;
+    }
+    if (x1 == null || x2 == null) {
+      return false;
+    }
+
+    // find the one with smaller entries cnt
+    long x1HighCnt = x1.getHighToBitmap().size();
+    long x2HighCnt = x2.getHighToBitmap().size();
+    Roaring64NavigableMap outer = x1HighCnt < x2HighCnt ? x1 : x2;
+    Roaring64NavigableMap inner = x1HighCnt < x2HighCnt ? x2 : x1;
+    for (Entry<Integer, BitmapDataProvider> entry : outer.getHighToBitmap().entrySet()) {
+      BitmapDataProvider lowBitmap1 = entry.getValue();
+      BitmapDataProvider lowBitmap2 = inner.getHighToBitmap().get(entry.getKey());
+      if(lowBitmap2 == null) {
+        continue;
+      }
+      if (lowBitmap1 instanceof RoaringBitmap && lowBitmap2 instanceof RoaringBitmap) {
+        if (RoaringBitmap.intersects((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2)) {
+          return true;
+        }
+      } else if ( lowBitmap1 instanceof MutableRoaringBitmap && lowBitmap2 instanceof MutableRoaringBitmap) {
+        if (MutableRoaringBitmap.intersects((MutableRoaringBitmap) lowBitmap1, (MutableRoaringBitmap) lowBitmap2)){
+          return true;
+        }
+      } else {
+        throw new UnsupportedOperationException(
+                ".intersects(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
+      }
+    }
+
+    return false;
+  }
+
   /**
    * In-place bitwise AND (intersection) operation. The current bitmap is modified.
    *
@@ -926,6 +1056,100 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+  /**
+   * Bitwise AND (intersection) operation. The provided bitmaps are *not* modified. This operation
+   * is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64NavigableMap and(final Roaring64NavigableMap x1, final Roaring64NavigableMap x2) {
+    Roaring64NavigableMap result = new Roaring64NavigableMap();
+    if(x2 == x1) { return x1; }
+    if(x1 == null || x2 == null) {
+      return result;
+    }
+    Iterator<Entry<Integer, BitmapDataProvider>> x1Iterator = x1.getHighToBitmap().entrySet().iterator();
+    while (x1Iterator.hasNext()) {
+      Entry<Integer, BitmapDataProvider> e1 = x1Iterator.next();
+      // Keep object to prevent auto-boxing
+      Integer high = e1.getKey();
+
+      BitmapDataProvider lowBitmap1 = e1.getValue();
+      BitmapDataProvider lowBitmap2 = x2.getHighToBitmap().get(high);
+      if (lowBitmap2 != null) {
+        if (lowBitmap2 instanceof RoaringBitmap && lowBitmap1 instanceof RoaringBitmap) {
+          RoaringBitmap andResult = RoaringBitmap.and((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2);
+          result.pushBitmapForHigh(high, andResult);
+        } else if (lowBitmap2 instanceof MutableRoaringBitmap
+                && lowBitmap1 instanceof MutableRoaringBitmap) {
+          MutableRoaringBitmap andResult = MutableRoaringBitmap.and((MutableRoaringBitmap) lowBitmap1,
+                  (MutableRoaringBitmap) lowBitmap2);
+          result.pushBitmapForHigh(high, andResult);
+        } else {
+          throw new UnsupportedOperationException(
+                  ".and(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
+        }
+      }
+    }
+    result.resetPerfHelpers();
+    return result;
+  }
+
+  /**
+   * Cardinality of Bitwise AND (intersection) operation. The provided bitmaps are *not* modified.
+   * This operation is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return as if you did and(x1,x2).getCardinality()
+   */
+  public static long andCardinality(final Roaring64NavigableMap x1, final Roaring64NavigableMap x2) {
+    long cardinality = 0;
+    if(x1 == null || x2 == null) {
+      return cardinality;
+    }
+    if(x1.getHighToBitmap().isEmpty() || x2.getHighToBitmap().isEmpty()) {
+      return cardinality;
+    }
+    if(x2 == x1) {
+      return x1.getLongCardinality();
+    }
+
+    Iterator<Entry<Integer, BitmapDataProvider>> x1Iterator = x1.getHighToBitmap().entrySet().iterator();
+    Iterator<Entry<Integer, BitmapDataProvider>> x2Iterator = x2.getHighToBitmap().entrySet().iterator();
+    Entry<Integer, BitmapDataProvider> x1Entry = x1Iterator.next();
+    Entry<Integer, BitmapDataProvider> x2Entry = x2Iterator.next();
+
+    while(x1Entry != null && x2Entry != null) {
+      int highKey1 = x1Entry.getKey();
+      int highKey2 = x2Entry.getKey();
+      BitmapDataProvider lowBitmap1 = x1Entry.getValue();
+      BitmapDataProvider lowBitmap2 = x2Entry.getValue();
+
+      int compare = Integer.compareUnsigned(highKey1, highKey2);
+      if (compare == 0) {
+        if (lowBitmap2 instanceof RoaringBitmap && lowBitmap1 instanceof RoaringBitmap) {
+          cardinality += RoaringBitmap.andCardinality((RoaringBitmap)lowBitmap1, (RoaringBitmap)lowBitmap2);
+        } else if (lowBitmap2 instanceof MutableRoaringBitmap
+                && lowBitmap1 instanceof MutableRoaringBitmap) {
+          cardinality += MutableRoaringBitmap.andCardinality((MutableRoaringBitmap)lowBitmap1, (MutableRoaringBitmap)lowBitmap2);
+        } else {
+          throw new UnsupportedOperationException(
+                  ".andCardinality(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
+        }
+        x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+        x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+      } else if (compare < 0) {
+        x1Entry = x1Iterator.hasNext() ? x1Iterator.next() : null;
+      } else {
+        x2Entry = x2Iterator.hasNext() ? x2Iterator.next() : null;
+      }
+    }
+
+    return cardinality;
+  }
 
   /**
    * In-place bitwise ANDNOT (difference) operation. The current bitmap is modified.
@@ -970,6 +1194,52 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         allValid = false;
       }
     }
+  }
+
+  /**
+   * Bitwise ANDNOT (difference) operation. The provided bitmaps are *not* modified. This operation
+   * is thread-safe as long as the provided bitmaps remain unchanged.
+   *
+   * @param x1 first bitmap
+   * @param x2 other bitmap
+   * @return result of the operation
+   */
+  public static Roaring64NavigableMap andNot(final Roaring64NavigableMap x1, final Roaring64NavigableMap x2) {
+    Roaring64NavigableMap result = new Roaring64NavigableMap();
+    if (x1 == x2 || x1 == null || x1.getHighToBitmap() == null ) {
+      return result;
+    }
+    if (x2 == null || x2.getHighToBitmap() == null) {
+      return x1;
+    }
+
+    Iterator<Entry<Integer, BitmapDataProvider>> x1Iterator = x1.getHighToBitmap().entrySet().iterator();
+    while (x1Iterator.hasNext()) {
+      Entry<Integer, BitmapDataProvider> e1 = x1Iterator.next();
+
+      // Keep object to prevent auto-boxing
+      Integer high = e1.getKey();
+      BitmapDataProvider lowBitmap1 = e1.getValue();
+      BitmapDataProvider lowBitmap2 = x2.getHighToBitmap().get(high);
+      if (lowBitmap2 != null) {
+        if (lowBitmap2 instanceof RoaringBitmap && lowBitmap1 instanceof RoaringBitmap) {
+          RoaringBitmap andNotResult = RoaringBitmap.andNot((RoaringBitmap) lowBitmap1, (RoaringBitmap) lowBitmap2);
+          result.pushBitmapForHigh(high, andNotResult);
+        } else if (lowBitmap2 instanceof MutableRoaringBitmap
+                && lowBitmap1 instanceof MutableRoaringBitmap) {
+          MutableRoaringBitmap andNotResult = MutableRoaringBitmap.andNot((MutableRoaringBitmap) lowBitmap1,
+                  (MutableRoaringBitmap) lowBitmap2);
+          result.pushBitmapForHigh(high, andNotResult);
+        } else {
+          throw new UnsupportedOperationException(
+                  ".andNot(...) over " + getClassName(lowBitmap1) + " and " + getClassName(lowBitmap2));
+        }
+      } else {
+        result.pushBitmapForHigh(high, lowBitmap1);
+      }
+    }
+    result.resetPerfHelpers();
+    return result;
   }
 
   /**
@@ -1258,6 +1528,51 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       out.writeInt(Integer.reverseBytes(entry.getKey().intValue()));
       entry.getValue().serialize(out);
     }
+  }
+
+  public void serialize(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+            : buffer.slice().order(LITTLE_ENDIAN);
+    byteBuffer.putLong(Long.reverseBytes(highToBitmap.size()));
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      byteBuffer.putInt(Integer.reverseBytes(entry.getKey()));
+      entry.getValue().serialize(byteBuffer);
+    }
+
+    if (byteBuffer != buffer) {
+      buffer.position(buffer.position() + byteBuffer.position());
+    }
+  }
+
+  public void deserialize(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+            : buffer.slice().order(LITTLE_ENDIAN);
+    this.clear();
+
+    // Portable format handles only unsigned longs
+    signedLongs = false;
+
+    // Read from LittleEndian to BigEndian
+    long nbHighs = Long.reverseBytes(byteBuffer.getLong());
+
+    // Other NavigableMap may accept a target capacity
+    highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+
+    for (int i = 0; i < nbHighs; i++) {
+      int high = Integer.reverseBytes(byteBuffer.getInt());
+      BitmapDataProvider provider = newRoaringBitmap();
+      if (provider instanceof RoaringBitmap) {
+        ((RoaringBitmap) provider).deserialize(byteBuffer);
+      } else if (provider instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) provider).deserialize(byteBuffer);
+      } else {
+        throw new UnsupportedEncodingException("Cannot deserialize a " + provider.getClass());
+      }
+      byteBuffer.position(byteBuffer.position() + provider.serializedSizeInBytes());
+      highToBitmap.put(high, provider);
+    }
+    resetPerfHelpers();
   }
 
   /**
@@ -1575,7 +1890,24 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return Objects.equals(highToBitmap, other.highToBitmap);
   }
 
-
+  @Override
+  public Roaring64NavigableMap clone() {
+    long sizeInBytesL = this.serializedSizeInBytes();
+    if (sizeInBytesL >= Integer.MAX_VALUE) {
+      throw new UnsupportedOperationException();
+    }
+    int sizeInBytesInt = (int) sizeInBytesL;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytesInt).order(LITTLE_ENDIAN);
+    try {
+      this.serialize(byteBuffer);
+      byteBuffer.flip();
+      Roaring64NavigableMap freshOne = new Roaring64NavigableMap();
+      freshOne.deserialize(byteBuffer);
+      return freshOne;
+    } catch (Exception e) {
+      throw new RuntimeException("fail to clone thorough the ser/deser", e);
+    }
+  }
 
   /**
    * Add the value if it is not already present, otherwise remove it.
