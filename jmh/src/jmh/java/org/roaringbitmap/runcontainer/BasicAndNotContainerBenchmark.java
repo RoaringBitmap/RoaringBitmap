@@ -1,7 +1,9 @@
 package org.roaringbitmap.runcontainer;
 
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -9,10 +11,9 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RunContainer;
+
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -124,7 +125,9 @@ public class BasicAndNotContainerBenchmark {
       rc3 = new RunContainer();
       rc3 = RandomUtil.fillMeUp(rc3, values3);
 
-      rc4 = new RunContainer(new char[]{4, 500, 2000, 1000, 5000, 3000, 16000, 10000, 32000, 600}, 5);
+      rc4 =
+          new RunContainer(
+              new char[] {4, 500, 2000, 1000, 5000, 3000, 16000, 10000, 32000, 600}, 5);
 
       ac1 = new ArrayContainer();
       ac1 = RandomUtil.fillMeUp(ac1, values1);
@@ -144,14 +147,11 @@ public class BasicAndNotContainerBenchmark {
       ac4 = new ArrayContainer();
       ac4 = RandomUtil.fillMeUp(ac4, values4);
 
-      if (!(ac4 instanceof ArrayContainer))
-        throw new RuntimeException("expected array container");
+      if (!(ac4 instanceof ArrayContainer)) throw new RuntimeException("expected array container");
 
-      if (!rc1.equals(ac1))
-        throw new RuntimeException("first containers do not match");
+      if (!rc1.equals(ac1)) throw new RuntimeException("first containers do not match");
 
-      if (!rc2.equals(ac2))
-        throw new RuntimeException("second containers do not match");
+      if (!rc2.equals(ac2)) throw new RuntimeException("second containers do not match");
 
       if (!rc1.andNot(rc2).equals(ac1.andNot(ac2)))
         throw new RuntimeException("andNots do not match");
@@ -161,8 +161,6 @@ public class BasicAndNotContainerBenchmark {
         throw new RuntimeException("andNots do not match");
       if (!rc2.andNot(ac1).equals(ac2.andNot(ac1)))
         throw new RuntimeException("andNots do not match");
-
     }
   }
-
 }

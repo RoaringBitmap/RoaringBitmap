@@ -73,7 +73,6 @@ public class WritableUtils {
     }
   }
 
-
   /**
    * Reads a zero-compressed encoded long from input stream and returns it.
    *
@@ -136,4 +135,3 @@ public class WritableUtils {
     return -111 - value;
   }
 }
-

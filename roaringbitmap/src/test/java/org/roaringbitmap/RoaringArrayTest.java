@@ -1,12 +1,12 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-
 public class RoaringArrayTest {
-
 
   @Test
   public void whenAppendEmpty_ShouldBeUnchanged() {
@@ -47,12 +47,12 @@ public class RoaringArrayTest {
   public void whenAppendNonEmpty_SizeShouldEqualSumOfSizes() {
     RoaringArray array = new RoaringArray();
     array.size = 2;
-    array.keys = new char[]{0, 2, 0, 0};
+    array.keys = new char[] {0, 2, 0, 0};
     array.values = new Container[4];
 
     RoaringArray appendage = new RoaringArray();
     appendage.size = 3;
-    appendage.keys = new char[]{5, 6, 7, 0};
+    appendage.keys = new char[] {5, 6, 7, 0};
     appendage.values = new Container[4];
 
     array.append(appendage);
@@ -60,17 +60,16 @@ public class RoaringArrayTest {
     assertEquals(5, array.size);
   }
 
-
   @Test
   public void whenAppendNonEmpty_ResultantKeysShouldBeMonotonic() {
     RoaringArray array = new RoaringArray();
     array.size = 2;
-    array.keys = new char[]{0, 2, 0, 0};
+    array.keys = new char[] {0, 2, 0, 0};
     array.values = new Container[4];
 
     RoaringArray appendage = new RoaringArray();
     appendage.size = 3;
-    appendage.keys = new char[]{5, 6, 7, 0};
+    appendage.keys = new char[] {5, 6, 7, 0};
     appendage.values = new Container[4];
 
     array.append(appendage);
@@ -87,5 +86,4 @@ public class RoaringArrayTest {
     array.extendArray(1);
     assertSame(keys, array.keys, "Keys were not reallocated");
   }
-
 }

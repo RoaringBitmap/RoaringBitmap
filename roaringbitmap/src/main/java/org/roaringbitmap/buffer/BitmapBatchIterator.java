@@ -1,8 +1,8 @@
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.ContainerBatchIterator;
-
 import static java.lang.Long.numberOfTrailingZeros;
+
+import org.roaringbitmap.ContainerBatchIterator;
 
 public final class BitmapBatchIterator implements ContainerBatchIterator {
 
@@ -49,7 +49,7 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);
@@ -73,5 +73,4 @@ public final class BitmapBatchIterator implements ContainerBatchIterator {
     this.word = bitmap.bitmap.get(0);
     this.wordIndex = 0;
   }
-
 }

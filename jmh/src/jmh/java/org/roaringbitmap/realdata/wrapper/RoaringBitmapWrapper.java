@@ -1,12 +1,12 @@
 package org.roaringbitmap.realdata.wrapper;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.RoaringBitmap;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
 
 final class RoaringBitmapWrapper implements Bitmap {
 
@@ -61,10 +61,8 @@ final class RoaringBitmapWrapper implements Bitmap {
 
   @Override
   public Bitmap flip(int rangeStart, int rangeEnd) {
-    return new RoaringBitmapWrapper(RoaringBitmap.flip(bitmap, (long)rangeStart, (long)rangeEnd));
+    return new RoaringBitmapWrapper(RoaringBitmap.flip(bitmap, (long) rangeStart, (long) rangeEnd));
   }
-
-
 
   @Override
   public Bitmap xor(Bitmap other) {
@@ -120,12 +118,10 @@ final class RoaringBitmapWrapper implements Bitmap {
         return i.hasNext();
       }
 
-
       @Override
       public void remove() {
         throw new UnsupportedOperationException();
       }
-
 
       @Override
       public RoaringBitmap next() {
@@ -148,5 +144,4 @@ final class RoaringBitmapWrapper implements Bitmap {
   public Bitmap clone() {
     return new RoaringBitmapWrapper(bitmap.clone());
   }
-
 }

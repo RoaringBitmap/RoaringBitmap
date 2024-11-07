@@ -40,11 +40,10 @@ public class BitmapAnalyser {
    * @return the statistics
    */
   public static BitmapStatistics analyse(Collection<? extends RoaringBitmap> bitmaps) {
-    return bitmaps
-      .stream()
-      .reduce(
-        BitmapStatistics.empty,
-        (acc, r) -> acc.merge(BitmapAnalyser.analyse(r)),
-        BitmapStatistics::merge);
+    return bitmaps.stream()
+        .reduce(
+            BitmapStatistics.empty,
+            (acc, r) -> acc.merge(BitmapAnalyser.analyse(r)),
+            BitmapStatistics::merge);
   }
 }

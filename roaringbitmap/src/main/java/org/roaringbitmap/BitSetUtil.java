@@ -1,12 +1,10 @@
 package org.roaringbitmap;
 
+import static java.lang.Long.numberOfTrailingZeros;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.BitSet;
-
-import static java.lang.Long.numberOfTrailingZeros;
-
 
 /***
  *
@@ -18,6 +16,7 @@ public class BitSetUtil {
   // a block consists has a maximum of 1024 words, each representing 64 bits,
   // thus representing at maximum 65536 bits
   public static final int BLOCK_LENGTH = BitmapContainer.MAX_CAPACITY / Long.SIZE; //
+
   // 64-bit
   // word
 
@@ -53,8 +52,8 @@ public class BitSetUtil {
    */
   public static byte[] toByteArray(RoaringBitmap bitmap) {
     long[] words = toLongArray(bitmap);
-    ByteBuffer buffer = ByteBuffer.allocate(words.length * Long.SIZE)
-            .order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer buffer =
+        ByteBuffer.allocate(words.length * Long.SIZE).order(ByteOrder.LITTLE_ENDIAN);
     buffer.asLongBuffer().put(words);
     return buffer.array();
   }
@@ -89,7 +88,7 @@ public class BitSetUtil {
         int remaining = wordsInUse - position;
         int length = Math.min(BLOCK_LENGTH, remaining);
         if (container instanceof BitmapContainer) {
-          ((BitmapContainer)container).copyBitmapTo(words, position, length);
+          ((BitmapContainer) container).copyBitmapTo(words, position, length);
         } else {
           container.copyBitmapTo(words, position);
         }
@@ -117,8 +116,8 @@ public class BitSetUtil {
    * @param words       bitmap
    * @return array container's content char buffer
    */
-  public static char[] arrayContainerBufferOf(final int from, final int to, final int cardinality,
-                                              final long[] words) {
+  public static char[] arrayContainerBufferOf(
+      final int from, final int to, final int cardinality, final long[] words) {
     return arrayContainerBufferOf(from, to, new char[cardinality], words);
   }
 
@@ -132,8 +131,8 @@ public class BitSetUtil {
    * @param words       bitmap
    * @return array container's content char buffer - the same as {@code buffer}
    */
-  public static char[] arrayContainerBufferOf(final int from, final int to, final char[] buffer,
-                                              final long[] words) {
+  public static char[] arrayContainerBufferOf(
+      final int from, final int to, final char[] buffer, final long[] words) {
     // precondition: cardinality is max 4096
     int base = 0;
     int pos = 0;
@@ -147,11 +146,11 @@ public class BitSetUtil {
     }
     return buffer;
   }
-  private static ArrayContainer arrayContainerOf(final int from, final int to,
-                                                 final int cardinality, final long[] words) {
+
+  private static ArrayContainer arrayContainerOf(
+      final int from, final int to, final int cardinality, final long[] words) {
     return new ArrayContainer(arrayContainerBufferOf(from, to, cardinality, words));
   }
-
 
   /**
    * Generate a RoaringBitmap out of a BitSet
@@ -180,7 +179,9 @@ public class BitSetUtil {
       final int to = Math.min(from + BLOCK_LENGTH, words.length);
       final int blockCardinality = cardinality(from, to, words);
       if (blockCardinality > 0) {
-        ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(from * Long.SIZE),
+        ans.highLowContainer.insertNewKeyValueAt(
+            containerIndex++,
+            Util.highbits(from * Long.SIZE),
             BitSetUtil.containerOf(from, to, blockCardinality, words));
       }
     }
@@ -237,13 +238,15 @@ public class BitSetUtil {
       if (blockLength == BLOCK_LENGTH) {
         // Each block becomes a single container, if any bit is set
         if (blockCardinality > 0) {
-          ans.highLowContainer.insertNewKeyValueAt(containerIndex++, Util.highbits(offset),
+          ans.highLowContainer.insertNewKeyValueAt(
+              containerIndex++,
+              Util.highbits(offset),
               BitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
         }
         /*
-            Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
-            It's harmless though, as it will happen after the last block is added
-         */
+           Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
+           It's harmless though, as it will happen after the last block is added
+        */
         offset += (BLOCK_LENGTH * Long.SIZE);
         blockLength = blockCardinality = 0;
       }
@@ -266,7 +269,9 @@ public class BitSetUtil {
 
     // Add block to map, if any bit is set
     if (blockCardinality > 0) {
-      ans.highLowContainer.insertNewKeyValueAt(containerIndex, Util.highbits(offset),
+      ans.highLowContainer.insertNewKeyValueAt(
+          containerIndex,
+          Util.highbits(offset),
           BitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
     }
     return ans;
@@ -280,9 +285,8 @@ public class BitSetUtil {
     return sum;
   }
 
-
-  private static Container containerOf(final int from, final int to, final int blockCardinality,
-      final long[] words) {
+  private static Container containerOf(
+      final int from, final int to, final int blockCardinality, final long[] words) {
     // find the best container available
     if (blockCardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       // containers with DEFAULT_MAX_SIZE or less integers should be
@@ -295,7 +299,6 @@ public class BitSetUtil {
       return new BitmapContainer(container, blockCardinality);
     }
   }
-
 
   /**
    * Compares a RoaringBitmap and a BitSet. They are equal if and only if they contain the same set

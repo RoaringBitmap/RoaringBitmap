@@ -1,13 +1,15 @@
 package org.roaringbitmap.buffer;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.roaringbitmap.IntIterator;
+
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 
 public class TestRange {
   @Test
@@ -22,20 +24,20 @@ public class TestRange {
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedMemberFlip() {
     MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
     rb1.flip(300000, 500000);
     MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
     rb2.flip(300000L, 500000L);
     assertEquals(rb1, rb2);
-    rb1.flip(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-    rb2.flip(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.flip(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.flip(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
-  private static int fillWithRandomBits(final MutableRoaringBitmap bitmap, final BitSet bitset,
-      final int bits) {
+  private static int fillWithRandomBits(
+      final MutableRoaringBitmap bitmap, final BitSet bitset, final int bits) {
     int added = 0;
     Random r = new Random(1011);
     for (int j = 0; j < bits; j++) {
@@ -78,7 +80,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = MutableRoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -102,7 +104,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = MutableRoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -114,7 +116,7 @@ public class TestRange {
       }
       rbinplace.add(start, end);
       rbstatic = MutableRoaringBitmap.add(rbstatic, start, end);
-      bs.set((int)start, (int)end);
+      bs.set((int) start, (int) end);
       //
       start = r.nextInt(20) * 65536;
       end = r.nextInt(65536 * 20);
@@ -125,7 +127,7 @@ public class TestRange {
       }
       rbinplace.remove(start, end);
       rbstatic = MutableRoaringBitmap.remove(rbstatic, start, end);
-      bs.clear((int)start, (int)end);
+      bs.clear((int) start, (int) end);
 
       //
       start = r.nextInt(65536 * 20);
@@ -137,7 +139,7 @@ public class TestRange {
       }
       rbinplace.remove(start, end);
       rbstatic = MutableRoaringBitmap.remove(rbstatic, start, end);
-      bs.clear((int)start, (int)end);
+      bs.clear((int) start, (int) end);
     }
     assertTrue(TestRoaringBitmap.equals(bs, rbstatic));
     assertTrue(TestRoaringBitmap.equals(bs, rbinplace));
@@ -198,8 +200,6 @@ public class TestRange {
     assertTrue(TestRoaringBitmap.equals(bs, rb1));
   }
 
-
-
   @Test
   public void setTest2() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
@@ -227,7 +227,6 @@ public class TestRange {
     assertTrue(TestRoaringBitmap.equals(bs, rb));
   }
 
-
   @Test
   public void setTest3() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
@@ -244,7 +243,6 @@ public class TestRange {
 
     assertTrue(TestRoaringBitmap.equals(bs, rb));
   }
-
 
   @Test
   public void setTest3A() {
@@ -264,7 +262,6 @@ public class TestRange {
     }
     assertTrue(TestRoaringBitmap.equals(bs, rb2));
   }
-
 
   @Test
   public void setTest4() {
@@ -440,7 +437,6 @@ public class TestRange {
     assertEquals(rb2, rb3);
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
-
     rb3 = MutableRoaringBitmap.add(rb3, 65536 * 3 + 195L, 65536 * 3 + 245);
     bs.set(65536 * 3 + 195, 65536 * 3 + 245);
     rb2.add(65536L * 3 + 195, 65536L * 3 + 245);
@@ -452,7 +448,6 @@ public class TestRange {
     assertEquals(255, rbcard);
 
     // now removing
-
 
     rb3 = MutableRoaringBitmap.remove(rb3, 65536L * 3 + 195, 65536L * 3 + 245);
     bs.clear(65536 * 3 + 195, 65536 * 3 + 245);
@@ -475,14 +470,11 @@ public class TestRange {
     assertEquals(rb2, rb3);
     assertTrue(TestRoaringBitmap.equals(bs, rb3));
 
-
     rb2 = MutableRoaringBitmap.remove(rb1, 130L, 185L);
     bs.clear(130, 185);
     rb.remove(130L, 185L);
     assertEquals(rb2, rb);
     assertTrue(TestRoaringBitmap.equals(bs, rb2));
-
-
   }
 
   @Test
@@ -598,7 +590,7 @@ public class TestRange {
   public void testFlipRanges() {
     int N = 256;
     for (long end = 1; end < N; ++end) {
-        for (long start = 0; start < end; ++start) {
+      for (long start = 0; start < end; ++start) {
         MutableRoaringBitmap bs1 = new MutableRoaringBitmap();
         for (int k = (int) start; k < end; ++k) {
           bs1.flip(k);
@@ -690,7 +682,7 @@ public class TestRange {
       }
 
       // clear and check bitmap, if really empty
-      bitmap.remove(0L, (long)  bits);
+      bitmap.remove(0L, (long) bits);
       assertEquals(0, bitmap.getCardinality(), "fails with bits: " + bitset);
       assertTrue(bitmap.isEmpty());
 
@@ -719,7 +711,7 @@ public class TestRange {
     for (long end = 1; end < N; ++end) {
       for (long start = 0; start < end; ++start) {
         MutableRoaringBitmap bs1 = new MutableRoaringBitmap();
-        for (int k = (int)start; k < end; ++k) {
+        for (int k = (int) start; k < end; ++k) {
           bs1.add(k);
         }
         MutableRoaringBitmap bs2 = new MutableRoaringBitmap();
@@ -747,7 +739,6 @@ public class TestRange {
     }
   }
 
-
   @Test
   public void testStaticSetRanges() {
     int N = 256;
@@ -765,91 +756,88 @@ public class TestRange {
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticAdd() {
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.add(rb1, 300000, 500000);
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.add(rb2,300000L, 500000L);
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.add(rb1, 300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.add(rb2, 300000L, 500000L);
     assertEquals(rb1, rb2);
-      MutableRoaringBitmap.add( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      MutableRoaringBitmap.add( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    MutableRoaringBitmap.add(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    MutableRoaringBitmap.add(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticFlip() {
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.flip(rb1, 300000, 500000);
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.flip(rb2,300000L, 500000L);
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.flip(rb1, 300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.flip(rb2, 300000L, 500000L);
     assertEquals(rb1, rb2);
-      MutableRoaringBitmap.flip( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      MutableRoaringBitmap.flip( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    MutableRoaringBitmap.flip(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    MutableRoaringBitmap.flip(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedStaticRemove() {
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.add(rb1,200000L, 400000L);
-      MutableRoaringBitmap.remove(rb1, 300000, 500000);
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-      MutableRoaringBitmap.add(rb2,200000L, 400000L);
-      MutableRoaringBitmap.remove(rb2,300000L, 500000L);
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.add(rb1, 200000L, 400000L);
+    MutableRoaringBitmap.remove(rb1, 300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    MutableRoaringBitmap.add(rb2, 200000L, 400000L);
+    MutableRoaringBitmap.remove(rb2, 300000L, 500000L);
     assertEquals(rb1, rb2);
 
-      MutableRoaringBitmap.add( rb1, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      MutableRoaringBitmap.add( rb2, Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      MutableRoaringBitmap.remove( rb1, Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      MutableRoaringBitmap.remove( rb2, Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    MutableRoaringBitmap.add(rb1, Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    MutableRoaringBitmap.add(rb2, Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    MutableRoaringBitmap.remove(rb1, Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    MutableRoaringBitmap.remove(rb2, Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedAdd() {
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      rb1.add(300000, 500000);
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-      rb2.add(300000L, 500000L);
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    rb1.add(300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.add(300000L, 500000L);
     assertEquals(rb1, rb2);
-      rb1.add( Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      rb2.add( Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.add(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.add(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
-
   @Test
-  @SuppressWarnings( "deprecation" )
+  @SuppressWarnings("deprecation")
   public void testDeprecatedRemove() {
-      MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
-      rb1.add(200000L, 400000L);
-      rb1.remove(300000, 500000);
-      MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
-      rb2.add(200000L, 400000L);
-      rb2.remove(300000L, 500000L);
+    MutableRoaringBitmap rb1 = new MutableRoaringBitmap();
+    rb1.add(200000L, 400000L);
+    rb1.remove(300000, 500000);
+    MutableRoaringBitmap rb2 = new MutableRoaringBitmap();
+    rb2.add(200000L, 400000L);
+    rb2.remove(300000L, 500000L);
     assertEquals(rb1, rb2);
 
-      rb1.add(Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb2.add(Integer.MAX_VALUE+200000L, Integer.MAX_VALUE+400000L);
-      rb1.remove(Integer.MAX_VALUE+300000, Integer.MAX_VALUE+500000);
-      rb2.remove(Integer.MAX_VALUE+300000L, Integer.MAX_VALUE+500000L);
+    rb1.add(Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb2.add(Integer.MAX_VALUE + 200000L, Integer.MAX_VALUE + 400000L);
+    rb1.remove(Integer.MAX_VALUE + 300000, Integer.MAX_VALUE + 500000);
+    rb2.remove(Integer.MAX_VALUE + 300000L, Integer.MAX_VALUE + 500000L);
     assertEquals(rb1, rb2);
   }
 
   @Test
   public void regressionTestIssue588() {
     // see https://github.com/RoaringBitmap/RoaringBitmap/issues/588
-     int valueInBitmap = 27470832;
-     int baseValue = 27597418;
-     int minValueThatWorks = 27459584;
-     ImmutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(valueInBitmap);
-     assertTrue(bitmap.intersects(minValueThatWorks, baseValue));
-     assertTrue(bitmap.intersects(minValueThatWorks-1, baseValue));
+    int valueInBitmap = 27470832;
+    int baseValue = 27597418;
+    int minValueThatWorks = 27459584;
+    ImmutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(valueInBitmap);
+    assertTrue(bitmap.intersects(minValueThatWorks, baseValue));
+    assertTrue(bitmap.intersects(minValueThatWorks - 1, baseValue));
   }
-
 }

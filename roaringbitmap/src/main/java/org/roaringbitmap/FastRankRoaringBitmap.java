@@ -168,8 +168,9 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
         highToCumulatedCardinality[0] = highLowContainer.getContainerAtIndex(0).getCardinality();
 
         for (int i = 1; i < highToCumulatedCardinality.length; i++) {
-          highToCumulatedCardinality[i] = highToCumulatedCardinality[i - 1]
-              + highLowContainer.getContainerAtIndex(i).getCardinality();
+          highToCumulatedCardinality[i] =
+              highToCumulatedCardinality[i - 1]
+                  + highLowContainer.getContainerAtIndex(i).getCardinality();
         }
       }
 
@@ -187,8 +188,9 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     char xhigh = Util.highbits(x);
 
-    int index = Util.hybridUnsignedBinarySearch(this.highLowContainer.keys, 0,
-        this.highLowContainer.size(), xhigh);
+    int index =
+        Util.hybridUnsignedBinarySearch(
+            this.highLowContainer.keys, 0, this.highLowContainer.size(), xhigh);
 
     boolean hasBitmapOnIdex;
     if (index < 0) {
@@ -228,7 +230,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       return this.last();
     } else if (j > maxCardinality) {
       throw new IllegalArgumentException(
-              "select " + j + " when the cardinality is " + this.getCardinality());
+          "select " + j + " when the cardinality is " + this.getCardinality());
     }
 
     int index = Arrays.binarySearch(highToCumulatedCardinality, j);
@@ -257,10 +259,8 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     }
 
     int keycontrib = this.highLowContainer.getKeyAtIndex(fixedIndex) << 16;
-    int lowcontrib = (
-        this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
+    int lowcontrib = (this.highLowContainer.getContainerAtIndex(fixedIndex).select((int) leftover));
     int value = lowcontrib + keycontrib;
-
 
     return value;
   }
@@ -309,14 +309,13 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     @Override
     public PeekableIntRankIterator clone() {
       try {
-        FastRoaringIntRankIterator x =
-            (FastRoaringIntRankIterator) super.clone();
+        FastRoaringIntRankIterator x = (FastRoaringIntRankIterator) super.clone();
         if (this.iter != null) {
           x.iter = this.iter.clone();
         }
         return x;
       } catch (CloneNotSupportedException e) {
-        return null;// will not happen
+        return null; // will not happen
       }
     }
 
@@ -337,8 +336,11 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
     private void nextContainer() {
       if (pos < FastRankRoaringBitmap.this.highLowContainer.size()) {
-        iter = FastRankRoaringBitmap.this.highLowContainer.getContainerAtIndex(pos)
-                                                          .getCharRankIterator();
+        iter =
+            FastRankRoaringBitmap.this
+                .highLowContainer
+                .getContainerAtIndex(pos)
+                .getCharRankIterator();
         hs = FastRankRoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
       }
     }

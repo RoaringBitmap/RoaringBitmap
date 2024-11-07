@@ -1,6 +1,14 @@
 package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.concurrent.TimeUnit;
 
@@ -10,14 +18,16 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Benchmark)
 public class BitmapOfRangeBenchmark {
-  @Param({"0", // from the beginning
-      "100000" // from some offset
+  @Param({
+    "0", // from the beginning
+    "100000" // from some offset
   })
   int from;
 
-  @Param({"10",
-      "100000", // ~ 100 kBi
-      "10000000",// ~ 10 MBi
+  @Param({
+    "10",
+    "100000", // ~ 100 kBi
+    "10000000", // ~ 10 MBi
   })
   int length;
 

@@ -75,7 +75,6 @@ public class RangeOperationBenchmark {
     return result.getCardinality();
   }
 
-
   @State(Scope.Benchmark)
   public static class BenchmarkState {
     BitmapContainer emptyBC = new BitmapContainer();
@@ -84,8 +83,7 @@ public class RangeOperationBenchmark {
 
     public BenchmarkState() {
       for (int i = 100; i < 15000; i++) {
-        if (i % 5 != 0)
-          bc.add((char) i);
+        if (i % 5 != 0) bc.add((char) i);
       }
     }
   }

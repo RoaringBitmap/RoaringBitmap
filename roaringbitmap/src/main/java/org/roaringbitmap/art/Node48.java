@@ -7,11 +7,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
-import org.roaringbitmap.longlong.LongUtils;
 
 public class Node48 extends Node {
 
-  //the actual byte value of childIndex content won't be beyond 48
+  // the actual byte value of childIndex content won't be beyond 48
   // 256 bytes packed into longs
   static final int BYTES_PER_LONG = 8;
   static final int LONGS_USED = 256 / BYTES_PER_LONG;
@@ -19,7 +18,7 @@ public class Node48 extends Node {
   static final int POS_MASK = 0x7; // the mask to access the pos in the long for the byte
   long[] childIndex = new long[LONGS_USED];
   Node[] children = new Node[48];
-  static final byte EMPTY_VALUE = (byte)0xFF;
+  static final byte EMPTY_VALUE = (byte) 0xFF;
   static final long INIT_LONG_VALUE = 0xFFffFFffFFffFFffL;
 
   public Node48(int compressedPrefixSize) {
@@ -71,7 +70,7 @@ public class Node48 extends Node {
     for (int i = 0; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
-        //skip over empty bytes
+        // skip over empty bytes
         pos += BYTES_PER_LONG;
         continue;
       } else {
@@ -97,7 +96,7 @@ public class Node48 extends Node {
     for (; i < LONGS_USED; i++) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
-        //skip over empty bytes
+        // skip over empty bytes
         pos = (pos + BYTES_PER_LONG) & 0xF8;
         continue;
       }
@@ -148,8 +147,8 @@ public class Node48 extends Node {
     for (; i >= 0 && i < LONGS_USED; i--) {
       long longv = childIndex[i];
       if (longv == INIT_LONG_VALUE) {
-        //skip over empty bytes
-        pos -= Math.min(BYTES_PER_LONG,(pos & POS_MASK) + 1);
+        // skip over empty bytes
+        pos -= Math.min(BYTES_PER_LONG, (pos & POS_MASK) + 1);
         continue;
       }
       // because we are starting potentially at non aligned location, we need to start at 7
@@ -177,7 +176,7 @@ public class Node48 extends Node {
   public static Node insert(Node currentNode, Node child, byte key) {
     Node48 node48 = (Node48) currentNode;
     if (node48.count < 48) {
-      //insert leaf node into current node
+      // insert leaf node into current node
       int pos = node48.count;
       if (node48.children[pos] != null) {
         pos = 0;
@@ -187,11 +186,11 @@ public class Node48 extends Node {
       }
       node48.children[pos] = child;
       int unsignedByte = Byte.toUnsignedInt(key);
-      setOneByte(unsignedByte, (byte)pos, node48.childIndex);
+      setOneByte(unsignedByte, (byte) pos, node48.childIndex);
       node48.count++;
       return node48;
     } else {
-      //grow to Node256
+      // grow to Node256
       Node256 node256 = new Node256(node48.prefixLength);
       int currentPos = ILLEGAL_IDX;
       while ((currentPos = node48.getNextLargerPos(currentPos)) != ILLEGAL_IDX) {
@@ -213,7 +212,7 @@ public class Node48 extends Node {
     children[idx] = null;
     count--;
     if (count <= 12) {
-      //shrink to node16
+      // shrink to node16
       Node16 node16 = new Node16(this.prefixLength);
       int j = 0;
       ByteBuffer byteBuffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);

@@ -1,16 +1,17 @@
 package org.roaringbitmap;
 
+import static org.roaringbitmap.RoaringBitmapWriter.writer;
+
 import java.util.Arrays;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
-
-import static org.roaringbitmap.RoaringBitmapWriter.writer;
 
 public class SeededTestData {
 
   private static final ThreadLocal<long[]> bits = ThreadLocal.withInitial(() -> new long[1 << 10]);
 
-  private static final ThreadLocal<SplittableRandom> RNG = ThreadLocal.withInitial(() -> new SplittableRandom(0xfeef1f0));
+  private static final ThreadLocal<SplittableRandom> RNG =
+      ThreadLocal.withInitial(() -> new SplittableRandom(0xfeef1f0));
 
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     try {
@@ -31,7 +32,8 @@ public class SeededTestData {
     }
   }
 
-  public static <T extends BitmapDataProvider> T randomBitmap(int maxKeys, RoaringBitmapWriter<T> writer) {
+  public static <T extends BitmapDataProvider> T randomBitmap(
+      int maxKeys, RoaringBitmapWriter<T> writer) {
     try {
       SplittableRandom random = RNG.get();
       double rleLimit = random.nextDouble();
@@ -42,18 +44,26 @@ public class SeededTestData {
     }
   }
 
-  private static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit, SplittableRandom random) {
-    return randomBitmap(maxKeys, rleLimit, denseLimit, random, writer().initialCapacity(maxKeys).optimiseForArrays().get());
+  private static RoaringBitmap randomBitmap(
+      int maxKeys, double rleLimit, double denseLimit, SplittableRandom random) {
+    return randomBitmap(
+        maxKeys,
+        rleLimit,
+        denseLimit,
+        random,
+        writer().initialCapacity(maxKeys).optimiseForArrays().get());
   }
 
-  private static <T extends BitmapDataProvider> T randomBitmap(int maxKeys,
-                                                       double rleLimit,
-                                                       double denseLimit,
-                                                       SplittableRandom random,
-                                                       RoaringBitmapWriter<T> writer) {
+  private static <T extends BitmapDataProvider> T randomBitmap(
+      int maxKeys,
+      double rleLimit,
+      double denseLimit,
+      SplittableRandom random,
+      RoaringBitmapWriter<T> writer) {
     int[] keys = createSorted16BitInts(random.nextInt(1, maxKeys), random);
     IntStream.of(keys)
-            .forEach(key -> {
+        .forEach(
+            key -> {
               double choice = random.nextDouble();
               final IntStream stream;
               if (choice < rleLimit) {
@@ -96,9 +106,9 @@ public class SeededTestData {
     int numRuns = random.nextInt(1, 2048);
     int[] runs = createSorted16BitInts(numRuns * 2, random);
     return IntStream.range(0, numRuns)
-            .map(i -> i * 2)
-            .mapToObj(i -> IntStream.range(runs[i], runs[i + 1]))
-            .flatMapToInt(i -> i);
+        .map(i -> i * 2)
+        .mapToObj(i -> IntStream.range(runs[i], runs[i + 1]))
+        .flatMapToInt(i -> i);
   }
 
   private static IntStream sparseRegion(SplittableRandom random) {

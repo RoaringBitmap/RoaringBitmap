@@ -1,9 +1,17 @@
 package org.roaringbitmap.deserialization;
 
-
-import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.infra.Blackhole;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -46,7 +54,7 @@ public class BitmapContainersDeserializationBenchmark {
 
   private static byte[] serialise(MutableRoaringBitmap input) throws IOException {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream(input.serializedSizeInBytes());
-         DataOutputStream dos = new DataOutputStream(bos)) {
+        DataOutputStream dos = new DataOutputStream(bos)) {
       input.serialize(dos);
       return bos.toByteArray();
     }

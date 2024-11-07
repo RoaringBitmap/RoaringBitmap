@@ -34,14 +34,11 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
 
   private ImmutableRoaringBitmap roaringBitmap = null;
 
-
   /**
    * Creates an instance that is not ready for iteration. You must first call
    * {@link #wrap(ImmutableRoaringBitmap)}.
    */
-  public BufferReverseIntIteratorFlyweight() {
-
-  }
+  public BufferReverseIntIteratorFlyweight() {}
 
   /**
    * Creates an instance that is ready for iteration.
@@ -56,12 +53,12 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
   public IntIterator clone() {
     try {
       BufferReverseIntIteratorFlyweight x = (BufferReverseIntIteratorFlyweight) super.clone();
-      if(this.iter != null) {
+      if (this.iter != null) {
         x.iter = this.iter.clone();
       }
       return x;
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -69,8 +66,6 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
   public boolean hasNext() {
     return pos >= 0;
   }
-
-
 
   @Override
   public int next() {
@@ -114,5 +109,4 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
     this.pos = (short) (this.roaringBitmap.highLowContainer.size() - 1);
     this.nextContainer();
   }
-
 }

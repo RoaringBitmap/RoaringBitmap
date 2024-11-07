@@ -190,7 +190,6 @@ public class RoaringBitSet extends BitSet {
     return new RoaringBitSet(roaringBitmap.clone());
   }
 
-
   @Override
   public IntStream stream() {
     return roaringBitmap.stream();

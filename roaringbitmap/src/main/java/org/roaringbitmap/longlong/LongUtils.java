@@ -11,13 +11,13 @@ public class LongUtils {
    * @return the high 48 bit
    */
   public static byte[] highPart(long num) {
-    return new byte[]{
-        (byte) ((num >>> 56) & 0xff),
-        (byte) ((num >>> 48) & 0xff),
-        (byte) ((num >>> 40) & 0xff),
-        (byte) ((num >>> 32) & 0xff),
-        (byte) ((num >>> 24) & 0xff),
-        (byte) ((num >>> 16) & 0xff)
+    return new byte[] {
+      (byte) ((num >>> 56) & 0xff),
+      (byte) ((num >>> 48) & 0xff),
+      (byte) ((num >>> 40) & 0xff),
+      (byte) ((num >>> 32) & 0xff),
+      (byte) ((num >>> 24) & 0xff),
+      (byte) ((num >>> 16) & 0xff)
     };
   }
 

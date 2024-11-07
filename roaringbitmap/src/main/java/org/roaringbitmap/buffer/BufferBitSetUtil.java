@@ -1,6 +1,5 @@
 package org.roaringbitmap.buffer;
 
-
 import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.IntIterator;
 
@@ -9,7 +8,6 @@ import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.BitSet;
-
 
 /***
  *
@@ -21,16 +19,16 @@ public class BufferBitSetUtil {
 
   // a block consists has a maximum of 1024 words, each representing 64 bits,
   // thus representing at maximum 65536 bits
-  static final private int BLOCK_LENGTH = MappeableBitmapContainer.MAX_CAPACITY / Long.SIZE; //
+  private static final int BLOCK_LENGTH = MappeableBitmapContainer.MAX_CAPACITY / Long.SIZE; //
+
   // 64-bit
   // word
 
-  private static MappeableArrayContainer arrayContainerOf(final int from, final int to,
-      final int cardinality, final long[] words) {
+  private static MappeableArrayContainer arrayContainerOf(
+      final int from, final int to, final int cardinality, final long[] words) {
     char[] content = BitSetUtil.arrayContainerBufferOf(from, to, cardinality, words);
     return new MappeableArrayContainer(CharBuffer.wrap(content), cardinality);
   }
-
 
   /**
    * Generate a MutableRoaringBitmap out of a BitSet
@@ -59,9 +57,11 @@ public class BufferBitSetUtil {
       final int to = Math.min(from + BLOCK_LENGTH, words.length);
       final int blockCardinality = cardinality(from, to, words);
       if (blockCardinality > 0) {
-        ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex++,
-            BufferUtil.highbits(from * Long.SIZE),
-            BufferBitSetUtil.containerOf(from, to, blockCardinality, words));
+        ((MutableRoaringArray) ans.highLowContainer)
+            .insertNewKeyValueAt(
+                containerIndex++,
+                BufferUtil.highbits(from * Long.SIZE),
+                BufferBitSetUtil.containerOf(from, to, blockCardinality, words));
       }
     }
     return ans;
@@ -113,14 +113,16 @@ public class BufferBitSetUtil {
       if (blockLength == BLOCK_LENGTH) {
         // Each block becomes a single container, if any bit is set
         if (blockCardinality > 0) {
-          ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex++,
-              BufferUtil.highbits(offset), BufferBitSetUtil.containerOf(0, blockLength,
-                  blockCardinality, wordsBuffer));
+          ((MutableRoaringArray) ans.highLowContainer)
+              .insertNewKeyValueAt(
+                  containerIndex++,
+                  BufferUtil.highbits(offset),
+                  BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
         }
         /*
-            Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
-            It's harmless though, as it will happen after the last block is added
-         */
+           Offset can overflow when bitsets size is more than Integer.MAX_VALUE - 64
+           It's harmless though, as it will happen after the last block is added
+        */
         offset += (BLOCK_LENGTH * Long.SIZE);
         blockLength = blockCardinality = 0;
       }
@@ -143,9 +145,11 @@ public class BufferBitSetUtil {
 
     // Add block to map, if any bit is set
     if (blockCardinality > 0) {
-      ((MutableRoaringArray) ans.highLowContainer).insertNewKeyValueAt(containerIndex,
-          BufferUtil.highbits(offset),
-          BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
+      ((MutableRoaringArray) ans.highLowContainer)
+          .insertNewKeyValueAt(
+              containerIndex,
+              BufferUtil.highbits(offset),
+              BufferBitSetUtil.containerOf(0, blockLength, blockCardinality, wordsBuffer));
     }
     return ans;
   }
@@ -158,9 +162,8 @@ public class BufferBitSetUtil {
     return sum;
   }
 
-
-  private static MappeableContainer containerOf(final int from, final int to,
-      final int blockCardinality, final long[] words) {
+  private static MappeableContainer containerOf(
+      final int from, final int to, final int blockCardinality, final long[] words) {
     // find the best container available
     if (blockCardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       // containers with DEFAULT_MAX_SIZE or less integers should be
@@ -173,7 +176,6 @@ public class BufferBitSetUtil {
       return new MappeableBitmapContainer(LongBuffer.wrap(container), blockCardinality);
     }
   }
-
 
   /**
    * Compares a RoaringBitmap and a BitSet. They are equal if and only if they contain the same set

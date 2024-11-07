@@ -1,8 +1,7 @@
 package org.roaringbitmap.needwork;
 
-
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ZipRealDataRetriever;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -12,8 +11,9 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ZipRealDataRetriever;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -25,14 +25,12 @@ public class SlowORaggregate2 {
     return answer;
   }
 
-
-
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    @Param({// putting the data sets in alpha. order
-        "census1881_srt",})
+    @Param({ // putting the data sets in alpha. order
+      "census1881_srt",
+    })
     String dataset;
-
 
     ArrayList<RoaringBitmap> rc = new ArrayList<RoaringBitmap>();
 
@@ -51,6 +49,5 @@ public class SlowORaggregate2 {
       }
       System.out.println("loaded " + rc.size() + " bitmaps");
     }
-
   }
 }

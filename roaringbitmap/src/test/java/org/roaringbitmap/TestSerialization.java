@@ -1,20 +1,26 @@
 package org.roaringbitmap;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
-import java.io.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
-import java.util.Base64;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 class ByteBufferBackedInputStream extends InputStream {
 
@@ -64,8 +70,6 @@ class ByteBufferBackedInputStream extends InputStream {
   }
 }
 
-
-
 class ByteBufferBackedOutputStream extends OutputStream {
   ByteBuffer buf;
 
@@ -87,9 +91,7 @@ class ByteBufferBackedOutputStream extends OutputStream {
   public synchronized void write(int b) throws IOException {
     buf.put((byte) b);
   }
-
 }
-
 
 public class TestSerialization {
   static RoaringBitmap bitmap_a;
@@ -142,17 +144,18 @@ public class TestSerialization {
      */
     // do not runoptimize bitmap_a1
 
-    outbb = ByteBuffer
-        .allocate(bitmap_a.serializedSizeInBytes() + bitmap_empty.serializedSizeInBytes());
-    presoutbb = ByteBuffer
-        .allocate(bitmap_a.serializedSizeInBytes() + bitmap_empty.serializedSizeInBytes());
+    outbb =
+        ByteBuffer.allocate(
+            bitmap_a.serializedSizeInBytes() + bitmap_empty.serializedSizeInBytes());
+    presoutbb =
+        ByteBuffer.allocate(
+            bitmap_a.serializedSizeInBytes() + bitmap_empty.serializedSizeInBytes());
     ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(presoutbb);
 
     DataOutputStream dos = new DataOutputStream(out);
     bitmap_empty.serialize(dos);
     bitmap_a.serialize(dos);
     presoutbb.flip();
-
   }
 
   private static int[] takeSortedAndDistinct(Random source, int count) {
@@ -171,7 +174,6 @@ public class TestSerialization {
     return unboxed;
   }
 
-
   private static int[] toArray(LinkedHashSet<Integer> integers) {
     int[] ints = new int[integers.size()];
     int i = 0;
@@ -180,7 +182,6 @@ public class TestSerialization {
     }
     return ints;
   }
-
 
   @Test
   public void testDeserialize() throws IOException {
@@ -200,8 +201,6 @@ public class TestSerialization {
     bitmap_b.deserialize(dis, buffer);
     assertEquals(bitmap_a, bitmap_b);
   }
-
-
 
   @Test
   public void testImmutableBuildingBySerialization() {
@@ -231,8 +230,8 @@ public class TestSerialization {
       int val1 = it1.next(), val2 = it2.next();
       if (val1 != val2) {
         if (++blabcount < 10) {
-          System.out
-              .println("disagree on " + valcount + " nonmatching values are " + val1 + " " + val2);
+          System.out.println(
+              "disagree on " + valcount + " nonmatching values are " + val1 + " " + val2);
         }
       }
     }
@@ -244,7 +243,6 @@ public class TestSerialization {
     assertEquals(count1, count2);
     assertEquals(cksum1, cksum2);
   }
-
 
   @Test
   public void testImmutableBuildingBySerializationSimple() {
@@ -295,7 +293,6 @@ public class TestSerialization {
     assertEquals(cksum1, cksum2);
   }
 
-
   @Test
   public void testMutableBuildingBySerialization() throws IOException {
     presoutbb.rewind();
@@ -315,8 +312,6 @@ public class TestSerialization {
     }
     assertEquals(cksum1, cksum2);
   }
-
-
 
   @Test
   public void testMutableDeserializeMutable() throws IOException {
@@ -357,7 +352,9 @@ public class TestSerialization {
     assertEquals(bitmap_am.serializedSizeInBytes(), bitmap_a.serializedSizeInBytes());
     assertEquals(bitmap_amr.serializedSizeInBytes(), bitmap_ar.serializedSizeInBytes());
 
-    ByteBuffer outbuf = ByteBuffer.allocate(2*(bitmap_a.serializedSizeInBytes() + bitmap_ar.serializedSizeInBytes()));
+    ByteBuffer outbuf =
+        ByteBuffer.allocate(
+            2 * (bitmap_a.serializedSizeInBytes() + bitmap_ar.serializedSizeInBytes()));
     DataOutputStream out = new DataOutputStream(new ByteBufferBackedOutputStream(outbuf));
     try {
       bitmap_a.serialize(out);
@@ -388,7 +385,6 @@ public class TestSerialization {
     assertEquals(bitmap_ar, bitmap_c2);
     assertEquals(bitmap_ar, bitmap_c3);
     assertEquals(bitmap_ar, bitmap_c4);
-
   }
 
   @Test
@@ -401,7 +397,6 @@ public class TestSerialization {
     bitmap_emptyr.serialize(dos);
     bitmap_ar.serialize(dos);
   }
-
 
   @Test
   public void testRunSerializationDeserialization() throws java.io.IOException {
@@ -437,8 +432,6 @@ public class TestSerialization {
 
     assertEquals(bitmap_a, bitmap_c);
   }
-
-
 
   @Test
   public void testSerialize() throws IOException {
@@ -508,4 +501,3 @@ public class TestSerialization {
     assertEquals(actual, expected);
   }
 }
-

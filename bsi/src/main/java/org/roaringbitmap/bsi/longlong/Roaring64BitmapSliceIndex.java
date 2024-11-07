@@ -34,7 +34,6 @@ public class Roaring64BitmapSliceIndex {
    */
   private Roaring64Bitmap ebM;
 
-
   private Boolean runOptimized = false;
 
   /**
@@ -89,7 +88,6 @@ public class Roaring64BitmapSliceIndex {
       }
       this.addDigit(carry, i + 1);
     }
-
   }
 
   private long minValue() {
@@ -150,7 +148,6 @@ public class Roaring64BitmapSliceIndex {
   /**
    * hasRunCompression returns true if the bitmap benefits from run compression
    */
-
   public boolean hasRunCompression() {
     return this.runOptimized;
   }
@@ -158,7 +155,6 @@ public class Roaring64BitmapSliceIndex {
   /**
    * GetExistenceBitmap returns a pointer to the underlying existence bitmap of the BSI
    */
-
   public Roaring64Bitmap getExistenceBitmap() {
     return this.ebM;
   }
@@ -182,7 +178,6 @@ public class Roaring64BitmapSliceIndex {
 
     return Pair.newPair(valueAt(columnId), true);
   }
-
 
   private void clear() {
     this.maxValue = 0;
@@ -339,8 +334,10 @@ public class Roaring64BitmapSliceIndex {
   }
 
   public void setValues(List<Pair<Long, Long>> values) {
-    long maxValue = values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).max().getAsLong();
-    long minValue = values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).min().getAsLong();
+    long maxValue =
+        values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).max().getAsLong();
+    long minValue =
+        values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).min().getAsLong();
     ensureCapacityInternal(minValue, maxValue);
     for (Pair<Long, Long> pair : values) {
       setValueInternal(pair.getKey(), pair.getValue());
@@ -407,13 +404,13 @@ public class Roaring64BitmapSliceIndex {
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    * see https://github.com/lemire/BitSliceIndex/blob/master/src/main/java/org/roaringbitmap/circuits/comparator/BasicComparator.java
    */
-  private Roaring64Bitmap oNeilCompare(BitmapSliceIndex.Operation operation, long predicate, Roaring64Bitmap foundSet) {
+  private Roaring64Bitmap oNeilCompare(
+      BitmapSliceIndex.Operation operation, long predicate, Roaring64Bitmap foundSet) {
     Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
 
     Roaring64Bitmap GT = new Roaring64Bitmap();
     Roaring64Bitmap LT = new Roaring64Bitmap();
     Roaring64Bitmap EQ = this.ebM;
-
 
     for (int i = this.bitCount() - 1; i >= 0; i--) {
       int bit = (int) ((predicate >> i) & 1);
@@ -424,7 +421,6 @@ public class Roaring64BitmapSliceIndex {
         GT = Roaring64Bitmap.or(GT, Roaring64Bitmap.and(EQ, this.bA[i]));
         EQ = Roaring64Bitmap.andNot(EQ, this.bA[i]);
       }
-
     }
     EQ = Roaring64Bitmap.and(fixedFoundSet, EQ);
     switch (operation) {
@@ -457,7 +453,8 @@ public class Roaring64BitmapSliceIndex {
    * @param foundSet     columnId set we want compare,using RoaringBitmap to express
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    */
-  public Roaring64Bitmap compare(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
+  public Roaring64Bitmap compare(
+      BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
     Roaring64Bitmap result = compareUsingMinMax(operation, startOrValue, end, foundSet);
     if (result != null) {
       return result;
@@ -470,33 +467,37 @@ public class Roaring64BitmapSliceIndex {
         return oNeilCompare(BitmapSliceIndex.Operation.NEQ, startOrValue, foundSet);
       case GE:
         return oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
-      case GT: {
-        return oNeilCompare(BitmapSliceIndex.Operation.GT, startOrValue, foundSet);
-      }
+      case GT:
+        {
+          return oNeilCompare(BitmapSliceIndex.Operation.GT, startOrValue, foundSet);
+        }
       case LT:
         return oNeilCompare(BitmapSliceIndex.Operation.LT, startOrValue, foundSet);
 
       case LE:
         return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
 
-      case RANGE: {
-        if (startOrValue < minValue) {
-          startOrValue = minValue;
-        }
-        if (end > maxValue) {
-          end = maxValue;
-        }
-        Roaring64Bitmap left = oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
-        Roaring64Bitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
+      case RANGE:
+        {
+          if (startOrValue < minValue) {
+            startOrValue = minValue;
+          }
+          if (end > maxValue) {
+            end = maxValue;
+          }
+          Roaring64Bitmap left =
+              oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
+          Roaring64Bitmap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
 
-        return Roaring64Bitmap.and(left, right);
-      }
+          return Roaring64Bitmap.and(left, right);
+        }
       default:
         throw new IllegalArgumentException("not support operation!");
     }
   }
 
-  private Roaring64Bitmap compareUsingMinMax(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
+  private Roaring64Bitmap compareUsingMinMax(
+      BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64Bitmap foundSet) {
     Roaring64Bitmap all = foundSet == null ? ebM.clone() : Roaring64Bitmap.and(ebM, foundSet);
     Roaring64Bitmap empty = new Roaring64Bitmap();
 
@@ -568,9 +569,10 @@ public class Roaring64BitmapSliceIndex {
     }
     long count = foundSet.getLongCardinality();
 
-    Long sum = IntStream.range(0, this.bitCount())
-        .mapToLong(x -> (1L << x) * Roaring64Bitmap.andCardinality(this.bA[x], foundSet))
-        .sum();
+    Long sum =
+        IntStream.range(0, this.bitCount())
+            .mapToLong(x -> (1L << x) * Roaring64Bitmap.andCardinality(this.bA[x], foundSet))
+            .sum();
 
     return Pair.newPair(sum, count);
   }
@@ -601,22 +603,25 @@ public class Roaring64BitmapSliceIndex {
 
   public Roaring64Bitmap transpose(Roaring64Bitmap foundSet) {
     Roaring64Bitmap re = new Roaring64Bitmap();
-    Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
+    Roaring64Bitmap fixedFoundSet =
+        foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
     fixedFoundSet.forEach((long x) -> re.add(this.getValue(x).getKey()));
     return re;
   }
 
   public Roaring64BitmapSliceIndex transposeWithCount(Roaring64Bitmap foundSet) {
     Roaring64BitmapSliceIndex re = new Roaring64BitmapSliceIndex();
-    Roaring64Bitmap fixedFoundSet = foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
-    fixedFoundSet.forEach((long x) -> {
-      long nk = this.getValue(x).getKey();
-      if (re.valueExist(nk)) {
-        re.setValue(nk, re.getValue(nk).getKey() + 1);
-      } else {
-        re.setValue(nk, 1);
-      }
-    });
+    Roaring64Bitmap fixedFoundSet =
+        foundSet == null ? this.ebM : Roaring64Bitmap.and(foundSet, this.ebM);
+    fixedFoundSet.forEach(
+        (long x) -> {
+          long nk = this.getValue(x).getKey();
+          if (re.valueExist(nk)) {
+            re.setValue(nk, re.getValue(nk).getKey() + 1);
+          } else {
+            re.setValue(nk, 1);
+          }
+        });
     return re;
   }
 }

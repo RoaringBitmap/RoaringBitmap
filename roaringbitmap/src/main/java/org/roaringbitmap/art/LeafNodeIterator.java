@@ -61,7 +61,6 @@ public class LeafNodeIterator implements Iterator<LeafNode> {
     calledHasNext = false;
   }
 
-
   private boolean advance() {
     boolean hasLeafNode = shuttle.moveToNextLeaf();
     if (hasLeafNode) {

@@ -1,5 +1,3 @@
-import java.net.URI
-
 plugins {
     id("me.champeau.gradle.jmh") version "0.5.0"
     id("com.github.johnrengelman.shadow") version "6.0.0"

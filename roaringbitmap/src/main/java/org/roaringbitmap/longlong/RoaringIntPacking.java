@@ -46,7 +46,6 @@ class RoaringIntPacking {
     return (((long) high) << 32) | (low & 0xffffffffL);
   }
 
-
   /**
    *
    * @param signedLongs true if long put in a {@link Roaring64NavigableMap} should be considered as

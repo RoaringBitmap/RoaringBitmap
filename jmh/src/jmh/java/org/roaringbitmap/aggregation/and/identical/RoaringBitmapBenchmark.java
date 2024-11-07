@@ -1,6 +1,6 @@
 package org.roaringbitmap.aggregation.and.identical;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.RoaringBitmap;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -9,7 +9,8 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.RoaringBitmap;
+
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 public class RoaringBitmapBenchmark {
@@ -50,5 +51,4 @@ public class RoaringBitmapBenchmark {
   public RoaringBitmap justclone() {
     return bitmap1.clone();
   }
-
 }

@@ -50,7 +50,7 @@ public final class RoaringBatchIterator implements BatchIterator {
   @Override
   public BatchIterator clone() {
     try {
-      RoaringBatchIterator it = (RoaringBatchIterator)super.clone();
+      RoaringBatchIterator it = (RoaringBatchIterator) super.clone();
       if (null != iterator) {
         it.iterator = iterator.clone();
       }
@@ -79,11 +79,11 @@ public final class RoaringBatchIterator implements BatchIterator {
     if (null != containerPointer && containerPointer.hasContainer()) {
       MappeableContainer container = containerPointer.getContainer();
       if (container instanceof MappeableArrayContainer) {
-        nextIterator((MappeableArrayContainer)container);
+        nextIterator((MappeableArrayContainer) container);
       } else if (container instanceof MappeableBitmapContainer) {
-        nextIterator((MappeableBitmapContainer)container);
+        nextIterator((MappeableBitmapContainer) container);
       } else if (container instanceof MappeableRunContainer) {
-        nextIterator((MappeableRunContainer)container);
+        nextIterator((MappeableRunContainer) container);
       }
       key = containerPointer.key() << 16;
     } else {

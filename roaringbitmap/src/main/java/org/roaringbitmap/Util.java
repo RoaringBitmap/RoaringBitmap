@@ -4,9 +4,9 @@
 
 package org.roaringbitmap;
 
-import java.util.Arrays;
-
 import static java.lang.Long.numberOfTrailingZeros;
+
+import java.util.Arrays;
 
 /**
  * Various useful methods for roaring bitmaps.
@@ -19,7 +19,6 @@ public final class Util {
    */
   public static final boolean USE_HYBRID_BINSEARCH = true;
 
-
   /**
    * Add value "offset" to all values in the container, producing
    * two new containers. The existing container remains unchanged.
@@ -29,8 +28,8 @@ public final class Util {
    * @param offsets value to add to each value in the container
    * @return return an array made of two containers
    */
-  public static  Container[] addOffset(Container source, char offsets) {
-    if(source instanceof ArrayContainer) {
+  public static Container[] addOffset(Container source, char offsets) {
+    if (source instanceof ArrayContainer) {
       return addOffsetArray((ArrayContainer) source, offsets);
     } else if (source instanceof BitmapContainer) {
       return addOffsetBitmap((BitmapContainer) source, offsets);
@@ -47,19 +46,19 @@ public final class Util {
     } else if (source.last() + offsets < 0xFFFF) {
       splitIndex = source.cardinality;
     } else {
-      splitIndex = Util.unsignedBinarySearch(source.content, 0, source.cardinality,
-          (char) (0x10000 - offsets));
+      splitIndex =
+          Util.unsignedBinarySearch(
+              source.content, 0, source.cardinality, (char) (0x10000 - offsets));
       if (splitIndex < 0) {
         splitIndex = -splitIndex - 1;
       }
     }
 
-    ArrayContainer low = splitIndex == 0
-        ? new ArrayContainer()
-        : new ArrayContainer(splitIndex);
-    ArrayContainer high = source.cardinality - splitIndex == 0
-        ? new ArrayContainer()
-        : new ArrayContainer(source.cardinality - splitIndex);
+    ArrayContainer low = splitIndex == 0 ? new ArrayContainer() : new ArrayContainer(splitIndex);
+    ArrayContainer high =
+        source.cardinality - splitIndex == 0
+            ? new ArrayContainer()
+            : new ArrayContainer(source.cardinality - splitIndex);
 
     int lowCardinality = 0;
     for (int k = 0; k < splitIndex; k++) {
@@ -75,7 +74,7 @@ public final class Util {
     }
     high.cardinality = highCardinality;
 
-    return new Container[]{low, high};
+    return new Container[] {low, high};
   }
 
   private static Container[] addOffsetBitmap(BitmapContainer source, char offsets) {
@@ -86,18 +85,16 @@ public final class Util {
     high.cardinality = -1;
     final int b = (int) offsets >>> 6;
     final int i = (int) offsets % 64;
-    if(i == 0) {
+    if (i == 0) {
       System.arraycopy(c.bitmap, 0, low.bitmap, b, 1024 - b);
       System.arraycopy(c.bitmap, 1024 - b, high.bitmap, 0, b);
     } else {
       low.bitmap[b] = c.bitmap[0] << i;
-      for(int k = 1; k < 1024 - b; k++) {
+      for (int k = 1; k < 1024 - b; k++) {
         low.bitmap[b + k] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64 - i));
       }
-      for(int k = 1024 - b; k < 1024 ; k++) {
-        high.bitmap[k - (1024 - b)] =
-            (c.bitmap[k] << i)
-                | (c.bitmap[k - 1] >>> (64 - i));
+      for (int k = 1024 - b; k < 1024; k++) {
+        high.bitmap[k - (1024 - b)] = (c.bitmap[k] << i) | (c.bitmap[k - 1] >>> (64 - i));
       }
       high.bitmap[b] = c.bitmap[1024 - 1] >>> (64 - i);
     }
@@ -108,11 +105,11 @@ public final class Util {
     RunContainer input = source;
     RunContainer low = new RunContainer();
     RunContainer high = new RunContainer();
-    for(int k = 0 ; k < input.nbrruns; k++) {
-      int val =  input.getValue(k) + offsets;
+    for (int k = 0; k < input.nbrruns; k++) {
+      int val = input.getValue(k) + offsets;
       int finalval = val + input.getLength(k);
-      if(val <= 0xFFFF) {
-        if(finalval <= 0xFFFF) {
+      if (val <= 0xFFFF) {
+        if (finalval <= 0xFFFF) {
           low.smartAppend((char) val, input.getLength(k));
         } else {
           low.smartAppend((char) val, (char) (0xFFFF - val));
@@ -122,7 +119,7 @@ public final class Util {
         high.smartAppend((char) val, input.getLength(k));
       }
     }
-    return new Container[]{low, high};
+    return new Container[] {low, high};
   }
 
   /**
@@ -147,8 +144,7 @@ public final class Util {
     int spansize = 1; // could set larger
     // bootstrap an upper limit
 
-    while (lower + spansize < length
-        && (array[lower + spansize]) < (int) (min)) {
+    while (lower + spansize < length && (array[lower + spansize]) < (int) (min)) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -183,9 +179,7 @@ public final class Util {
       }
     }
     return upper;
-
   }
-
 
   /**
    * Find the largest integer smaller than pos such that array[pos]&lt;= max. If none can be found,
@@ -209,8 +203,7 @@ public final class Util {
     int spansize = 1; // could set larger
     // bootstrap an upper limit
 
-    while (lower - spansize > 0
-        && (array[lower - spansize]) > (int) (max)) {
+    while (lower - spansize > 0 && (array[lower - spansize]) > (int) (max)) {
       spansize *= 2; // hoping for compiler will reduce to
     }
     // shift
@@ -245,7 +238,6 @@ public final class Util {
       }
     }
     return upper;
-
   }
 
   /**
@@ -266,8 +258,8 @@ public final class Util {
     return pos;
   }
 
-  protected static int branchyUnsignedBinarySearch(final char[] array, final int begin,
-      final int end, final char k) {
+  protected static int branchyUnsignedBinarySearch(
+      final char[] array, final int begin, final int end, final char k) {
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
     if ((end > 0) && ((array[end - 1]) < (int) (k))) {
@@ -297,8 +289,8 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayAND(final char[] container, final long[] bitmap1,
-      final long[] bitmap2) {
+  public static void fillArrayAND(
+      final char[] container, final long[] bitmap1, final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
       throw new IllegalArgumentException("not supported");
@@ -319,8 +311,8 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayANDNOT(final char[] container, final long[] bitmap1,
-      final long[] bitmap2) {
+  public static void fillArrayANDNOT(
+      final char[] container, final long[] bitmap1, final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
       throw new IllegalArgumentException("not supported");
@@ -341,8 +333,8 @@ public final class Util {
    * @param bitmap1 first bitmap
    * @param bitmap2 second bitmap
    */
-  public static void fillArrayXOR(final char[] container, final long[] bitmap1,
-      final long[] bitmap2) {
+  public static void fillArrayXOR(
+      final char[] container, final long[] bitmap1, final long[] bitmap2) {
     int pos = 0;
     if (bitmap1.length != bitmap2.length) {
       throw new IllegalArgumentException("not supported");
@@ -376,7 +368,6 @@ public final class Util {
     bitmap[endword] ^= ~0L >>> -end;
   }
 
-
   /**
    * Hamming weight of the 64-bit words involved in the range
    *  start, start+1,..., end-1, that is, it will compute the
@@ -402,7 +393,6 @@ public final class Util {
     return answer;
   }
 
-
   /**
    * Hamming weight of the bitset in the range
    *  start, start+1,..., end-1
@@ -419,7 +409,7 @@ public final class Util {
     int firstword = start / 64;
     int endword = (end - 1) / 64;
     if (firstword == endword) {
-      return Long.bitCount(bitmap[firstword] & ( (~0L << start) & (~0L >>> -end) ));
+      return Long.bitCount(bitmap[firstword] & ((~0L << start) & (~0L >>> -end)));
     }
     int answer = Long.bitCount(bitmap[firstword] & (~0L << start));
     for (int i = firstword + 1; i < endword; i++) {
@@ -438,8 +428,8 @@ public final class Util {
   }
 
   // starts with binary search and finishes with a sequential search
-  protected static int hybridUnsignedBinarySearch(final char[] array, final int begin,
-      final int end, final char k) {
+  protected static int hybridUnsignedBinarySearch(
+      final char[] array, final int begin, final int end, final char k) {
     // next line accelerates the possibly common case where the value would
     // be inserted at the end
     if ((end > 0) && ((array[end - 1]) < (int) k)) {
@@ -482,13 +472,12 @@ public final class Util {
     return (char) x;
   }
 
-
   protected static int lowbitsAsInteger(int x) {
     return x & 0xFFFF;
   }
 
   protected static int lowbitsAsInteger(long x) {
-    return (int)(x & 0xFFFF);
+    return (int) (x & 0xFFFF);
   }
 
   public static int maxLowBitAsInteger() {
@@ -518,7 +507,6 @@ public final class Util {
       bitmap[i] = 0;
     }
     bitmap[endword] &= ~(~0L >>> -end);
-
   }
 
   /**
@@ -642,11 +630,10 @@ public final class Util {
   @Deprecated
   public static int setBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
-    setBitmapRange(bitmap, start,end);
+    setBitmapRange(bitmap, start, end);
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
     return cardafter - cardbefore;
   }
-
 
   /**
    * flip  bits at start, start+1,..., end-1 and report the
@@ -660,11 +647,10 @@ public final class Util {
   @Deprecated
   public static int flipBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
-    flipBitmapRange(bitmap, start,end);
+    flipBitmapRange(bitmap, start, end);
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
     return cardafter - cardbefore;
   }
-
 
   /**
    * reset  bits at start, start+1,..., end-1 and report the
@@ -678,7 +664,7 @@ public final class Util {
   @Deprecated
   public static int resetBitmapRangeAndCardinalityChange(long[] bitmap, int start, int end) {
     int cardbefore = cardinalityInBitmapWordRange(bitmap, start, end);
-    resetBitmapRange(bitmap, start,end);
+    resetBitmapRange(bitmap, start, end);
     int cardafter = cardinalityInBitmapWordRange(bitmap, start, end);
     return cardafter - cardbefore;
   }
@@ -694,8 +680,8 @@ public final class Util {
    * @param k value we search for
    * @return count
    */
-  public static int unsignedBinarySearch(final char[] array, final int begin, final int end,
-      final char k) {
+  public static int unsignedBinarySearch(
+      final char[] array, final int begin, final int end, final char k) {
     if (USE_HYBRID_BINSEARCH) {
       return hybridUnsignedBinarySearch(array, begin, end, k);
     } else {
@@ -714,8 +700,12 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the difference
    */
-  public static int unsignedDifference(final char[] set1, final int length1, final char[] set2,
-      final int length2, final char[] buffer) {
+  public static int unsignedDifference(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -747,7 +737,7 @@ public final class Util {
         }
         s1 = set1[k1];
         s2 = set2[k2];
-      } else {// if (val1>val2)
+      } else { // if (val1>val2)
         ++k2;
         if (k2 >= length2) {
           System.arraycopy(set1, k1, buffer, pos, length1 - k1);
@@ -768,8 +758,7 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the difference
    */
-  public static int unsignedDifference(CharIterator set1, CharIterator set2,
-                                       final char[] buffer) {
+  public static int unsignedDifference(CharIterator set1, CharIterator set2, final char[] buffer) {
     int pos = 0;
     if (!set2.hasNext()) {
       while (set1.hasNext()) {
@@ -801,7 +790,7 @@ public final class Util {
         }
         v1 = set1.next();
         v2 = set2.next();
-      } else {// if (val1>val2)
+      } else { // if (val1>val2)
         if (!set2.hasNext()) {
           buffer[pos++] = v1;
           while (set1.hasNext()) {
@@ -826,8 +815,12 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the exclusive union
    */
-  public static int unsignedExclusiveUnion2by2(final char[] set1, final int length1,
-      final char[] set2, final int length2, final char[] buffer) {
+  public static int unsignedExclusiveUnion2by2(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
     int pos = 0;
     int k1 = 0, k2 = 0;
     if (0 == length2) {
@@ -862,7 +855,7 @@ public final class Util {
         }
         s1 = set1[k1];
         s2 = set2[k2];
-      } else {// if (val1>val2)
+      } else { // if (val1>val2)
         buffer[pos++] = s2;
         ++k2;
         if (k2 >= length2) {
@@ -875,8 +868,6 @@ public final class Util {
     // return pos;
   }
 
-
-
   /**
    * Intersect two sorted lists and write the result to the provided output array
    *
@@ -887,8 +878,12 @@ public final class Util {
    * @param buffer output array
    * @return cardinality of the intersection
    */
-  public static int unsignedIntersect2by2(final char[] set1, final int length1, final char[] set2,
-      final int length2, final char[] buffer) {
+  public static int unsignedIntersect2by2(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
     final int THRESHOLD = 25;
     if (set1.length * THRESHOLD < set2.length) {
       return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
@@ -898,8 +893,6 @@ public final class Util {
       return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
     }
   }
-
-
 
   /**
    * Checks if two arrays intersect
@@ -919,7 +912,8 @@ public final class Util {
     int k2 = 0;
     char s1 = set1[k1];
     char s2 = set2[k2];
-    mainwhile: while (true) {
+    mainwhile:
+    while (true) {
       if (s2 < s1) {
         do {
           ++k2;
@@ -944,9 +938,12 @@ public final class Util {
     return false;
   }
 
-
-  protected static int unsignedLocalIntersect2by2(final char[] set1, final int length1,
-      final char[] set2, final int length2, final char[] buffer) {
+  protected static int unsignedLocalIntersect2by2(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
@@ -956,7 +953,8 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
 
-    mainwhile: while (true) {
+    mainwhile:
+    while (true) {
       int v1 = (s1);
       int v2 = s2;
       if (v2 < v1) {
@@ -996,7 +994,6 @@ public final class Util {
     return pos;
   }
 
-
   /**
    * Compute the cardinality of the intersection
    * @param set1 first set
@@ -1005,8 +1002,8 @@ public final class Util {
    * @param length2 how many values to consider in the second set
    * @return cardinality of the intersection
    */
-  public static int unsignedLocalIntersect2by2Cardinality(final char[] set1, final int length1,
-      final char[] set2, final int length2) {
+  public static int unsignedLocalIntersect2by2Cardinality(
+      final char[] set1, final int length1, final char[] set2, final int length2) {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
@@ -1016,7 +1013,8 @@ public final class Util {
     char s1 = set1[k1];
     char s2 = set2[k2];
 
-    mainwhile: while (true) {
+    mainwhile:
+    while (true) {
       int v1 = s1;
       int v2 = s2;
       if (v2 < v1) {
@@ -1056,9 +1054,12 @@ public final class Util {
     return pos;
   }
 
-
-  protected static int unsignedOneSidedGallopingIntersect2by2(final char[] smallSet,
-      final int smallLength, final char[] largeSet, final int largeLength, final char[] buffer) {
+  protected static int unsignedOneSidedGallopingIntersect2by2(
+      final char[] smallSet,
+      final int smallLength,
+      final char[] largeSet,
+      final int largeLength,
+      final char[] buffer) {
     if (0 == smallLength) {
       return 0;
     }
@@ -1095,10 +1096,8 @@ public final class Util {
         }
         s1 = largeSet[k1];
       }
-
     }
     return pos;
-
   }
 
   /**
@@ -1114,9 +1113,13 @@ public final class Util {
    * @return cardinality of the union
    */
   public static int unsignedUnion2by2(
-          final char[] set1, final int offset1, final int length1,
-          final char[] set2, final int offset2, final int length2,
-          final char[] buffer) {
+      final char[] set1,
+      final int offset1,
+      final int length1,
+      final char[] set2,
+      final int offset2,
+      final int length2,
+      final char[] buffer) {
     if (0 == length2) {
       System.arraycopy(set1, offset1, buffer, 0, length1);
       return length1;
@@ -1154,7 +1157,7 @@ public final class Util {
         }
         s1 = set1[k1];
         s2 = set2[k2];
-      } else {// if (set1[k1]>set2[k2])
+      } else { // if (set1[k1]>set2[k2])
         buffer[pos++] = s2;
         ++k2;
         if (k2 >= length2 + offset2) {
@@ -1166,7 +1169,6 @@ public final class Util {
     }
     // return pos;
   }
-
 
   /**
    * Converts the argument to a {@code long} by an unsigned conversion. In an unsigned conversion to
@@ -1185,6 +1187,7 @@ public final class Util {
   public static long toUnsignedLong(int x) {
     return ((long) x) & 0xffffffffL;
   }
+
   /**
    * Sorts the data by the 16 bit prefix using Radix sort.
    * The resulting data will be partially sorted if you just
@@ -1249,8 +1252,9 @@ public final class Util {
     }
     int numContainers = first.highLowContainer.size;
     for (int i = 1; i < bitmaps.length && numContainers > 0; ++i) {
-      numContainers = Util.intersectArrayIntoBitmap(words,
-          bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
+      numContainers =
+          Util.intersectArrayIntoBitmap(
+              words, bitmaps[i].highLowContainer.keys, bitmaps[i].highLowContainer.size);
     }
     if (numContainers == 0) {
       return new char[0];
@@ -1261,9 +1265,7 @@ public final class Util {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private Util() {
-
-  }
+  private Util() {}
 
   /**
    * Fill the array with set bits

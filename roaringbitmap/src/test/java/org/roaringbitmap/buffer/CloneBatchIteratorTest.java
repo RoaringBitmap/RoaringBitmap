@@ -1,20 +1,22 @@
 package org.roaringbitmap.buffer;
 
-import com.google.common.primitives.Ints;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.BatchIterator;
-
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
+
+import org.roaringbitmap.BatchIterator;
+
+import com.google.common.primitives.Ints;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 
 public class CloneBatchIteratorTest {
 
   @Test
   public void testIndependenceOfClones() {
-    MutableRoaringBitmap bitmap = testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap();
+    MutableRoaringBitmap bitmap =
+        testCase().withBitmapAt(0).withArrayAt(1).withRunAt(2).build().toMutableRoaringBitmap();
     BatchIterator it1 = bitmap.getBatchIterator();
     while (it1.hasNext()) {
       BatchIterator it2 = it1.clone();
@@ -32,8 +34,8 @@ public class CloneBatchIteratorTest {
 
   @Test
   public void testIndependenceOfClones2() {
-    int[] c1 = new int[]{1, 10, 20};
-    int[] c2 = new int[]{65560, 70000};
+    int[] c1 = new int[] {1, 10, 20};
+    int[] c2 = new int[] {65560, 70000};
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     for (int x : Ints.concat(c1, c2)) {
       bitmap.add(x);

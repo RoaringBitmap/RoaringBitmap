@@ -3,6 +3,11 @@
  */
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.Util.toUnsignedLong;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -16,9 +21,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.Util.toUnsignedLong;
-
 @Execution(ExecutionMode.CONCURRENT)
 public class TestRoaringBitmapOrNot {
 
@@ -30,11 +32,11 @@ public class TestRoaringBitmapOrNot {
     rb.add(2);
     rb.add(1);
     rb.add(1 << 16); // 65536
-    rb.add(2 << 16); //131072
-    rb.add(3 << 16); //196608
+    rb.add(2 << 16); // 131072
+    rb.add(3 << 16); // 196608
 
-    rb2.add(1 << 16);// 65536
-    rb2.add(3 << 16);//196608
+    rb2.add(1 << 16); // 65536
+    rb2.add(3 << 16); // 196608
 
     rb.orNot(rb2, (4 << 16) - 1);
 
@@ -56,9 +58,9 @@ public class TestRoaringBitmapOrNot {
 
     rb.add(0);
     rb.add(1 << 16); // 65536
-    rb.add(3 << 16); //196608
+    rb.add(3 << 16); // 196608
 
-    rb2.add((4 << 16) - 1); //262143
+    rb2.add((4 << 16) - 1); // 262143
 
     rb.orNot(rb2, 4 << 16);
 
@@ -79,8 +81,8 @@ public class TestRoaringBitmapOrNot {
     rb.add(2 << 16);
 
     final RoaringBitmap rb2 = new RoaringBitmap();
-    rb2.add(1 << 14); //16384
-    rb2.add(3 << 16); //196608
+    rb2.add(1 << 14); // 16384
+    rb2.add(3 << 16); // 196608
 
     rb.orNot(rb2, (5 << 16));
     assertEquals((5 << 16) - 2, rb.getCardinality());
@@ -101,9 +103,9 @@ public class TestRoaringBitmapOrNot {
     rb.add(1);
 
     final RoaringBitmap rb2 = new RoaringBitmap();
-    rb2.add(3 << 16); //196608
+    rb2.add(3 << 16); // 196608
 
-    rb.orNot(rb2, (2 << 16) + (2 << 14)); //131072 + 32768 = 163840
+    rb.orNot(rb2, (2 << 16) + (2 << 14)); // 131072 + 32768 = 163840
     assertEquals((2 << 16) + (2 << 14), rb.getCardinality());
 
     final IntIterator iterator = rb.getIntIterator();
@@ -120,8 +122,8 @@ public class TestRoaringBitmapOrNot {
 
     rb.add(1);
     rb.add(1 << 16); // 65536
-    rb.add(2 << 16); //131072
-    rb.add(3 << 16); //196608
+    rb.add(2 << 16); // 131072
+    rb.add(3 << 16); // 196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
@@ -143,8 +145,8 @@ public class TestRoaringBitmapOrNot {
     rb.add(1);
     rb.add((1 << 16) - 1); // 65535
     rb.add(1 << 16); // 65536
-    rb.add(2 << 16); //131072
-    rb.add(3 << 16); //196608
+    rb.add(2 << 16); // 131072
+    rb.add(3 << 16); // 196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
@@ -179,8 +181,8 @@ public class TestRoaringBitmapOrNot {
     final RoaringBitmap rb = new RoaringBitmap();
 
     rb.add(1 << 16); // 65536
-    rb.add(2 << 16); //131072
-    rb.add(3 << 16); //196608
+    rb.add(2 << 16); // 131072
+    rb.add(3 << 16); // 196608
 
     final RoaringBitmap rb2 = new RoaringBitmap();
 
@@ -195,7 +197,6 @@ public class TestRoaringBitmapOrNot {
       assertEquals(i, iterator.next(), "Error on iteration " + i);
     }
 
-
     assertTrue(iterator.hasNext());
     assertEquals(1 << 16, iterator.next());
 
@@ -208,16 +209,13 @@ public class TestRoaringBitmapOrNot {
     assertFalse(iterator.hasNext());
   }
 
-
-
   @Test
   public void orNot9() {
     final RoaringBitmap rb1 = new RoaringBitmap();
 
     rb1.add(1 << 16); // 65536
-    rb1.add(2 << 16); //131072
-    rb1.add(3 << 16); //196608
-
+    rb1.add(2 << 16); // 131072
+    rb1.add(3 << 16); // 196608
 
     {
       final RoaringBitmap rb2 = new RoaringBitmap();
@@ -251,7 +249,6 @@ public class TestRoaringBitmapOrNot {
       assertEquals(196608, iterator.next());
     }
 
-
     {
       final RoaringBitmap rb2 = new RoaringBitmap();
       rb2.add((1 << 16) + (1 << 13));
@@ -264,7 +261,9 @@ public class TestRoaringBitmapOrNot {
 
       final IntIterator iterator = answer.getIntIterator();
       for (int i = 0; i < (2 << 16) + 1; ++i) {
-        if ((i != (1 << 16) + (1 << 13)) && (i != (1 << 16) + (1 << 14)) && (i != (1 << 16) + (1 << 15))) {
+        if ((i != (1 << 16) + (1 << 13))
+            && (i != (1 << 16) + (1 << 14))
+            && (i != (1 << 16) + (1 << 15))) {
           assertTrue(iterator.hasNext(), "Error on iteration " + i);
           assertEquals(i, iterator.next(), "Error on iteration " + i);
         }
@@ -338,7 +337,7 @@ public class TestRoaringBitmapOrNot {
 
     RoaringBitmap rb3 = RoaringBitmap.orNot(rb, rb2, 65535L * 65536L + 65524);
 
-    assertEquals((int)(65535L * 65536L + 65523), rb3.last());
+    assertEquals((int) (65535L * 65536L + 65523), rb3.last());
   }
 
   @Test
@@ -354,7 +353,7 @@ public class TestRoaringBitmapOrNot {
   public void orNotNonEmptyAgainstFullBitmap() {
     RoaringBitmap rb = RoaringBitmap.bitmapOf(1, 0x10001, 0x20001);
     RoaringBitmap full = new RoaringBitmap();
-    full.add((long)0, (long)0x40000);
+    full.add((long) 0, (long) 0x40000);
     rb.orNot(full, 0x30000);
     assertEquals(RoaringBitmap.bitmapOf(1, 0x10001, 0x20001), rb);
   }
@@ -373,15 +372,17 @@ public class TestRoaringBitmapOrNot {
     RoaringBitmap rb = RoaringBitmap.bitmapOf(1, 0x10001, 0x20001);
     RoaringBitmap full = new RoaringBitmap();
     full.add(0, 0x40000L);
-    assertEquals(RoaringBitmap.bitmapOf(1, 0x10001, 0x20001), RoaringBitmap.orNot(rb, full, 0x30000L));
+    assertEquals(
+        RoaringBitmap.bitmapOf(1, 0x10001, 0x20001), RoaringBitmap.orNot(rb, full, 0x30000L));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testBigOrNot() throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get("src/test/resources/testdata/ornot-fuzz-failure.json"));
+    byte[] bytes =
+        Files.readAllBytes(Paths.get("src/test/resources/testdata/ornot-fuzz-failure.json"));
     Map<String, Object> info = new ObjectMapper().readerFor(Map.class).readValue(bytes);
-    List<String> base64Bitmaps = (List<String>)info.get("bitmaps");
+    List<String> base64Bitmaps = (List<String>) info.get("bitmaps");
     ByteBuffer lBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(0)));
     ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
     RoaringBitmap l = new RoaringBitmap();
@@ -400,13 +401,13 @@ public class TestRoaringBitmapOrNot {
     assertEquals(expected, actual);
   }
 
-
   @Test
   @SuppressWarnings("unchecked")
   public void testBigOrNotStatic() throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get("src/test/resources/testdata/ornot-fuzz-failure.json"));
+    byte[] bytes =
+        Files.readAllBytes(Paths.get("src/test/resources/testdata/ornot-fuzz-failure.json"));
     Map<String, Object> info = new ObjectMapper().readerFor(Map.class).readValue(bytes);
-    List<String> base64Bitmaps = (List<String>)info.get("bitmaps");
+    List<String> base64Bitmaps = (List<String>) info.get("bitmaps");
     ByteBuffer lBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(0)));
     ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
     RoaringBitmap l = new RoaringBitmap();
@@ -423,5 +424,4 @@ public class TestRoaringBitmapOrNot {
     RoaringBitmap actual = RoaringBitmap.orNot(l, r, limit);
     assertEquals(expected, actual);
   }
-
 }

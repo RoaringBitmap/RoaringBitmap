@@ -4,21 +4,22 @@
 
 package org.roaringbitmap.buffer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.roaringbitmap.CharIterator;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.roaringbitmap.CharIterator;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer, RunContainer and BitmapContainer
@@ -27,12 +28,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @Execution(ExecutionMode.CONCURRENT)
 public class TestContainer {
 
-
   @Test
   public void testNames() {
-    assertEquals(new MappeableBitmapContainer().getContainerName(), MappeableContainer.ContainerNames[0]);
-    assertEquals(new MappeableArrayContainer().getContainerName(), MappeableContainer.ContainerNames[1]);
-    assertEquals(new MappeableRunContainer().getContainerName(), MappeableContainer.ContainerNames[2]);
+    assertEquals(
+        new MappeableBitmapContainer().getContainerName(), MappeableContainer.ContainerNames[0]);
+    assertEquals(
+        new MappeableArrayContainer().getContainerName(), MappeableContainer.ContainerNames[1]);
+    assertEquals(
+        new MappeableRunContainer().getContainerName(), MappeableContainer.ContainerNames[2]);
   }
 
   public static boolean checkContent(MappeableContainer c, char[] s) {
@@ -68,7 +71,6 @@ public class TestContainer {
     return !fail;
   }
 
-
   public static MappeableContainer makeContainer(char[] ss) {
     MappeableContainer c = new MappeableArrayContainer();
     for (final char s : ss) {
@@ -76,7 +78,6 @@ public class TestContainer {
     }
     return c;
   }
-
 
   @Test
   public void inotTest1() {
@@ -94,8 +95,6 @@ public class TestContainer {
     assertTrue(checkContent(c, s));
   }
 
-
-
   @Test
   public void inotTest10() {
     System.out.println("inotTest10");
@@ -108,12 +107,26 @@ public class TestContainer {
     final MappeableContainer c1 = c.inot(65190, 65201);
     assertTrue(c1 instanceof MappeableArrayContainer);
     assertEquals(14, c1.getCardinality());
-    assertTrue(checkContent(c1,
-        new char[] {0, 2, 4, (char) 65190, (char) 65191, (char) 65192, (char) 65193,
-            (char) 65194, (char) 65195, (char) 65196, (char) 65197, (char) 65198,
-            (char) 65199, (char) 65200}));
+    assertTrue(
+        checkContent(
+            c1,
+            new char[] {
+              0,
+              2,
+              4,
+              (char) 65190,
+              (char) 65191,
+              (char) 65192,
+              (char) 65193,
+              (char) 65194,
+              (char) 65195,
+              (char) 65196,
+              (char) 65197,
+              (char) 65198,
+              (char) 65199,
+              (char) 65200
+            }));
   }
-
 
   @Test
   public void inotTest10A() {
@@ -126,10 +139,27 @@ public class TestContainer {
     final MappeableContainer c1 = c.inot(65190, 65201);
     assertTrue(c1 instanceof MappeableRunContainer);
     assertEquals(16, c1.getCardinality());
-    assertTrue(checkContent(c1,
-        new char[] {1, 2, 3, 4, 5, (char) 65190, (char) 65191, (char) 65192, (char) 65193,
-            (char) 65194, (char) 65195, (char) 65196, (char) 65197, (char) 65198,
-            (char) 65199, (char) 65200}));
+    assertTrue(
+        checkContent(
+            c1,
+            new char[] {
+              1,
+              2,
+              3,
+              4,
+              5,
+              (char) 65190,
+              (char) 65191,
+              (char) 65192,
+              (char) 65193,
+              (char) 65194,
+              (char) 65195,
+              (char) 65196,
+              (char) 65197,
+              (char) 65198,
+              (char) 65199,
+              (char) 65200
+            }));
   }
 
   @Test
@@ -202,7 +232,6 @@ public class TestContainer {
     assertTrue(checkContent(c, content));
   }
 
-
   @Test
   public void inotTest4A() {
     // Run container, range is partial,
@@ -236,7 +265,6 @@ public class TestContainer {
     c = c.inot(4, 1000); // back, as a bitmap
     assertTrue(c instanceof MappeableBitmapContainer);
     assertTrue(checkContent(c, content));
-
   }
 
   @Test
@@ -260,7 +288,6 @@ public class TestContainer {
     c = c.inot(4, 1000); // back, as a bitmap
     assertTrue(c instanceof MappeableRunContainer);
     assertTrue(checkContent(c, content));
-
   }
 
   @Test
@@ -338,7 +365,6 @@ public class TestContainer {
     assertTrue(c instanceof MappeableArrayContainer);
     assertTrue(checkContent(c, content));
   }
-
 
   // mostly same tests, except for not. (check original unaffected)
   @Test
@@ -464,7 +490,6 @@ public class TestContainer {
       assertTrue(c2.contains((char) i) && !c2.contains((char) (i + 1)));
     }
   }
-
 
   @Test
   public void notTest4() {
@@ -638,7 +663,6 @@ public class TestContainer {
     assertTrue(checkContent(c2, content));
   }
 
-
   @Test
   public void numberOfRuns() {
     char[] positions = {3, 4, 5, 10, 11, 13, 15, 62, 63, 64, 65};
@@ -655,8 +679,6 @@ public class TestContainer {
     assertEquals(rc.numberOfRuns(), ac.numberOfRuns());
     assertEquals(rc.numberOfRuns(), bc.numberOfRuns());
   }
-
-
 
   @Test
   public void rangeOfOnesTest1() {
@@ -680,8 +702,6 @@ public class TestContainer {
     // assertTrue(c instanceof MappeableBitmapContainer);
     assertEquals(35000 - 1000 + 1, c.getCardinality());
   }
-
-
 
   @Test
   public void rangeOfOnesTest2A() {
@@ -741,7 +761,6 @@ public class TestContainer {
     c = c.runOptimize();
     assertEquals(c.getCardinality(), 1);
     assertTrue(c instanceof MappeableArrayContainer);
-
   }
 
   @Test
@@ -751,8 +770,10 @@ public class TestContainer {
     MappeableContainer bc1 = new MappeableBitmapContainer().add(10, 20);
     MappeableContainer bc2 = new MappeableBitmapContainer().add(21, 30);
     MappeableContainer ac1 = new MappeableArrayContainer().add((char) 3).add((char) 79);
-    MappeableContainer ac2 = new MappeableArrayContainer().add((char) 45).add((char) 56).add((char) 109);
-    for (Set<MappeableContainer> test : Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
+    MappeableContainer ac2 =
+        new MappeableArrayContainer().add((char) 45).add((char) 56).add((char) 109);
+    for (Set<MappeableContainer> test :
+        Sets.powerSet(ImmutableSet.of(rc1, rc2, bc1, bc2, ac1, ac2))) {
       Iterator<MappeableContainer> it = test.iterator();
       if (test.size() == 1) { // compare with self
         MappeableContainer x = it.next();
@@ -828,7 +849,7 @@ public class TestContainer {
     MappeableArrayContainer ac = new MappeableArrayContainer();
     MappeableBitmapContainer bc = new MappeableBitmapContainer();
     MappeableRunContainer rc = new MappeableRunContainer();
-    for (char i : new char[]{0, 2, 17, Short.MAX_VALUE, (char)-3, (char)-1}) {
+    for (char i : new char[] {0, 2, 17, Short.MAX_VALUE, (char) -3, (char) -1}) {
       ac.add(i);
       bc.add(i);
       rc.add(i);
@@ -837,11 +858,8 @@ public class TestContainer {
 
     assertEquals(expected, ac.toString());
     assertEquals(expected, bc.toString());
-    String normalizedRCstr = rc.toString()
-        .replaceAll("\\d+\\]\\[", "")
-        .replace('[', '{')
-        .replaceFirst(",\\d+\\]", "}");
+    String normalizedRCstr =
+        rc.toString().replaceAll("\\d+\\]\\[", "").replace('[', '{').replaceFirst(",\\d+\\]", "}");
     assertEquals(expected, normalizedRCstr);
   }
-
 }

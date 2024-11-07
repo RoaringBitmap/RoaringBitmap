@@ -11,10 +11,9 @@ import java.nio.LongBuffer;
 public class Node256 extends Node {
 
   Node[] children = new Node[256];
-  //a helper utility field
+  // a helper utility field
   long[] bitmapMask = new long[4];
   private static final long LONG_MASK = 0xffffffffffffffffL;
-
 
   public Node256(int compressedPrefixSize) {
     super(NodeType.NODE256, compressedPrefixSize);
@@ -175,7 +174,7 @@ public class Node256 extends Node {
   @Override
   public void replaceChildren(Node[] children) {
     if (children.length == this.children.length) {
-      //short circuit path
+      // short circuit path
       this.children = children;
       return;
     }
@@ -193,7 +192,6 @@ public class Node256 extends Node {
       x++;
     }
   }
-
 
   @Override
   public void serializeNodeBody(DataOutput dataOutput) throws IOException {
@@ -229,4 +227,3 @@ public class Node256 extends Node {
     return 4 * 8;
   }
 }
-

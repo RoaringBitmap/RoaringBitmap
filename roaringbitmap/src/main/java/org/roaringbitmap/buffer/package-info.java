@@ -2,8 +2,6 @@
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
 
-
-
 /**
  * The org.roaringbitmap.buffer package  provides
  * two classes ({@link org.roaringbitmap.buffer.MutableRoaringBitmap} and
@@ -41,4 +39,3 @@
  *
  */
 package org.roaringbitmap.buffer;
-

@@ -21,8 +21,8 @@ public class ZipRealDataRangeRetriever<T> {
 
   private final String dataset;
 
-  public ZipRealDataRangeRetriever(String dataset, String folder) throws IOException,
-      URISyntaxException {
+  public ZipRealDataRangeRetriever(String dataset, String folder)
+      throws IOException, URISyntaxException {
     this.dataset = dataset;
     this.REAL_ROARING_DATASET = folder;
   }
@@ -86,7 +86,6 @@ public class ZipRealDataRangeRetriever<T> {
           }
         };
       }
-
     };
   }
 
@@ -101,5 +100,4 @@ public class ZipRealDataRangeRetriever<T> {
   private String resource() {
     return REAL_ROARING_DATASET + dataset + ZIP_EXTENSION;
   }
-
 }

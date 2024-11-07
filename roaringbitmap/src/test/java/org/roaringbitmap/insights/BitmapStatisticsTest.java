@@ -1,19 +1,16 @@
 package org.roaringbitmap.insights;
 
-
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 public class BitmapStatisticsTest {
 
   @Test
   public void toStringWorks() {
-    BitmapStatistics statistics = new BitmapStatistics(
-      new BitmapStatistics.ArrayContainersStats(10, 50),
-      2,
-      1);
+    BitmapStatistics statistics =
+        new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(10, 50), 2, 1);
 
     String string = statistics.toString();
 

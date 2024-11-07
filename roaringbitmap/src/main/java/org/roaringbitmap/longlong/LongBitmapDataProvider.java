@@ -23,7 +23,6 @@ public interface LongBitmapDataProvider extends ImmutableLongBitmapDataProvider 
    */
   void removeLong(long x);
 
-
   /**
    * Recover allocated but unused memory.
    */

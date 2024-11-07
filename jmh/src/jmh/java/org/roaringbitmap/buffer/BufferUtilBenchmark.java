@@ -1,9 +1,6 @@
 package org.roaringbitmap.buffer;
 
-import java.nio.CharBuffer;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-
+import me.lemire.integercompression.synth.ClusteredDataGenerator;
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.random.Well19937c;
@@ -16,7 +13,9 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
-import me.lemire.integercompression.synth.ClusteredDataGenerator;
+import java.nio.CharBuffer;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The experiment to test the threshold when it is worth to use galloping strategy of intersecting
@@ -31,11 +30,14 @@ public class BufferUtilBenchmark {
 
   @Param({"0"}) // use {"0", "1"} to test both uniform and clustered combinations
   public int smallType; // 0 - uniform, 1 - clustered
+
   @Param({"0"}) // use {"0", "1"} to test both uniform and clustered combinations
   public int bigType; // 0 - uniform, 1 - clustered
+
   @Param({"0"}) // use {"0", "1", "2"} for three experiments. Update GENERATE_EXAMPLES if changing
-                // this
+  // this
   public int index;
+
   @Param({"35"}) // use {"20", "25", "30"} to check different thresholds
   public int param;
 
@@ -51,19 +53,18 @@ public class BufferUtilBenchmark {
   public void galloping() {
     BenchmarkContainer small = data.small[index];
     BenchmarkContainer big = data.big[index];
-    BufferUtil.unsignedOneSidedGallopingIntersect2by2(small.content, small.length, big.content,
-        big.length, data.dest);
+    BufferUtil.unsignedOneSidedGallopingIntersect2by2(
+        small.content, small.length, big.content, big.length, data.dest);
   }
 
   @Benchmark
   public void local() {
     BenchmarkContainer small = data.small[index];
     BenchmarkContainer big = data.big[index];
-    BufferUtil.unsignedLocalIntersect2by2(small.content, small.length, big.content, big.length,
-        data.dest);
+    BufferUtil.unsignedLocalIntersect2by2(
+        small.content, small.length, big.content, big.length, data.dest);
   }
 }
-
 
 class BenchmarkData {
   BenchmarkData(BenchmarkContainer[] small, BenchmarkContainer[] big) {
@@ -77,7 +78,6 @@ class BenchmarkData {
   final char[] dest;
 }
 
-
 class BenchmarkContainer {
   BenchmarkContainer(char[] content) {
     this.content = CharBuffer.wrap(content);
@@ -88,17 +88,18 @@ class BenchmarkContainer {
   final int length;
 }
 
-
 /**
  * Deterministic generator for benchmark data. For given *param* it generates *howmany* entries
  */
 class BenchmarkDataGenerator {
   static BenchmarkData generate(int param, int howMany, int smallType, int bigType) {
-    IntegerDistribution ud = new UniformIntegerDistribution(new Well19937c(param + 17),
-        Short.MIN_VALUE, Short.MAX_VALUE);
+    IntegerDistribution ud =
+        new UniformIntegerDistribution(
+            new Well19937c(param + 17), Short.MIN_VALUE, Short.MAX_VALUE);
     ClusteredDataGenerator cd = new ClusteredDataGenerator();
-    IntegerDistribution p = new UniformIntegerDistribution(new Well19937c(param + 123),
-        SMALLEST_ARRAY, BIGGEST_ARRAY / param);
+    IntegerDistribution p =
+        new UniformIntegerDistribution(
+            new Well19937c(param + 123), SMALLEST_ARRAY, BIGGEST_ARRAY / param);
     BenchmarkContainer[] smalls = new BenchmarkContainer[howMany];
     BenchmarkContainer[] bigs = new BenchmarkContainer[howMany];
     for (int i = 0; i < howMany; i++) {
@@ -139,8 +140,6 @@ class BenchmarkDataGenerator {
     return intArrayToShortArraySorted(ud.sample(howMany));
   }
 
-  private final static int SMALLEST_ARRAY = 2;
-  private final static int BIGGEST_ARRAY = 4096;
+  private static final int SMALLEST_ARRAY = 2;
+  private static final int BIGGEST_ARRAY = 4096;
 }
-
-
