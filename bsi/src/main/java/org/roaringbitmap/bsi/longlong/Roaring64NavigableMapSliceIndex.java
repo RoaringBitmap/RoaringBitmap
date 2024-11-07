@@ -248,6 +248,7 @@ public class Roaring64NavigableMapSliceIndex {
       rb.deserialize(in);
       baList.add(rb);
     }
+    is.close();
     this.bA = baList.toArray(new Roaring64NavigableMap[0]);
   }
 
