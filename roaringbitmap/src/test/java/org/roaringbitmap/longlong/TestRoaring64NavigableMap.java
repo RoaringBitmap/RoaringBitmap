@@ -77,8 +77,25 @@ public class TestRoaring64NavigableMap {
 
   public static void checkSerializeBufferBytes(ImmutableLongBitmapDataProvider bitmap) throws IOException {
     ByteBuffer buffer = ByteBuffer.allocate((int) bitmap.serializedSizeInBytes());
-    ((Roaring64NavigableMap)bitmap).serialize(buffer);
+    ((Roaring64NavigableMap)bitmap).serializePortable(buffer);
     assertEquals(buffer.position(), bitmap.serializedSizeInBytes());
+  }
+
+  /*
+   * For those Roaring64NavigableMap with portable format, which could not be cloned by {@link SerializationUtils#clone}
+   * the input map should also be with portable format
+   */
+  public static Roaring64NavigableMap cloneByBufferWithPortableFormat(Roaring64NavigableMap map) throws IOException {
+    if(map.getSerializationMode() != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE) {
+      return null;
+    }
+    ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes());
+    map.serializePortable(buffer);
+    buffer.flip();
+    Roaring64NavigableMap clone = new Roaring64NavigableMap();
+    clone.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    clone.deserializePortable(buffer);
+    return clone;
   }
 
   @Test
@@ -1967,8 +1984,7 @@ public class TestRoaring64NavigableMap {
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-
-    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     bitmap.deserialize(new DataInputStream(inputStream));
 
     // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L20
@@ -1985,8 +2001,7 @@ public class TestRoaring64NavigableMap {
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-
-    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     bitmap.deserialize(new DataInputStream(inputStream));
 
     // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L27
@@ -2016,7 +2031,7 @@ public class TestRoaring64NavigableMap {
     map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     map.addLong(123);
     ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes());
-    map.serialize(buffer);
+    map.serializePortable(buffer);
     assertEquals(map.serializedSizeInBytes(), buffer.position());
   }
 
@@ -2027,7 +2042,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(123);
     ByteBuffer buffer = ByteBuffer.allocate((int) map.serializedSizeInBytes())
             .order(ByteOrder.BIG_ENDIAN);
-    map.serialize(buffer);
+    map.serializePortable(buffer);
     assertEquals(map.serializedSizeInBytes(), buffer.position());
   }
 
@@ -2036,9 +2051,10 @@ public class TestRoaring64NavigableMap {
     final Roaring64NavigableMap map = newDefaultCtor();
     map.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     map.addLong(123);
+
     TestRoaring64NavigableMap.checkSerializeBufferBytes(map);
 
-    final Roaring64NavigableMap clone = SerializationUtils.clone(map);
+    Roaring64NavigableMap clone = cloneByBufferWithPortableFormat(map);
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
     assertEquals(1, clone.getLongCardinality());
@@ -2085,12 +2101,12 @@ public class TestRoaring64NavigableMap {
     byteArrayInputStream = null;
     byteArrayOutputStream = null;
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInt).order(ByteOrder.LITTLE_ENDIAN);
-    map.serialize(byteBuffer);
+    map.serializePortable(byteBuffer);
     map = null;
     byteBuffer.flip();
     Roaring64NavigableMap deserBBOne = new Roaring64NavigableMap();
     deserBBOne.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
-    deserBBOne.deserialize(byteBuffer);
+    deserBBOne.deserializePortable(byteBuffer);
     Assertions.assertEquals(select2, deserBBOne.select(2));
   }
 
@@ -2105,7 +2121,7 @@ public class TestRoaring64NavigableMap {
     map.addLong(Long.MAX_VALUE);
 
     TestRoaring64NavigableMap.checkSerializeBufferBytes(map);
-    final Roaring64NavigableMap clone = SerializationUtils.clone(map);
+    Roaring64NavigableMap clone = cloneByBufferWithPortableFormat(map);
     // Check the test has not simply copied the ref
     assertNotSame(map, clone);
     assertEquals(3, clone.getLongCardinality());
@@ -2115,11 +2131,11 @@ public class TestRoaring64NavigableMap {
 
     int sizeInByteInt = (int)map.serializedSizeInBytes();
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInByteInt).order(ByteOrder.LITTLE_ENDIAN);
-    map.serialize(byteBuffer);
+    map.serializePortable(byteBuffer);
     byteBuffer.flip();
     Roaring64NavigableMap anotherDeserMap = newDefaultCtor();
     anotherDeserMap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
-    anotherDeserMap.deserialize(byteBuffer);
+    anotherDeserMap.deserializePortable(byteBuffer);
     assertEquals(3, anotherDeserMap.getLongCardinality());
     assertEquals(123, anotherDeserMap.select(0));
     assertEquals(val, anotherDeserMap.select(1));
@@ -2133,7 +2149,7 @@ public class TestRoaring64NavigableMap {
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     bitmap.deserialize(new DataInputStream(inputStream));
 
     // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L36
@@ -2155,7 +2171,7 @@ public class TestRoaring64NavigableMap {
     InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
 
     Roaring64NavigableMap bitmap = new Roaring64NavigableMap();
-    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+    bitmap.setSerializationMode(Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
     bitmap.deserialize(new DataInputStream(inputStream));
 
     // https://github.com/RoaringBitmap/CRoaring/blob/master/tests/cpp_unit_util.cpp#L46

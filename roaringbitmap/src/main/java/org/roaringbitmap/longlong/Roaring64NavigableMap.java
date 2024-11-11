@@ -51,7 +51,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   // As of RoaringBitmap 0.X, we stick to the legacy format for retrocompatibility
   // RoaringBitmap 1.X may switch to the portable format by default
-  public static int SERIALIZATION_MODE = SERIALIZATION_MODE_LEGACY;
+  private int serializationMode = SERIALIZATION_MODE_LEGACY;
 
   // Not final to enable initialization in Externalizable.readObject
   private NavigableMap<Integer, BitmapDataProvider> highToBitmap;
@@ -163,7 +163,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   public void setSerializationMode(int mode) {
-    SERIALIZATION_MODE = mode;
+    serializationMode = mode;
+  }
+
+  public int getSerializationMode() {
+    return serializationMode;
   }
 
   private void resetPerfHelpers() {
@@ -1475,7 +1479,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    */
   @Override
   public void serialize(DataOutput out) throws IOException {
-    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+    if (serializationMode == SERIALIZATION_MODE_PORTABLE) {
       serializePortable(out);
     } else {
       serializeLegacy(out);
@@ -1531,6 +1535,30 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   public void serialize(ByteBuffer buffer) throws IOException {
+    if (serializationMode == SERIALIZATION_MODE_PORTABLE) {
+      serializePortable(buffer);
+    } else {
+      serializeLegacy(buffer);
+    }
+  }
+
+  public void serializeLegacy(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+            : buffer.slice().order(LITTLE_ENDIAN);
+    byteBuffer.put((byte) (signedLongs ? 1 : 0));
+    byteBuffer.putInt(Integer.reverse(highToBitmap.size()));
+
+    for (Entry<Integer, BitmapDataProvider> entry : highToBitmap.entrySet()) {
+      byteBuffer.putInt(Integer.reverseBytes(entry.getKey()));
+      entry.getValue().serialize(byteBuffer);
+    }
+
+    if (byteBuffer != buffer) {
+      buffer.position(buffer.position() + byteBuffer.position());
+    }
+  }
+
+  public void serializePortable(ByteBuffer buffer) throws IOException {
     ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
             : buffer.slice().order(LITTLE_ENDIAN);
     byteBuffer.putLong(Long.reverseBytes(highToBitmap.size()));
@@ -1546,6 +1574,39 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   public void deserialize(ByteBuffer buffer) throws IOException {
+    if (serializationMode == SERIALIZATION_MODE_PORTABLE) {
+      deserializePortable(buffer);
+    } else {
+      deserializeLegacy(buffer);
+    }
+  }
+
+  public void deserializeLegacy(ByteBuffer buffer) throws IOException {
+    ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
+            : buffer.slice().order(LITTLE_ENDIAN);
+    this.clear();
+    signedLongs = (byteBuffer.get() != 0);
+    int nbHighs = Integer.reverse(byteBuffer.getInt());
+
+    // Other NavigableMap may accept a target capacity
+    highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+    for (long i = 0; i < nbHighs; i++) {
+      int high = Integer.reverseBytes(byteBuffer.getInt());
+      BitmapDataProvider provider = newRoaringBitmap();
+      if (provider instanceof RoaringBitmap) {
+        ((RoaringBitmap) provider).deserialize(byteBuffer);
+      } else if (provider instanceof MutableRoaringBitmap) {
+        ((MutableRoaringBitmap) provider).deserialize(byteBuffer);
+      } else {
+        throw new UnsupportedEncodingException("Cannot deserialize a " + provider.getClass());
+      }
+      byteBuffer.position(byteBuffer.position() + provider.serializedSizeInBytes());
+      highToBitmap.put(high, provider);
+    }
+    resetPerfHelpers();
+  }
+
+  public void deserializePortable(ByteBuffer buffer) throws IOException {
     ByteBuffer byteBuffer = buffer.order() == LITTLE_ENDIAN ? buffer
             : buffer.slice().order(LITTLE_ENDIAN);
     this.clear();
@@ -1589,7 +1650,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
-    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+    if (serializationMode == SERIALIZATION_MODE_PORTABLE) {
       deserializePortable(in);
     } else {
       deserializeLegacy(in);
@@ -1684,7 +1745,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   public long serializedSizeInBytes() {
     long nbBytes = 0L;
 
-    if (SERIALIZATION_MODE == SERIALIZATION_MODE_PORTABLE) {
+    if (serializationMode == SERIALIZATION_MODE_PORTABLE) {
       // .writeLong for number of different high values
       nbBytes += 8;
     } else {
@@ -1902,6 +1963,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       this.serialize(byteBuffer);
       byteBuffer.flip();
       Roaring64NavigableMap freshOne = new Roaring64NavigableMap();
+      freshOne.setSerializationMode(serializationMode);
       freshOne.deserialize(byteBuffer);
       return freshOne;
     } catch (Exception e) {

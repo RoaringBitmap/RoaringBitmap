@@ -61,8 +61,9 @@ public class R64NavigableBSITest {
   }
 
   @Test
-  public void testClone() {
-    Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex(1, 99);
+  public void testCloneLegacy() {
+    Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex(1, 99,
+            Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY);
     List<Pair<Long, Long>> collect = testDataSet.entrySet()
         .stream().map(x -> Pair.newPair(x.getKey(), x.getValue())).collect(Collectors.toList());
 
@@ -77,6 +78,26 @@ public class R64NavigableBSITest {
       Assertions.assertEquals((long) bsiValue.getKey(), x);
     });
   }
+
+  @Test
+  public void testClonePortable() {
+    Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex(1, 99,
+            Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    List<Pair<Long, Long>> collect = testDataSet.entrySet()
+            .stream().map(x -> Pair.newPair(x.getKey(), x.getValue())).collect(Collectors.toList());
+
+    bsi.setValues(collect);
+
+    Assertions.assertEquals(bsi.getExistenceBitmap().getLongCardinality(), 99);
+    final Roaring64NavigableMapSliceIndex clone = bsi.clone();
+
+    IntStream.range(1, 100).forEach(x -> {
+      Pair<Long, Boolean> bsiValue = clone.getValue(x);
+      Assertions.assertTrue(bsiValue.getRight());
+      Assertions.assertEquals((long) bsiValue.getKey(), x);
+    });
+  }
+
 
   @Test
   public void testAdd() {
@@ -146,7 +167,7 @@ public class R64NavigableBSITest {
   public void testIO4Buffer() throws IOException {
     Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex(1, 99);
     LongStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
-    ByteBuffer buffer = ByteBuffer.allocate(bsi.serializedSizeInBytes());
+    ByteBuffer buffer = ByteBuffer.allocate((int)bsi.serializedSizeInBytes());
     bsi.serialize(buffer);
 
     byte[] data = buffer.array();
@@ -368,8 +389,7 @@ public class R64NavigableBSITest {
     bsi.setValue(1L, 392L);
     System.out.println(bsi.getValue(100L));
     System.out.println(bsi.getValue(1L));
-
-    ByteBuffer buffer = ByteBuffer.allocate(bsi.serializedSizeInBytes());
+    ByteBuffer buffer = ByteBuffer.allocate((int)bsi.serializedSizeInBytes());
     bsi.serialize(buffer);
 
     Roaring64NavigableMapSliceIndex de_bsi = new Roaring64NavigableMapSliceIndex();
