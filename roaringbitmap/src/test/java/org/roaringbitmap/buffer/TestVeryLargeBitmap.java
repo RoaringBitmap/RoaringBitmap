@@ -1,9 +1,8 @@
 package org.roaringbitmap.buffer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestVeryLargeBitmap {
   @Test
@@ -32,5 +31,4 @@ public class TestVeryLargeBitmap {
       ome.printStackTrace();
     }
   }
-
 }

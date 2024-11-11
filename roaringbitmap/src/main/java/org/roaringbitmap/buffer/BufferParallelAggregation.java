@@ -1,7 +1,14 @@
 package org.roaringbitmap.buffer;
 
 import java.nio.LongBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.function.BiConsumer;
@@ -40,9 +47,9 @@ import java.util.stream.IntStream;
  */
 public class BufferParallelAggregation {
 
-  private static final Collector<Map.Entry<Character, List<MappeableContainer>>,
-          MutableRoaringArray, MutableRoaringBitmap>
-          XOR = new ContainerCollector(BufferParallelAggregation::xor);
+  private static final Collector<
+          Map.Entry<Character, List<MappeableContainer>>, MutableRoaringArray, MutableRoaringBitmap>
+      XOR = new ContainerCollector(BufferParallelAggregation::xor);
 
   private static final OrCollector OR = new OrCollector();
 
@@ -50,9 +57,11 @@ public class BufferParallelAggregation {
    * Collects containers grouped by their key into a RoaringBitmap, applying the
    * supplied aggregation function to each group.
    */
-  public static class ContainerCollector implements
-          Collector<Map.Entry<Character, List<MappeableContainer>>,
-                  MutableRoaringArray, MutableRoaringBitmap> {
+  public static class ContainerCollector
+      implements Collector<
+          Map.Entry<Character, List<MappeableContainer>>,
+          MutableRoaringArray,
+          MutableRoaringBitmap> {
 
     private final Function<List<MappeableContainer>, MappeableContainer> reducer;
 
@@ -70,8 +79,8 @@ public class BufferParallelAggregation {
     }
 
     @Override
-    public BiConsumer<
-            MutableRoaringArray, Map.Entry<Character, List<MappeableContainer>>> accumulator() {
+    public BiConsumer<MutableRoaringArray, Map.Entry<Character, List<MappeableContainer>>>
+        accumulator() {
       return (l, r) -> {
         assert l.size == 0 || l.keys[l.size - 1] < r.getKey();
         MappeableContainer container = reducer.apply(r.getValue());
@@ -105,7 +114,7 @@ public class BufferParallelAggregation {
    * Collects a list of containers into a single container.
    */
   public static class OrCollector
-          implements Collector<List<MappeableContainer>, MappeableContainer, MappeableContainer> {
+      implements Collector<List<MappeableContainer>, MappeableContainer, MappeableContainer> {
 
     @Override
     public Supplier<MappeableContainer> supplier() {
@@ -139,7 +148,7 @@ public class BufferParallelAggregation {
    * @return The containers from the bitmaps grouped by key
    */
   public static SortedMap<Character, List<MappeableContainer>> groupByKey(
-          ImmutableRoaringBitmap... bitmaps) {
+      ImmutableRoaringBitmap... bitmaps) {
     Map<Character, List<MappeableContainer>> grouped = new HashMap<>();
     for (ImmutableRoaringBitmap bitmap : bitmaps) {
       MappeableContainerPointer it = bitmap.highLowContainer.getContainerPointer();
@@ -174,8 +183,8 @@ public class BufferParallelAggregation {
       slices.add(slice.getValue());
     }
     IntStream.range(0, i)
-            .parallel()
-            .forEach(position -> values[position] = or(slices.get(position)));
+        .parallel()
+        .forEach(position -> values[position] = or(slices.get(position)));
     return new MutableRoaringBitmap(new MutableRoaringArray(keys, values, i));
   }
 
@@ -185,13 +194,8 @@ public class BufferParallelAggregation {
    * @return the symmetric difference of the bitmaps
    */
   public static MutableRoaringBitmap xor(ImmutableRoaringBitmap... bitmaps) {
-    return groupByKey(bitmaps)
-            .entrySet()
-            .parallelStream()
-            .collect(XOR);
+    return groupByKey(bitmaps).entrySet().parallelStream().collect(XOR);
   }
-
-
 
   private static MappeableContainer xor(List<MappeableContainer> containers) {
     MappeableContainer result = containers.get(0).clone();
@@ -223,17 +227,17 @@ public class BufferParallelAggregation {
     int step = Math.floorDiv(containers.size(), parallelism);
     int mod = Math.floorMod(containers.size(), parallelism);
     return IntStream.range(0, parallelism)
-            .parallel()
-            .mapToObj(i -> containers.subList(i * step + Math.min(i, mod),
-                    (i + 1) * step + Math.min(i + 1, mod)))
-            .collect(OR);
+        .parallel()
+        .mapToObj(
+            i ->
+                containers.subList(
+                    i * step + Math.min(i, mod), (i + 1) * step + Math.min(i + 1, mod)))
+        .collect(OR);
   }
 
   private static int availableParallelism() {
     return ForkJoinTask.inForkJoinPool()
-            ? ForkJoinTask.getPool().getParallelism()
-            : ForkJoinPool.getCommonPoolParallelism();
+        ? ForkJoinTask.getPool().getParallelism()
+        : ForkJoinPool.getCommonPoolParallelism();
   }
-
 }
-

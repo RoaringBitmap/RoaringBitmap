@@ -22,18 +22,18 @@ import static org.roaringbitmap.realdata.wrapper.BitmapFactory.newRoaringBitmap;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.newRoaringWithRunBitmap;
 import static org.roaringbitmap.realdata.wrapper.BitmapFactory.newWahBitmap;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
 import org.roaringbitmap.realdata.wrapper.Bitmap;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 @State(Scope.Benchmark)
 public abstract class AbstractBenchmarkState {
@@ -48,24 +48,27 @@ public abstract class AbstractBenchmarkState {
   public AbstractBenchmarkState() {}
 
   public void setup(final String dataset, String type, boolean immutable) throws Exception {
-    if (ROARING_ONLY.equals(System.getProperty(BITMAP_TYPES)) && !ROARING.equals(type)
+    if (ROARING_ONLY.equals(System.getProperty(BITMAP_TYPES))
+        && !ROARING.equals(type)
         && !ROARING_WITH_RUN.equals(type)) {
       throw new RuntimeException(String.format("Skipping non Roaring type %s", type));
     }
 
     bitmaps = new ArrayList<Bitmap>();
 
-    List<int[]> ints = DATASET_CACHE.get(dataset, new Callable<List<int[]>>() {
+    List<int[]> ints =
+        DATASET_CACHE.get(
+            dataset,
+            new Callable<List<int[]>>() {
 
-      @Override
-      public List<int[]> call() throws Exception {
-        System.out.println("Loading" + dataset);
-        ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
+              @Override
+              public List<int[]> call() throws Exception {
+                System.out.println("Loading" + dataset);
+                ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
 
-        return Lists.newArrayList(dataRetriever.fetchBitPositions());
-      }
-    });
-
+                return Lists.newArrayList(dataRetriever.fetchBitPositions());
+              }
+            });
 
     for (int[] data : ints) {
       Bitmap bitmap = null;
@@ -114,7 +117,6 @@ public abstract class AbstractBenchmarkState {
       }
 
       bitmaps.add(bitmap);
-
     }
   }
 
@@ -122,5 +124,4 @@ public abstract class AbstractBenchmarkState {
   public void tearDown() {
     cleanup();
   }
-
 }

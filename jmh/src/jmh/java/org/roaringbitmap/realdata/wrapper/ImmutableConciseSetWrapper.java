@@ -1,17 +1,17 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import static io.druid.extendedset.intset.ImmutableConciseSet.intersection;
+import static io.druid.extendedset.intset.ImmutableConciseSet.union;
+
+import org.roaringbitmap.IntConsumer;
+
+import io.druid.extendedset.intset.ImmutableConciseSet;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-
-import io.druid.extendedset.intset.ImmutableConciseSet;
-import org.roaringbitmap.IntConsumer;
-
-import static io.druid.extendedset.intset.ImmutableConciseSet.intersection;
-import static io.druid.extendedset.intset.ImmutableConciseSet.union;
-
 
 final class ImmutableConciseSetWrapper implements Bitmap {
 
@@ -55,10 +55,8 @@ final class ImmutableConciseSetWrapper implements Bitmap {
   @Override
   public Bitmap flip(int s, int e) {
     ImmutableConciseSet temp = ImmutableConciseSet.complement(bitmap, e);
-    if (e == 0)
-      return new ImmutableConciseSetWrapper(temp);
-    else
-      return new ImmutableConciseSetWrapper(ImmutableConciseSet.complement(temp, e - 1));
+    if (e == 0) return new ImmutableConciseSetWrapper(temp);
+    else return new ImmutableConciseSetWrapper(ImmutableConciseSet.complement(temp, e - 1));
   }
 
   @Override
@@ -121,8 +119,6 @@ final class ImmutableConciseSetWrapper implements Bitmap {
       public void remove() {
         throw new UnsupportedOperationException();
       }
-
-
     };
   }
 
@@ -132,12 +128,14 @@ final class ImmutableConciseSetWrapper implements Bitmap {
       @Override
       public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
         PriorityQueue<ImmutableConciseSet> pq =
-            new PriorityQueue<ImmutableConciseSet>(128, new Comparator<ImmutableConciseSet>() {
-              @Override
-              public int compare(ImmutableConciseSet a, ImmutableConciseSet b) {
-                return a.getLastWordIndex() - b.getLastWordIndex();
-              }
-            });
+            new PriorityQueue<ImmutableConciseSet>(
+                128,
+                new Comparator<ImmutableConciseSet>() {
+                  @Override
+                  public int compare(ImmutableConciseSet a, ImmutableConciseSet b) {
+                    return a.getLastWordIndex() - b.getLastWordIndex();
+                  }
+                });
         for (Bitmap bitmap1 : bitmaps) {
           pq.add(((ImmutableConciseSetWrapper) bitmap1).bitmap);
         }
@@ -171,5 +169,4 @@ final class ImmutableConciseSetWrapper implements Bitmap {
   public Bitmap clone() {
     throw new UnsupportedOperationException("Not implemented in ImmutableConciseSet");
   }
-
 }

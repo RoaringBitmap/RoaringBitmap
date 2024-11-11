@@ -19,5 +19,4 @@ final class RoaringIteratorWrapper implements BitmapIterator {
   public int next() {
     return iterator.next();
   }
-
 }

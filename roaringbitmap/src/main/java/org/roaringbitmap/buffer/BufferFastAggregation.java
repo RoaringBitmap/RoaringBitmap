@@ -9,8 +9,13 @@ import org.roaringbitmap.Util;
 
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Fast algorithms to aggregate many bitmaps.
@@ -18,7 +23,6 @@ import java.util.*;
  * @author Daniel Lemire
  */
 public final class BufferFastAggregation {
-
 
   /**
    * Compute the AND aggregate.
@@ -41,10 +45,10 @@ public final class BufferFastAggregation {
    * @param bitmaps input bitmaps
    * @return aggregated bitmap
    */
-  public static MutableRoaringBitmap and(long[] aggregationBuffer,
-                                         ImmutableRoaringBitmap... bitmaps) {
+  public static MutableRoaringBitmap and(
+      long[] aggregationBuffer, ImmutableRoaringBitmap... bitmaps) {
     if (bitmaps.length > 10) {
-      if(aggregationBuffer.length < 1024) {
+      if (aggregationBuffer.length < 1024) {
         throw new IllegalArgumentException("buffer should have at least 1024 elements.");
       }
       try {
@@ -77,8 +81,8 @@ public final class BufferFastAggregation {
    * @param bitmaps input bitmaps (ImmutableRoaringBitmap or MutableRoaringBitmap)
    * @return aggregated bitmap
    */
-  public static MutableRoaringBitmap and(long[] aggregationBuffer,
-                                         Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
+  public static MutableRoaringBitmap and(
+      long[] aggregationBuffer, Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
     if (bitmaps.hasNext()) {
       try {
         return workShyAnd(aggregationBuffer, bitmaps);
@@ -88,7 +92,6 @@ public final class BufferFastAggregation {
     }
     return new MutableRoaringBitmap();
   }
-
 
   /**
    * Compute the AND aggregate.
@@ -161,12 +164,8 @@ public final class BufferFastAggregation {
       }
 
       @Override
-      public void remove() {
-
-      }
-
+      public void remove() {}
     };
-
   }
 
   private static ImmutableRoaringBitmap[] convertToImmutable(MutableRoaringBitmap[] array) {
@@ -174,7 +173,6 @@ public final class BufferFastAggregation {
     System.arraycopy(array, 0, answer, 0, answer.length);
     return answer;
   }
-
 
   /**
    * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
@@ -235,7 +233,6 @@ public final class BufferFastAggregation {
     return answer;
   }
 
-
   /**
    * Calls naive_or.
    *
@@ -259,7 +256,6 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap horizontal_or(MutableRoaringBitmap... bitmaps) {
     return horizontal_or(convertToImmutable(bitmaps));
   }
-
 
   /**
    * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
@@ -331,7 +327,6 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap horizontal_xor(MutableRoaringBitmap... bitmaps) {
     return horizontal_xor(convertToImmutable(bitmaps));
   }
-
 
   /**
    * Compute overall AND between bitmaps two-by-two.
@@ -424,8 +419,8 @@ public final class BufferFastAggregation {
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  static MutableRoaringBitmap workShyAnd(long[] aggregationBuffer,
-                                         ImmutableRoaringBitmap... bitmaps) {
+  static MutableRoaringBitmap workShyAnd(
+      long[] aggregationBuffer, ImmutableRoaringBitmap... bitmaps) {
     long[] words = aggregationBuffer;
     char[] keys = BufferUtil.intersectKeys(words, bitmaps);
     if (keys.length == 0) {
@@ -446,7 +441,7 @@ public final class BufferFastAggregation {
     }
 
     MutableRoaringArray array =
-            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+        new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
       MappeableContainer[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -476,8 +471,8 @@ public final class BufferFastAggregation {
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  static MutableRoaringBitmap workShyAnd(long[] aggregationBuffer,
-                                         Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
+  static MutableRoaringBitmap workShyAnd(
+      long[] aggregationBuffer, Iterator<? extends ImmutableRoaringBitmap> bitmaps) {
     long[] words = aggregationBuffer;
     List<ImmutableRoaringBitmap> collected = new ArrayList<>();
     ImmutableRoaringBitmap first = bitmaps.next();
@@ -501,9 +496,9 @@ public final class BufferFastAggregation {
           keys[j] = bitmap.highLowContainer.getKeyAtIndex(j);
         }
       }
-      numContainers = BufferUtil.intersectArrayIntoBitmap(words,
-              CharBuffer.wrap(keys),
-              bitmap.highLowContainer.size());
+      numContainers =
+          BufferUtil.intersectArrayIntoBitmap(
+              words, CharBuffer.wrap(keys), bitmap.highLowContainer.size());
     }
     if (numContainers == 0) {
       return new MutableRoaringBitmap();
@@ -523,7 +518,7 @@ public final class BufferFastAggregation {
     }
 
     MutableRoaringArray array =
-            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+        new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
       MappeableContainer[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -624,9 +619,9 @@ public final class BufferFastAggregation {
    * @param bitmaps the inputs
    * @return the intersection of the bitmaps
    */
-  public static MutableRoaringBitmap workAndMemoryShyAnd(long[] buffer,
-      ImmutableRoaringBitmap... bitmaps) {
-    if(buffer.length < 1024) {
+  public static MutableRoaringBitmap workAndMemoryShyAnd(
+      long[] buffer, ImmutableRoaringBitmap... bitmaps) {
+    if (buffer.length < 1024) {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
     }
     long[] words = buffer;
@@ -637,14 +632,14 @@ public final class BufferFastAggregation {
     int numContainers = keys.length;
 
     MutableRoaringArray array =
-            new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+        new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
       char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
-      for(ImmutableRoaringBitmap bitmap: bitmaps) {
+      for (ImmutableRoaringBitmap bitmap : bitmaps) {
         int idx = bitmap.highLowContainer.getIndex(MatchingKey);
-        if(idx < 0) {
+        if (idx < 0) {
           continue;
         }
         MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(idx);
@@ -698,8 +693,6 @@ public final class BufferFastAggregation {
     return answer;
   }
 
-
-
   /**
    * Compute overall OR between bitmaps two-by-two.
    *
@@ -749,7 +742,6 @@ public final class BufferFastAggregation {
     return answer;
   }
 
-
   /**
    * Compute overall XOR between bitmaps two-by-two.
    *
@@ -766,7 +758,6 @@ public final class BufferFastAggregation {
     return answer;
   }
 
-
   /**
    * Compute overall OR between bitmaps.
    *
@@ -776,7 +767,6 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap or(ImmutableRoaringBitmap... bitmaps) {
     return naive_or(bitmaps);
   }
-
 
   /**
    * Compute overall OR between bitmaps.
@@ -820,12 +810,15 @@ public final class BufferFastAggregation {
     for (int k = 0; k < sizes.length; ++k) {
       sizes[k] = buffer[k].serializedSizeInBytes();
     }
-    PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
-      @Override
-      public int compare(Integer a, Integer b) {
-        return sizes[a] - sizes[b];
-      }
-    });
+    PriorityQueue<Integer> pq =
+        new PriorityQueue<>(
+            128,
+            new Comparator<Integer>() {
+              @Override
+              public int compare(Integer a, Integer b) {
+                return sizes[a] - sizes[b];
+              }
+            });
     for (int k = 0; k < sizes.length; ++k) {
       pq.add(k);
     }
@@ -833,8 +826,9 @@ public final class BufferFastAggregation {
       Integer x1 = pq.poll();
       Integer x2 = pq.poll();
       if (istmp[x1] && istmp[x2]) {
-        buffer[x1] = MutableRoaringBitmap.lazyorfromlazyinputs((MutableRoaringBitmap) buffer[x1],
-            (MutableRoaringBitmap) buffer[x2]);
+        buffer[x1] =
+            MutableRoaringBitmap.lazyorfromlazyinputs(
+                (MutableRoaringBitmap) buffer[x1], (MutableRoaringBitmap) buffer[x2]);
         sizes[x1] = buffer[x1].serializedSizeInBytes();
         pq.add(x1);
       } else if (istmp[x2]) {
@@ -881,12 +875,15 @@ public final class BufferFastAggregation {
     for (int k = 0; k < sizes.length; ++k) {
       sizes[k] = buffer.get(k).getLongSizeInBytes();
     }
-    PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
-      @Override
-      public int compare(Integer a, Integer b) {
-        return (int)(sizes[a] - sizes[b]);
-      }
-    });
+    PriorityQueue<Integer> pq =
+        new PriorityQueue<>(
+            128,
+            new Comparator<Integer>() {
+              @Override
+              public int compare(Integer a, Integer b) {
+                return (int) (sizes[a] - sizes[b]);
+              }
+            });
     for (int k = 0; k < sizes.length; ++k) {
       pq.add(k);
     }
@@ -897,8 +894,10 @@ public final class BufferFastAggregation {
       Integer x1 = pq.poll();
       Integer x2 = pq.poll();
       if (istmp[x1] && istmp[x2]) {
-        buffer.set(x1, MutableRoaringBitmap.lazyorfromlazyinputs(
-            (MutableRoaringBitmap) buffer.get(x1), (MutableRoaringBitmap) buffer.get(x2)));
+        buffer.set(
+            x1,
+            MutableRoaringBitmap.lazyorfromlazyinputs(
+                (MutableRoaringBitmap) buffer.get(x1), (MutableRoaringBitmap) buffer.get(x2)));
         sizes[x1] = buffer.get(x1).getLongSizeInBytes();
         pq.add(x1);
       } else if (istmp[x2]) {
@@ -936,12 +935,14 @@ public final class BufferFastAggregation {
       throw new IllegalArgumentException("Expecting at least 2 bitmaps");
     }
     final PriorityQueue<ImmutableRoaringBitmap> pq =
-        new PriorityQueue<>(bitmaps.length, new Comparator<ImmutableRoaringBitmap>() {
-          @Override
-          public int compare(ImmutableRoaringBitmap a, ImmutableRoaringBitmap b) {
-            return (int)(a.getLongSizeInBytes() - b.getLongSizeInBytes());
-          }
-        });
+        new PriorityQueue<>(
+            bitmaps.length,
+            new Comparator<ImmutableRoaringBitmap>() {
+              @Override
+              public int compare(ImmutableRoaringBitmap a, ImmutableRoaringBitmap b) {
+                return (int) (a.getLongSizeInBytes() - b.getLongSizeInBytes());
+              }
+            });
     Collections.addAll(pq, bitmaps);
     while (pq.size() > 1) {
       final ImmutableRoaringBitmap x1 = pq.poll();
@@ -950,7 +951,6 @@ public final class BufferFastAggregation {
     }
     return (MutableRoaringBitmap) pq.poll();
   }
-
 
   /**
    * Compute overall XOR between bitmaps.
@@ -963,7 +963,6 @@ public final class BufferFastAggregation {
     return naive_xor(bitmaps);
   }
 
-
   /**
    * Compute overall XOR between bitmaps.
    *
@@ -973,7 +972,6 @@ public final class BufferFastAggregation {
   public static MutableRoaringBitmap xor(@SuppressWarnings("rawtypes") Iterator bitmaps) {
     return naive_xor(bitmaps);
   }
-
 
   /**
    * Compute overall XOR between bitmaps.
@@ -989,8 +987,5 @@ public final class BufferFastAggregation {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private BufferFastAggregation() {
-
-  }
-
+  private BufferFastAggregation() {}
 }

@@ -2,8 +2,6 @@ package org.roaringbitmap.buffer;
 
 import org.roaringbitmap.ContainerBatchIterator;
 
-
-
 public final class RunBatchIterator implements ContainerBatchIterator {
 
   private MappeableRunContainer runs;
@@ -46,7 +44,7 @@ public final class RunBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);

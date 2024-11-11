@@ -1,5 +1,15 @@
 package org.roaringbitmap.longlong;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+import org.roaringbitmap.art.ContainerIterator;
+import org.roaringbitmap.art.Containers;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -7,14 +17,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RunContainer;
-import org.roaringbitmap.art.ContainerIterator;
-import org.roaringbitmap.art.Containers;
 
 public class ContainersTest {
 
@@ -49,7 +51,7 @@ public class ContainersTest {
       if (i == 0) {
         long currentContainerIdx = containerIterator.getCurrentContainerIdx();
         Assertions.assertEquals(cidx0, currentContainerIdx);
-        RunContainer rc = new RunContainer(new char[]{23, 24}, 1);
+        RunContainer rc = new RunContainer(new char[] {23, 24}, 1);
         containerIterator.replace(rc);
       }
       i++;
@@ -57,7 +59,7 @@ public class ContainersTest {
     Assertions.assertTrue(i == 3);
     Container replacedContainer = containers.getContainer(cidx0);
     Assertions.assertEquals(23, replacedContainer.select(0));
-    ArrayContainer arrayContainer1 = new ArrayContainer(new char[]{10, 20, 30});
+    ArrayContainer arrayContainer1 = new ArrayContainer(new char[] {10, 20, 30});
     containers.replace(cidx1, arrayContainer1);
     replacedContainer = containers.getContainer(cidx1);
     Assertions.assertTrue(replacedContainer == arrayContainer1);
@@ -77,8 +79,8 @@ public class ContainersTest {
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     containers.serialize(dataOutputStream);
     Containers deseredOne = new Containers();
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-        byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     deseredOne.deserialize(dataInputStream);
     long containerSize = deseredOne.getContainerSize();

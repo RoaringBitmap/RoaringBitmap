@@ -4,7 +4,11 @@ import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.Pair;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,8 +82,8 @@ public class Roaring64NavigableMapSliceIndex {
     if (maxValue < minValue) {
       throw new IllegalArgumentException("maxValue should GE minValue");
     }
-    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE &&
-            serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
+    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
+        && serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
       // invalid serialization mode
       throw new IllegalArgumentException("Invalid serialization mode");
     }
@@ -94,8 +98,8 @@ public class Roaring64NavigableMapSliceIndex {
   }
 
   public void setSerializationMode(int serializationMode) {
-    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE &&
-            serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
+    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
+        && serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
       // invalid serialization mode
       throw new IllegalArgumentException("Invalid serialization mode");
     }
@@ -202,7 +206,6 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * hasRunCompression returns true if the bitmap benefits from run compression
    */
-
   public boolean hasRunCompression() {
     return this.runOptimized;
   }
@@ -210,7 +213,6 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * GetExistenceBitmap returns a pointer to the underlying existence bitmap of the BSI
    */
-
   public Roaring64NavigableMap getExistenceBitmap() {
     return this.ebM;
   }
@@ -234,7 +236,6 @@ public class Roaring64NavigableMapSliceIndex {
 
     return Pair.newPair(valueAt(columnId), true);
   }
-
 
   private void clear() {
     this.maxValue = 0;
@@ -299,7 +300,7 @@ public class Roaring64NavigableMapSliceIndex {
     this.ebM = ebm;
 
     List<Roaring64NavigableMap> baList = new ArrayList<>();
-    try( DataInputStream is = new DataInputStream((InputStream) in); ){
+    try (DataInputStream is = new DataInputStream((InputStream) in); ) {
       while (is.available() > 0) {
         Roaring64NavigableMap rb = new Roaring64NavigableMap();
         // set serialization format before deserialize
@@ -404,8 +405,10 @@ public class Roaring64NavigableMapSliceIndex {
 
   public void setValues(List<Pair<Long, Long>> values) {
     if (values == null || values.isEmpty()) return;
-    long maxValue = values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).max().getAsLong();
-    long minValue = values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).min().getAsLong();
+    long maxValue =
+        values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).max().getAsLong();
+    long minValue =
+        values.stream().mapToLong(Pair::getRight).filter(Objects::nonNull).min().getAsLong();
     ensureCapacityInternal(minValue, maxValue);
     for (Pair<Long, Long> pair : values) {
       setValueInternal(pair.getKey(), pair.getValue());
@@ -434,7 +437,8 @@ public class Roaring64NavigableMapSliceIndex {
     Roaring64NavigableMap[] newBA = new Roaring64NavigableMap[bitDepth];
     for (int i = 0; i < bitDepth; i++) {
       Roaring64NavigableMap current = i < this.bA.length ? this.bA[i] : new Roaring64NavigableMap();
-      Roaring64NavigableMap other = i < otherBsi.bA.length ? otherBsi.bA[i] : new Roaring64NavigableMap();
+      Roaring64NavigableMap other =
+          i < otherBsi.bA.length ? otherBsi.bA[i] : new Roaring64NavigableMap();
       newBA[i] = Roaring64NavigableMap.or(current, other);
       newBA[i].setSerializationMode(serializationMode);
       if (this.runOptimized || otherBsi.runOptimized) {
@@ -476,7 +480,8 @@ public class Roaring64NavigableMapSliceIndex {
    * @return columnId set we found in this bsi with giving conditions, using RoaringBitmap to express
    * see https://github.com/lemire/BitSliceIndex/blob/master/src/main/java/org/roaringbitmap/circuits/comparator/BasicComparator.java
    */
-  private Roaring64NavigableMap oNeilCompare(BitmapSliceIndex.Operation operation, long predicate, Roaring64NavigableMap foundSet) {
+  private Roaring64NavigableMap oNeilCompare(
+      BitmapSliceIndex.Operation operation, long predicate, Roaring64NavigableMap foundSet) {
     Roaring64NavigableMap fixedFoundSet = foundSet == null ? this.ebM : foundSet;
 
     Roaring64NavigableMap GT = new Roaring64NavigableMap();
@@ -524,7 +529,11 @@ public class Roaring64NavigableMapSliceIndex {
    * @param foundSet     columnId set we want compare,using RoaringBitmap to express
    * @return columnId set we found in this bsi with giving conditions, using Roaring64NavigableMap to express
    */
-  public Roaring64NavigableMap compare(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64NavigableMap foundSet) {
+  public Roaring64NavigableMap compare(
+      BitmapSliceIndex.Operation operation,
+      long startOrValue,
+      long end,
+      Roaring64NavigableMap foundSet) {
     Roaring64NavigableMap result = compareUsingMinMax(operation, startOrValue, end, foundSet);
     if (result != null) {
       return result;
@@ -537,34 +546,42 @@ public class Roaring64NavigableMapSliceIndex {
         return oNeilCompare(BitmapSliceIndex.Operation.NEQ, startOrValue, foundSet);
       case GE:
         return oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
-      case GT: {
-        return oNeilCompare(BitmapSliceIndex.Operation.GT, startOrValue, foundSet);
-      }
+      case GT:
+        {
+          return oNeilCompare(BitmapSliceIndex.Operation.GT, startOrValue, foundSet);
+        }
       case LT:
         return oNeilCompare(BitmapSliceIndex.Operation.LT, startOrValue, foundSet);
 
       case LE:
         return oNeilCompare(BitmapSliceIndex.Operation.LE, startOrValue, foundSet);
 
-      case RANGE: {
-        if (startOrValue < minValue) {
-          startOrValue = minValue;
-        }
-        if (end > maxValue) {
-          end = maxValue;
-        }
-        Roaring64NavigableMap left = oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
-        Roaring64NavigableMap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
+      case RANGE:
+        {
+          if (startOrValue < minValue) {
+            startOrValue = minValue;
+          }
+          if (end > maxValue) {
+            end = maxValue;
+          }
+          Roaring64NavigableMap left =
+              oNeilCompare(BitmapSliceIndex.Operation.GE, startOrValue, foundSet);
+          Roaring64NavigableMap right = oNeilCompare(BitmapSliceIndex.Operation.LE, end, foundSet);
 
-        return Roaring64NavigableMap.and(left, right);
-      }
+          return Roaring64NavigableMap.and(left, right);
+        }
       default:
         throw new IllegalArgumentException("not support operation!");
     }
   }
 
-  private Roaring64NavigableMap compareUsingMinMax(BitmapSliceIndex.Operation operation, long startOrValue, long end, Roaring64NavigableMap foundSet) {
-    Roaring64NavigableMap all = foundSet == null ? ebM.clone() : Roaring64NavigableMap.and(ebM, foundSet);
+  private Roaring64NavigableMap compareUsingMinMax(
+      BitmapSliceIndex.Operation operation,
+      long startOrValue,
+      long end,
+      Roaring64NavigableMap foundSet) {
+    Roaring64NavigableMap all =
+        foundSet == null ? ebM.clone() : Roaring64NavigableMap.and(ebM, foundSet);
     Roaring64NavigableMap empty = new Roaring64NavigableMap();
 
     switch (operation) {
@@ -635,7 +652,8 @@ public class Roaring64NavigableMapSliceIndex {
     }
     long count = foundSet.getLongCardinality();
 
-    Long sum = IntStream.range(0, this.bitCount())
+    Long sum =
+        IntStream.range(0, this.bitCount())
             .mapToLong(x -> (1L << x) * Roaring64NavigableMap.andCardinality(this.bA[x], foundSet))
             .sum();
 
@@ -668,22 +686,25 @@ public class Roaring64NavigableMapSliceIndex {
 
   public Roaring64NavigableMap transpose(Roaring64NavigableMap foundSet) {
     Roaring64NavigableMap re = new Roaring64NavigableMap();
-    Roaring64NavigableMap fixedFoundSet = foundSet == null ? this.ebM : Roaring64NavigableMap.and(foundSet, this.ebM);
+    Roaring64NavigableMap fixedFoundSet =
+        foundSet == null ? this.ebM : Roaring64NavigableMap.and(foundSet, this.ebM);
     fixedFoundSet.forEach((long x) -> re.add(this.getValue(x).getKey()));
     return re;
   }
 
   public Roaring64NavigableMapSliceIndex transposeWithCount(Roaring64NavigableMap foundSet) {
     Roaring64NavigableMapSliceIndex re = new Roaring64NavigableMapSliceIndex();
-    Roaring64NavigableMap fixedFoundSet = foundSet == null ? this.ebM : Roaring64NavigableMap.and(foundSet, this.ebM);
-    fixedFoundSet.forEach((long x) -> {
-      long nk = this.getValue(x).getKey();
-      if (re.valueExist(nk)) {
-        re.setValue(nk, re.getValue(nk).getKey() + 1);
-      } else {
-        re.setValue(nk, 1);
-      }
-    });
+    Roaring64NavigableMap fixedFoundSet =
+        foundSet == null ? this.ebM : Roaring64NavigableMap.and(foundSet, this.ebM);
+    fixedFoundSet.forEach(
+        (long x) -> {
+          long nk = this.getValue(x).getKey();
+          if (re.valueExist(nk)) {
+            re.setValue(nk, re.getValue(nk).getKey() + 1);
+          } else {
+            re.setValue(nk, 1);
+          }
+        });
     return re;
   }
 }

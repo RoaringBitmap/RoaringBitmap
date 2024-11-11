@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -40,12 +39,8 @@ public class ZipRealDataRetriever {
   public List<int[]> fetchBitPositions() throws IOException {
     List<int[]> bitPositions = new ArrayList<>();
 
-
-    try (
-        final ZipInputStream zis = getResourceAsStream();
-        final BufferedReader buf = new BufferedReader(new InputStreamReader(zis));
-    ) {
-
+    try (final ZipInputStream zis = getResourceAsStream();
+        final BufferedReader buf = new BufferedReader(new InputStreamReader(zis)); ) {
 
       while (true) {
         ZipEntry nextEntry = zis.getNextEntry();
@@ -80,5 +75,4 @@ public class ZipRealDataRetriever {
   private String resource() {
     return REAL_ROARING_DATASET + dataset + ZIP_EXTENSION;
   }
-
 }

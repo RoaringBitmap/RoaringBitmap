@@ -1,12 +1,13 @@
 package org.roaringbitmap.art;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class Node48Test {
 
@@ -46,8 +47,8 @@ public class Node48Test {
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     node48.serialize(dataOutputStream);
     Assertions.assertEquals(sizeInBytes, byteArrayOutputStream.toByteArray().length);
-    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-        byteArrayOutputStream.toByteArray());
+    ByteArrayInputStream byteArrayInputStream =
+        new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Node48 deserNode48 = (Node48) Node.deserialize(dataInputStream);
     currentPos = maxPos;
@@ -116,7 +117,7 @@ public class Node48Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node48.insert(nodes, leafNode, (byte) (offset + (i*step)));
+      nodes = Node48.insert(nodes, leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node48);
@@ -355,9 +356,9 @@ public class Node48Test {
   @Test
   public void testGetNextSmallerPosEdgeCase() {
     Node nodes = new Node48(0);
-    LeafNode leafNode = new LeafNode(0,0);
+    LeafNode leafNode = new LeafNode(0, 0);
 
-    nodes = Node48.insert(nodes, leafNode, (byte)67);
+    nodes = Node48.insert(nodes, leafNode, (byte) 67);
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node48);
 
@@ -383,22 +384,22 @@ public class Node48Test {
   public void testSetOneByte() {
     long[] longs = new long[Node48.LONGS_USED];
 
-    Node48.setOneByte(0,  (byte)0x67, longs);
+    Node48.setOneByte(0, (byte) 0x67, longs);
     Assertions.assertEquals(0x6700_0000_0000_0000L, longs[0]);
-    Node48.setOneByte(1,  (byte)0x23, longs);
+    Node48.setOneByte(1, (byte) 0x23, longs);
     Assertions.assertEquals(0x6723_0000_0000_0000L, longs[0]);
-    Node48.setOneByte(2,  (byte)0x14, longs);
+    Node48.setOneByte(2, (byte) 0x14, longs);
     Assertions.assertEquals(0x6723_1400_0000_0000L, longs[0]);
-    Node48.setOneByte(3,  (byte)0x98, longs);
+    Node48.setOneByte(3, (byte) 0x98, longs);
     Assertions.assertEquals(0x6723_1498_0000_0000L, longs[0]);
 
-    Node48.setOneByte(249,  (byte)0x67, longs);
+    Node48.setOneByte(249, (byte) 0x67, longs);
     Assertions.assertEquals(0x0067_0000_0000_0000L, longs[31]);
-    Node48.setOneByte(250,  (byte)0x23, longs);
+    Node48.setOneByte(250, (byte) 0x23, longs);
     Assertions.assertEquals(0x0067_2300_0000_0000L, longs[31]);
-    Node48.setOneByte(251,  (byte)0x14, longs);
+    Node48.setOneByte(251, (byte) 0x14, longs);
     Assertions.assertEquals(0x0067_2314_0000_0000L, longs[31]);
-    Node48.setOneByte(252,  (byte)0x98, longs);
+    Node48.setOneByte(252, (byte) 0x98, longs);
     Assertions.assertEquals(0x0067_2314_9800_0000L, longs[31]);
   }
 }

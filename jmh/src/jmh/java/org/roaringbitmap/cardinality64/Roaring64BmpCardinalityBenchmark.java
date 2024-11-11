@@ -1,6 +1,7 @@
 package org.roaringbitmap.cardinality64;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.longlong.Roaring64Bitmap;
+
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -11,7 +12,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
+
+import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -42,10 +44,15 @@ public class Roaring64BmpCardinalityBenchmark {
   }
 
   public static void main(String... args) throws Exception {
-    Options opts = new OptionsBuilder().include(".*Roaring64BmpCardinalityBenchmark.*")
-        .warmupTime(new TimeValue(1, TimeUnit.SECONDS)).warmupIterations(3)
-        .measurementTime(new TimeValue(1, TimeUnit.SECONDS)).measurementIterations(3).forks(1)
-        .build();
+    Options opts =
+        new OptionsBuilder()
+            .include(".*Roaring64BmpCardinalityBenchmark.*")
+            .warmupTime(new TimeValue(1, TimeUnit.SECONDS))
+            .warmupIterations(3)
+            .measurementTime(new TimeValue(1, TimeUnit.SECONDS))
+            .measurementIterations(3)
+            .forks(1)
+            .build();
 
     new Runner(opts).run();
   }

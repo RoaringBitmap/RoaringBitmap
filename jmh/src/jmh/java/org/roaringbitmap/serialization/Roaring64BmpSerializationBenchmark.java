@@ -1,5 +1,14 @@
 package org.roaringbitmap.serialization;
 
+import org.roaringbitmap.longlong.Roaring64Bitmap;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,13 +17,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.longlong.Roaring64Bitmap;
 
 @State(Scope.Benchmark)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -24,8 +26,8 @@ public class Roaring64BmpSerializationBenchmark {
   @Benchmark
   public int testDeserialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.presoutbb.rewind();
-    try (ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(
-        benchmarkState.presoutbb)) {
+    try (ByteBufferBackedInputStream in =
+        new ByteBufferBackedInputStream(benchmarkState.presoutbb)) {
       benchmarkState.bitmap_b.deserialize(new DataInputStream(in));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -37,8 +39,8 @@ public class Roaring64BmpSerializationBenchmark {
   @Benchmark
   public int testSerialize(BenchmarkState benchmarkState) throws IOException {
     benchmarkState.outbb.rewind();
-    try (ByteBufferBackedOutputStream out = new ByteBufferBackedOutputStream(
-        benchmarkState.outbb)) {
+    try (ByteBufferBackedOutputStream out =
+        new ByteBufferBackedOutputStream(benchmarkState.outbb)) {
       benchmarkState.bitmap_a.serialize(new DataOutputStream(out));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -56,7 +58,6 @@ public class Roaring64BmpSerializationBenchmark {
     final ByteBuffer outbb;
 
     final ByteBuffer presoutbb;
-
 
     public BenchmarkState() {
 
@@ -107,5 +108,3 @@ public class Roaring64BmpSerializationBenchmark {
     }
   }
 }
-
-

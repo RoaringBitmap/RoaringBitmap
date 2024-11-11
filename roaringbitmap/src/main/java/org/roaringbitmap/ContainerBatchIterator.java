@@ -46,5 +46,4 @@ public interface ContainerBatchIterator extends Cloneable {
    * @param target the value to advance to.
    */
   void advanceIfNeeded(char target);
-
 }

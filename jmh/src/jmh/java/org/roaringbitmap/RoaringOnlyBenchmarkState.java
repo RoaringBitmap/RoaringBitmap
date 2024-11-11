@@ -1,18 +1,17 @@
 package org.roaringbitmap;
 
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-
-import static org.roaringbitmap.realdata.wrapper.BitmapFactory.*;
 
 @State(Scope.Benchmark)
 public abstract class RoaringOnlyBenchmarkState {
@@ -44,24 +43,26 @@ public abstract class RoaringOnlyBenchmarkState {
     immutableOnlyRunContainers = new ArrayList<>();
     immutableOnlyBitmapContainers = new ArrayList<>();
 
-    List<int[]> ints = DATASET_CACHE.get(dataset, new Callable<List<int[]>>() {
+    List<int[]> ints =
+        DATASET_CACHE.get(
+            dataset,
+            new Callable<List<int[]>>() {
 
-      @Override
-      public List<int[]> call() throws Exception {
-        System.out.println("Loading" + dataset);
-        ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
-        return Lists.newArrayList(dataRetriever.fetchBitPositions());
-      }
-    });
+              @Override
+              public List<int[]> call() throws Exception {
+                System.out.println("Loading" + dataset);
+                ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
+                return Lists.newArrayList(dataRetriever.fetchBitPositions());
+              }
+            });
 
     for (int[] data : ints) {
       RoaringBitmap roaring = RoaringBitmap.bitmapOf(data);
       roaring.runOptimize();
       bitmaps.add(roaring);
       immutableBitmaps.add(roaring.toMutableRoaringBitmap());
-
     }
-    //Add bitmaps with only RunContainers preserved
+    // Add bitmaps with only RunContainers preserved
     for (RoaringBitmap rb : bitmaps) {
       RoaringBitmap runOnly = new RoaringBitmap();
       ContainerPointer cp = rb.getContainerPointer();
@@ -75,11 +76,11 @@ public abstract class RoaringOnlyBenchmarkState {
       immutableOnlyRunContainers.add(runOnly.toMutableRoaringBitmap());
     }
 
-    //Add bitmaps with only ArrayContainers preserved
+    // Add bitmaps with only ArrayContainers preserved
     for (RoaringBitmap rb : bitmaps) {
       RoaringBitmap clone = rb.clone();
       RoaringBitmap arrayOnly = new RoaringBitmap();
-      clone.removeRunCompression(); //more containers preserved
+      clone.removeRunCompression(); // more containers preserved
       ContainerPointer cp = clone.getContainerPointer();
       while (cp.getContainer() != null) {
         if (!cp.isBitmapContainer()) {
@@ -91,11 +92,11 @@ public abstract class RoaringOnlyBenchmarkState {
       immutableOnlyArrayContainers.add(arrayOnly.toMutableRoaringBitmap());
     }
 
-    //Add bitmaps with only BitmapContainers preserved
+    // Add bitmaps with only BitmapContainers preserved
     for (RoaringBitmap rb : bitmaps) {
       RoaringBitmap clone = rb.clone();
       RoaringBitmap bitmapOnly = new RoaringBitmap();
-      clone.removeRunCompression(); //more containers preserved
+      clone.removeRunCompression(); // more containers preserved
       ContainerPointer cp = clone.getContainerPointer();
       while (cp.getContainer() != null) {
         if (cp.isBitmapContainer()) {
@@ -106,12 +107,8 @@ public abstract class RoaringOnlyBenchmarkState {
       onlyBitmapContainers.add(bitmapOnly);
       immutableOnlyBitmapContainers.add(bitmapOnly.toMutableRoaringBitmap());
     }
-
-
   }
 
   @TearDown
-  public void tearDown() {
-  }
-
+  public void tearDown() {}
 }

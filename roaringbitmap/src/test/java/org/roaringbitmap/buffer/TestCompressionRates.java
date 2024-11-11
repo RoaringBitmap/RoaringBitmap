@@ -4,10 +4,9 @@
 
 package org.roaringbitmap.buffer;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.Test;
 
 public class TestCompressionRates {
 
@@ -26,5 +25,4 @@ public class TestCompressionRates {
       assertTrue(mrb.serializedSizeInBytes() * 8.0 / N < (maxval + 1));
     }
   }
-
 }

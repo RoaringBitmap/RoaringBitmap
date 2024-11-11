@@ -27,5 +27,4 @@ public interface IntIterator extends Cloneable {
    * @return next integer value
    */
   int next();
-
 }

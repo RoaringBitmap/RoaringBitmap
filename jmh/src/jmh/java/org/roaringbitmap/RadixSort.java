@@ -1,6 +1,12 @@
 package org.roaringbitmap;
 
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 
 import java.util.SplittableRandom;
 
@@ -34,18 +40,14 @@ public class RadixSort {
     }
   }
 
-
   @TearDown(Level.Invocation)
   public void restore() {
     System.arraycopy(input, 0, data, 0, input.length);
   }
-
 
   @Benchmark
   public int[] partialSort() {
     Util.partialRadixSort(data);
     return data;
   }
-
-
 }

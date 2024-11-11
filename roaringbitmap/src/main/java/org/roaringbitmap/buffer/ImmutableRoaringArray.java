@@ -17,7 +17,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.NoSuchElementException;
 
-
 /**
  * This is the underlying data structure for an ImmutableRoaringBitmap. This class is not meant for
  * end-users.
@@ -28,7 +27,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   protected static final short SERIAL_COOKIE = MutableRoaringArray.SERIAL_COOKIE;
   protected static final short SERIAL_COOKIE_NO_RUNCONTAINER =
       MutableRoaringArray.SERIAL_COOKIE_NO_RUNCONTAINER;
-  private final static int startofrunbitmap = 4; // if there is a runcontainer bitmap
+  private static final int startofrunbitmap = 4; // if there is a runcontainer bitmap
 
   ByteBuffer buffer;
   int size;
@@ -75,7 +74,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       return upper;
     }
 
-    if (getKey(upper) < (x)) {// means array has no item key >= x
+    if (getKey(upper) < (x)) { // means array has no item key >= x
       return size;
     }
 
@@ -115,19 +114,16 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     return -(low + 1);
   }
 
-
-
   @Override
   public ImmutableRoaringArray clone() {
     ImmutableRoaringArray sa;
     try {
       sa = (ImmutableRoaringArray) super.clone();
     } catch (CloneNotSupportedException e) {
-      return null;// should never happen
+      return null; // should never happen
     }
     return sa;
   }
-
 
   private int computeSerializedSizeInBytes(boolean hasRunContainers) {
     if (this.size == 0) {
@@ -155,8 +151,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     return buffer.getChar(this.getStartOfKeys() + 4 * k + 2) + 1;
   }
 
-
-
   @Override
   public int getContainerIndex(char x) {
     return unsignedBinarySearch(x);
@@ -165,8 +159,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   @Override
   public MappeableContainer getContainerAtIndex(int i) {
     boolean hasrun = hasRunCompression();
-    ByteBuffer tmp = buffer.duplicate();// sad but ByteBuffer is not thread-safe so it is either a
-                                        // duplicate or a lock
+    ByteBuffer tmp = buffer.duplicate(); // sad but ByteBuffer is not thread-safe so it is either a
+    // duplicate or a lock
     // note that tmp will indeed be garbage-collected some time after the end of this function
     tmp.order(buffer.order());
     tmp.position(getOffsetContainer(i, hasrun));
@@ -179,7 +173,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     int cardinality = getCardinality(i);
     final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
-                                                                               // runcontainer
+    // runcontainer
     if (isBitmap) {
       final LongBuffer bitmapArray = tmp.asLongBuffer();
       bitmapArray.limit(MappeableBitmapContainer.MAX_CAPACITY / 64);
@@ -202,15 +196,13 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
     int cardinality = getCardinality(i);
     final boolean isBitmap = cardinality > MappeableArrayContainer.DEFAULT_MAX_SIZE; // if not a
-                                                                               // runcontainer
+    // runcontainer
     if (isBitmap) {
       return MappeableBitmapContainer.contains(buffer, containerpos, x);
     } else {
       return MappeableArrayContainer.contains(buffer, containerpos, x, cardinality);
     }
   }
-
-
 
   @Override
   public MappeableContainerPointer getContainerPointer() {
@@ -228,13 +220,12 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         ++k;
       }
 
-
       @Override
       public MappeableContainerPointer clone() {
         try {
           return (MappeableContainerPointer) super.clone();
         } catch (CloneNotSupportedException e) {
-          return null;// will not happen
+          return null; // will not happen
         }
       }
 
@@ -258,7 +249,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         }
         return ImmutableRoaringArray.this.getContainerAtIndex(k);
       }
-
 
       @Override
       public int getSizeInBytes() {
@@ -294,9 +284,7 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       @Override
       public char key() {
         return ImmutableRoaringArray.this.getKeyAtIndex(k);
-
       }
-
 
       @Override
       public void previous() {
@@ -336,7 +324,6 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
   }
 
-
   private int getOffsetContainerSlow(int k, boolean hasRunCompression) {
     int pos = this.headerSize(hasRunCompression);
     for (int z = 0; z < k; ++z) {
@@ -362,21 +349,20 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     }
   }
 
-
   @Override
   public boolean equals(Object o) {
     if (o instanceof ImmutableRoaringArray) {
-      ImmutableRoaringArray srb = (ImmutableRoaringArray)o;
+      ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
       if (srb.size() != this.size()) {
         return false;
       }
       MappeableContainerPointer cp = this.getContainerPointer();
       MappeableContainerPointer cpo = srb.getContainerPointer();
-      while(cp.hasContainer() && cpo.hasContainer()) {
-        if(cp.key() != cpo.key()) {
+      while (cp.hasContainer() && cpo.hasContainer()) {
+        if (cp.key() != cpo.key()) {
           return false;
         }
-        if(!cp.getContainer().equals(cpo.getContainer())) {
+        if (!cp.getContainer().equals(cpo.getContainer())) {
           return false;
         }
       }
@@ -404,15 +390,15 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
   // hasrun should be equal to hasRunCompression()
   protected int headerSize(boolean hasrun) {
     if (hasrun) {
-      if (size < MutableRoaringArray.NO_OFFSET_THRESHOLD) {// for small bitmaps, we omit the offsets
+      if (size
+          < MutableRoaringArray.NO_OFFSET_THRESHOLD) { // for small bitmaps, we omit the offsets
         return 4 + (size + 7) / 8 + 4 * size;
       }
-      return 4 + (size + 7) / 8 + 8 * size;// - 4 because we pack the size with the cookie
+      return 4 + (size + 7) / 8 + 8 * size; // - 4 because we pack the size with the cookie
     } else {
       return 4 + 4 + 8 * size;
     }
   }
-
 
   /**
    * Returns true if this bitmap is empty.

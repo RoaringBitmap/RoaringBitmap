@@ -4,8 +4,13 @@
 
 package org.roaringbitmap;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Fast algorithms to aggregate many bitmaps.
@@ -13,7 +18,6 @@ import java.util.*;
  * @author Daniel Lemire
  */
 public final class FastAggregation {
-
 
   /**
    * Compute the AND aggregate.
@@ -50,7 +54,7 @@ public final class FastAggregation {
    */
   public static RoaringBitmap and(long[] aggregationBuffer, RoaringBitmap... bitmaps) {
     if (bitmaps.length > 10) {
-      if(aggregationBuffer.length < 1024) {
+      if (aggregationBuffer.length < 1024) {
         throw new IllegalArgumentException("buffer should have at least 1024 elements.");
       }
       try {
@@ -110,7 +114,6 @@ public final class FastAggregation {
   public static RoaringBitmap horizontal_or(Iterator<? extends RoaringBitmap> bitmaps) {
     return naive_or(bitmaps);
   }
-
 
   /**
    * Minimizes memory usage while computing the or aggregate on a moderate number of bitmaps.
@@ -230,7 +233,6 @@ public final class FastAggregation {
     return answer;
   }
 
-
   /**
    * Minimizes memory usage while computing the xor aggregate on a moderate number of bitmaps.
    *
@@ -288,7 +290,6 @@ public final class FastAggregation {
     return answer;
   }
 
-
   /**
    * Compute overall AND between bitmaps two-by-two.
    *
@@ -311,7 +312,6 @@ public final class FastAggregation {
     }
     return answer;
   }
-
 
   /**
    * Compute overall AND between bitmaps two-by-two.
@@ -372,8 +372,7 @@ public final class FastAggregation {
       }
     }
 
-    RoaringArray array =
-            new RoaringArray(keys, new Container[numContainers], 0);
+    RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
       Container[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -460,8 +459,6 @@ public final class FastAggregation {
     return cardinality;
   }
 
-
-
   /**
    * Computes the intersection by first intersecting the keys, avoids
    * materialising containers, limits memory usage.  You must provide a long[] array
@@ -475,7 +472,7 @@ public final class FastAggregation {
    * @return the intersection of the bitmaps
    */
   public static RoaringBitmap workAndMemoryShyAnd(long[] buffer, RoaringBitmap... bitmaps) {
-    if(buffer.length < 1024) {
+    if (buffer.length < 1024) {
       throw new IllegalArgumentException("buffer should have at least 1024 elements.");
     }
     long[] words = buffer;
@@ -485,15 +482,14 @@ public final class FastAggregation {
     }
     int numContainers = keys.length;
 
-    RoaringArray array =
-            new RoaringArray(keys, new Container[numContainers], 0);
+    RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
     for (int i = 0; i < numContainers; ++i) {
       char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
-      for(RoaringBitmap bitmap: bitmaps) {
+      for (RoaringBitmap bitmap : bitmaps) {
         int idx = bitmap.highLowContainer.getIndex(MatchingKey);
-        if(idx < 0) {
+        if (idx < 0) {
           continue;
         }
         Container container = bitmap.highLowContainer.getContainerAtIndex(idx);
@@ -547,7 +543,6 @@ public final class FastAggregation {
     return answer;
   }
 
-
   /**
    * Compute overall XOR between bitmaps two-by-two.
    *
@@ -563,7 +558,6 @@ public final class FastAggregation {
     }
     return answer;
   }
-
 
   /**
    * Compute overall XOR between bitmaps two-by-two.
@@ -626,12 +620,15 @@ public final class FastAggregation {
     for (int k = 0; k < sizes.length; ++k) {
       sizes[k] = buffer.get(k).getLongSizeInBytes();
     }
-    PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
-      @Override
-      public int compare(Integer a, Integer b) {
-        return (int) (sizes[a] - sizes[b]);
-      }
-    });
+    PriorityQueue<Integer> pq =
+        new PriorityQueue<>(
+            128,
+            new Comparator<Integer>() {
+              @Override
+              public int compare(Integer a, Integer b) {
+                return (int) (sizes[a] - sizes[b]);
+              }
+            });
     for (int k = 0; k < sizes.length; ++k) {
       pq.add(k);
     }
@@ -683,12 +680,15 @@ public final class FastAggregation {
     for (int k = 0; k < sizes.length; ++k) {
       sizes[k] = buffer[k].getLongSizeInBytes();
     }
-    PriorityQueue<Integer> pq = new PriorityQueue<>(128, new Comparator<Integer>() {
-      @Override
-      public int compare(Integer a, Integer b) {
-        return (int) (sizes[a] - sizes[b]);
-      }
-    });
+    PriorityQueue<Integer> pq =
+        new PriorityQueue<>(
+            128,
+            new Comparator<Integer>() {
+              @Override
+              public int compare(Integer a, Integer b) {
+                return (int) (sizes[a] - sizes[b]);
+              }
+            });
     for (int k = 0; k < sizes.length; ++k) {
       pq.add(k);
     }
@@ -736,12 +736,14 @@ public final class FastAggregation {
     }
 
     PriorityQueue<RoaringBitmap> pq =
-        new PriorityQueue<>(bitmaps.length, new Comparator<RoaringBitmap>() {
-          @Override
-          public int compare(RoaringBitmap a, RoaringBitmap b) {
-            return (int)(a.getLongSizeInBytes() - b.getLongSizeInBytes());
-          }
-        });
+        new PriorityQueue<>(
+            bitmaps.length,
+            new Comparator<RoaringBitmap>() {
+              @Override
+              public int compare(RoaringBitmap a, RoaringBitmap b) {
+                return (int) (a.getLongSizeInBytes() - b.getLongSizeInBytes());
+              }
+            });
     Collections.addAll(pq, bitmaps);
     while (pq.size() > 1) {
       RoaringBitmap x1 = pq.poll();
@@ -776,8 +778,5 @@ public final class FastAggregation {
   /**
    * Private constructor to prevent instantiation of utility class
    */
-  private FastAggregation() {
-
-  }
-
+  private FastAggregation() {}
 }

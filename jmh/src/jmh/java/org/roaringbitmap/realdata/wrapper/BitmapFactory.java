@@ -1,23 +1,16 @@
 package org.roaringbitmap.realdata.wrapper;
 
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-
-import io.druid.extendedset.intset.ConciseSet;
-import io.druid.extendedset.intset.ImmutableConciseSet;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
+import io.druid.extendedset.intset.ConciseSet;
+import io.druid.extendedset.intset.ImmutableConciseSet;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.nio.ByteBuffer;
 
 public final class BitmapFactory {
 
@@ -119,7 +112,6 @@ public final class BitmapFactory {
     return new ImmutableRoaringBitmapWrapper(roaring);
   }
 
-
   private static ByteBuffer toByteBuffer(Bitmap bitmap) throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(baos);
@@ -128,5 +120,4 @@ public final class BitmapFactory {
   }
 
   public static void cleanup() {}
-
 }

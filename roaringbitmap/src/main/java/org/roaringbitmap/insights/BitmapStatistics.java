@@ -28,7 +28,6 @@ public class BitmapStatistics {
     this.bitmapsCount = bitmapsCount;
   }
 
-
   /**
    * Calculates what fraction of all containers is the `containerTypeCount`
    * @param containerTypeCount denominator
@@ -49,11 +48,15 @@ public class BitmapStatistics {
   @Override
   public String toString() {
     return "BitmapStatistics{"
-      + "bitmapsCount=" + bitmapsCount
-      + ", arrayContainersStats=" + arrayContainersStats
-      + ", bitmapContainerCount=" + bitmapContainerCount
-      + ", runContainerCount=" + runContainerCount
-      + '}';
+        + "bitmapsCount="
+        + bitmapsCount
+        + ", arrayContainersStats="
+        + arrayContainersStats
+        + ", bitmapContainerCount="
+        + bitmapContainerCount
+        + ", runContainerCount="
+        + runContainerCount
+        + '}';
   }
 
   public long containerCount() {
@@ -62,14 +65,14 @@ public class BitmapStatistics {
 
   BitmapStatistics merge(BitmapStatistics other) {
     return new BitmapStatistics(
-      arrayContainersStats.merge(other.arrayContainersStats),
-      bitmapContainerCount + other.bitmapContainerCount,
-      runContainerCount + other.runContainerCount,
-      bitmapsCount + other.bitmapsCount);
+        arrayContainersStats.merge(other.arrayContainersStats),
+        bitmapContainerCount + other.bitmapContainerCount,
+        runContainerCount + other.runContainerCount,
+        bitmapsCount + other.bitmapsCount);
   }
 
-  public final static BitmapStatistics empty = new BitmapStatistics(
-      ArrayContainersStats.empty, 0, 0, 0);
+  public static final BitmapStatistics empty =
+      new BitmapStatistics(ArrayContainersStats.empty, 0, 0, 0);
 
   @Override
   public boolean equals(Object o) {
@@ -81,9 +84,9 @@ public class BitmapStatistics {
     }
     BitmapStatistics that = (BitmapStatistics) o;
     return bitmapsCount == that.bitmapsCount
-      && bitmapContainerCount == that.bitmapContainerCount
-      && runContainerCount == that.runContainerCount
-      && Objects.equals(arrayContainersStats, that.arrayContainersStats);
+        && bitmapContainerCount == that.bitmapContainerCount
+        && runContainerCount == that.runContainerCount
+        && Objects.equals(arrayContainersStats, that.arrayContainersStats);
   }
 
   @Override
@@ -123,8 +126,7 @@ public class BitmapStatistics {
 
     ArrayContainersStats merge(ArrayContainersStats other) {
       return new ArrayContainersStats(
-        containersCount + other.containersCount,
-        cardinalitySum + other.cardinalitySum);
+          containersCount + other.containersCount, cardinalitySum + other.cardinalitySum);
     }
 
     /**
@@ -139,7 +141,6 @@ public class BitmapStatistics {
       }
     }
 
-
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -149,8 +150,7 @@ public class BitmapStatistics {
         return false;
       }
       ArrayContainersStats that = (ArrayContainersStats) o;
-      return containersCount == that.containersCount
-        && cardinalitySum == that.cardinalitySum;
+      return containersCount == that.containersCount && cardinalitySum == that.cardinalitySum;
     }
 
     @Override
@@ -161,13 +161,13 @@ public class BitmapStatistics {
     @Override
     public String toString() {
       return "ArrayContainersStats{"
-        + "containersCount=" + containersCount
-        + ", cardinalitySum=" + cardinalitySum
-        + '}';
+          + "containersCount="
+          + containersCount
+          + ", cardinalitySum="
+          + cardinalitySum
+          + '}';
     }
 
-    public final static ArrayContainersStats empty = new ArrayContainersStats(0, 0);
+    public static final ArrayContainersStats empty = new ArrayContainersStats(0, 0);
   }
-
-
 }

@@ -1,11 +1,17 @@
 package org.roaringbitmap.aggregation;
 
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.FastAggregation;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapWriter;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 
 import java.util.Arrays;
 import java.util.SplittableRandom;
@@ -20,19 +26,16 @@ public class FastAggregationRLEStressTest {
       CONSTANT_MEMORY {
         @Override
         public RoaringBitmapWriter<RoaringBitmap> create() {
-          return RoaringBitmapWriter.writer()
-                  .constantMemory()
-                  .get();
+          return RoaringBitmapWriter.writer().constantMemory().get();
         }
       },
       CONTAINER_APPENDER {
         @Override
         public RoaringBitmapWriter<RoaringBitmap> create() {
-          return RoaringBitmapWriter.writer()
-                  .get();
+          return RoaringBitmapWriter.writer().get();
         }
-      }
-      ;
+      };
+
       public abstract RoaringBitmapWriter<RoaringBitmap> create();
     }
 
@@ -48,8 +51,7 @@ public class FastAggregationRLEStressTest {
     @Param({"0.01", "0.1", "0.5"})
     double probability;
 
-    @Param
-    ConstructionStrategy constructionStrategy;
+    @Param ConstructionStrategy constructionStrategy;
 
     @Param("99999")
     long seed;
@@ -64,12 +66,12 @@ public class FastAggregationRLEStressTest {
       RoaringBitmapWriter<RoaringBitmap> bitmapWriter = constructionStrategy.create();
       bitmaps = new RoaringBitmap[count];
       bufferBitmaps = new ImmutableRoaringBitmap[count];
-      double p = Math.pow(probability, 1D/count);
+      double p = Math.pow(probability, 1D / count);
       for (int i = 0; i < count; ++i) {
-        for (int j = (int)(Math.log(random.nextDouble())/Math.log(1-p));
-             j < size;
-             j += (int)(Math.log(random.nextDouble())/Math.log(1-p)) + 1) {
-            bitmapWriter.add(j);
+        for (int j = (int) (Math.log(random.nextDouble()) / Math.log(1 - p));
+            j < size;
+            j += (int) (Math.log(random.nextDouble()) / Math.log(1 - p)) + 1) {
+          bitmapWriter.add(j);
         }
         bitmaps[i] = bitmapWriter.get();
         bufferBitmaps[i] = bitmaps[i].toMutableRoaringBitmap();
@@ -77,7 +79,6 @@ public class FastAggregationRLEStressTest {
       }
     }
   }
-
 
   @Benchmark
   public RoaringBitmap and(BitmapState state) {
@@ -91,13 +92,13 @@ public class FastAggregationRLEStressTest {
 
   @Benchmark
   public RoaringBitmap andMemoryShy(BitmapState state) {
-    Arrays.fill(state.buffer,0);
+    Arrays.fill(state.buffer, 0);
     return FastAggregation.workAndMemoryShyAnd(state.buffer, state.bitmaps);
   }
 
   @Benchmark
   public ImmutableRoaringBitmap andBufferMemoryShy(BitmapState state) {
-    Arrays.fill(state.buffer,0);
+    Arrays.fill(state.buffer, 0);
     return BufferFastAggregation.workAndMemoryShyAnd(state.buffer, state.bufferBitmaps);
   }
 
@@ -110,7 +111,6 @@ public class FastAggregationRLEStressTest {
   public int andCardinalityMaterialize(BitmapState state) {
     return FastAggregation.and(state.bitmaps).getCardinality();
   }
-
 
   @Benchmark
   public int andCardinalityBuffer(BitmapState state) {
@@ -132,7 +132,6 @@ public class FastAggregationRLEStressTest {
     return FastAggregation.or(state.bitmaps).getCardinality();
   }
 
-
   @Benchmark
   public int orCardinalityBuffer(BitmapState state) {
     return BufferFastAggregation.orCardinality(state.bufferBitmaps);
@@ -142,5 +141,4 @@ public class FastAggregationRLEStressTest {
   public int orCardinalityBufferMaterialize(BitmapState state) {
     return BufferFastAggregation.or(state.bufferBitmaps).getCardinality();
   }
-
 }

@@ -5,5 +5,4 @@ public interface BitmapIterator {
   boolean hasNext();
 
   int next();
-
 }

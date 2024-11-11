@@ -1,8 +1,16 @@
 package org.roaringbitmap.runcontainer;
 
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -54,10 +62,18 @@ public class GetCardinalityMappeableContainerBenchmark {
       mc3 = new MappeableRunContainer();
       mc4 = new MappeableRunContainer();
 
-      for (int i : values1) { mc1.add((char) i); }
-      for (int i : values2) { mc2.add((char) i); }
-      for (int i : values3) { mc3.add((char) i); }
-      for (int i : values4) { mc4.add((char) i); }
+      for (int i : values1) {
+        mc1.add((char) i);
+      }
+      for (int i : values2) {
+        mc2.add((char) i);
+      }
+      for (int i : values3) {
+        mc3.add((char) i);
+      }
+      for (int i : values4) {
+        mc4.add((char) i);
+      }
     }
   }
 }

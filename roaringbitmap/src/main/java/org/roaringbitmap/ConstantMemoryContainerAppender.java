@@ -1,10 +1,11 @@
 package org.roaringbitmap;
 
+import static org.roaringbitmap.Util.highbits;
+import static org.roaringbitmap.Util.lowbits;
+import static org.roaringbitmap.Util.partialRadixSort;
+
 import java.util.Arrays;
 import java.util.function.Supplier;
-
-import static org.roaringbitmap.Util.*;
-
 
 /**
  * This class can be used to write quickly values to a bitmap.
@@ -31,8 +32,9 @@ import static org.roaringbitmap.Util.*;
  * }
  * </pre>
  */
-public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
-        & AppendableStorage<Container>> implements RoaringBitmapWriter<T> {
+public class ConstantMemoryContainerAppender<
+        T extends BitmapDataProvider & AppendableStorage<Container>>
+    implements RoaringBitmapWriter<T> {
 
   private final boolean doPartialSort;
   private final boolean runCompress;
@@ -50,9 +52,8 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
    * @param runCompress whether to run compress appended containers
    * @param newUnderlying supplier of bitmaps where the data gets written
    */
-  ConstantMemoryContainerAppender(boolean doPartialSort,
-                                  boolean runCompress,
-                                  Supplier<T> newUnderlying) {
+  ConstantMemoryContainerAppender(
+      boolean doPartialSort, boolean runCompress, Supplier<T> newUnderlying) {
     this.newUnderlying = newUnderlying;
     this.underlying = newUnderlying.get();
     this.doPartialSort = doPartialSort;
@@ -108,7 +109,7 @@ public class ConstantMemoryContainerAppender<T extends BitmapDataProvider
   public void add(long min, long max) {
     appendToUnderlying();
     underlying.add(min, max);
-    int mark = (int)((max >>> 16) + 1);
+    int mark = (int) ((max >>> 16) + 1);
     if (currentKey < mark) {
       currentKey = mark;
     }

@@ -1,10 +1,9 @@
 package org.roaringbitmap.iteration;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.IntIterator;
+import org.roaringbitmap.IntIteratorFlyweight;
+import org.roaringbitmap.ReverseIntIteratorFlyweight;
+import org.roaringbitmap.RoaringBitmap;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -12,7 +11,12 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.*;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Borislav Ivanov on 4/2/15.
@@ -27,7 +31,6 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
   }
@@ -39,10 +42,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -55,10 +56,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -67,11 +66,9 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
   }
-
 
   @Benchmark
   public int testStandard_b(BenchmarkState benchmarkState) {
@@ -80,10 +77,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -96,10 +91,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -108,11 +101,9 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
   }
-
 
   @Benchmark
   public int testStandard_c(BenchmarkState benchmarkState) {
@@ -121,10 +112,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -137,10 +126,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -150,10 +137,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -166,10 +151,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -179,10 +162,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -195,10 +176,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -208,10 +187,8 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
 
   @Benchmark
@@ -224,12 +201,9 @@ public class IteratorsBenchmark32 {
     int result = 0;
     while (intIterator.hasNext()) {
       result = intIterator.next();
-
     }
     return result;
-
   }
-
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
@@ -250,13 +224,10 @@ public class IteratorsBenchmark32 {
       bitmap_a = RoaringBitmap.bitmapOf(data);
 
       bitmap_b = new RoaringBitmap();
-      for (int k = 0; k < (1 << 30); k += 32)
-        bitmap_b.add(k);
+      for (int k = 0; k < (1 << 30); k += 32) bitmap_b.add(k);
 
       bitmap_c = new RoaringBitmap();
-      for (int k = 0; k < (1 << 30); k += 3)
-        bitmap_c.add(k);
-
+      for (int k = 0; k < (1 << 30); k += 3) bitmap_c.add(k);
     }
 
     private int[] takeSortedAndDistinct(Random source, int count) {
@@ -284,5 +255,4 @@ public class IteratorsBenchmark32 {
       return ints;
     }
   }
-
 }

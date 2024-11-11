@@ -14,5 +14,3 @@ public interface PeekableIntRankIterator extends PeekableIntIterator {
   @Override
   PeekableIntRankIterator clone();
 }
-
-

@@ -25,5 +25,4 @@ public interface LongIterator extends Cloneable {
    * @return next long value
    */
   long next();
-
 }

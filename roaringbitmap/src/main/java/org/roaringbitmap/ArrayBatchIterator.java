@@ -1,6 +1,5 @@
 package org.roaringbitmap;
 
-
 import static org.roaringbitmap.Util.unsignedBinarySearch;
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
@@ -30,7 +29,7 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);

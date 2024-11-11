@@ -1,6 +1,5 @@
 package org.roaringbitmap;
 
-
 /**
  * Simple extension to the IntIterator interface.
  * It allows you to "skip" values using the advanceIfNeeded
@@ -86,5 +85,3 @@ public interface PeekableIntIterator extends IntIterator {
   @Override
   PeekableIntIterator clone();
 }
-
-

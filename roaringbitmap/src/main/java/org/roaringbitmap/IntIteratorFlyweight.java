@@ -32,9 +32,7 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
    * Creates an instance that is not ready for iteration. You must first call
    * {@link #wrap(RoaringBitmap)}.
    */
-  public IntIteratorFlyweight() {
-
-  }
+  public IntIteratorFlyweight() {}
 
   /**
    * Creates an instance that is ready for iteration.
@@ -49,12 +47,12 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
   public PeekableIntIterator clone() {
     try {
       IntIteratorFlyweight x = (IntIteratorFlyweight) super.clone();
-      if(this.iter != null) {
+      if (this.iter != null) {
         x.iter = this.iter.clone();
       }
       return x;
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 

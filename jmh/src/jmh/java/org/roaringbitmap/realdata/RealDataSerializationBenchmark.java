@@ -13,15 +13,9 @@ import static org.roaringbitmap.RealDataset.WEATHER_SEPT_85_SRT;
 import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES;
 import static org.roaringbitmap.RealDataset.WIKILEAKS_NOQUOTES_SRT;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.StreamSupport;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ZipRealDataRetriever;
+import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -35,9 +29,16 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ZipRealDataRetriever;
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -46,40 +47,47 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
  */
 public class RealDataSerializationBenchmark {
 
-	 public void
-	    launchBenchmark() throws Exception {
+  public void launchBenchmark() throws Exception {
 
-	            Options opt = new OptionsBuilder()
-	                // Specify which benchmarks to run.
-	                // You can be more specific if you'd like to run only one benchmark per test.
-	                .include(this.getClass().getName() + ".*")
-	                // Set the following options as needed
-	                .mode (Mode.AverageTime)
-	                .timeUnit(TimeUnit.MICROSECONDS)
-	                .warmupTime(TimeValue.seconds(1))
-	                .warmupIterations(2)
-	                .measurementTime(TimeValue.seconds(10))
-	                .measurementIterations(5)
-	                .threads(1)
-	                .forks(1)
-	                .shouldFailOnError(true)
-	                .shouldDoGC(true)
-	                //.jvmArgs("-XX:+UnlockDiagnosticVMOptions", "-XX:+PrintInlining")
-	                //.addProfiler(WinPerfAsmProfiler.class)
-	                .build();
+    Options opt =
+        new OptionsBuilder()
+            // Specify which benchmarks to run.
+            // You can be more specific if you'd like to run only one benchmark per test.
+            .include(this.getClass().getName() + ".*")
+            // Set the following options as needed
+            .mode(Mode.AverageTime)
+            .timeUnit(TimeUnit.MICROSECONDS)
+            .warmupTime(TimeValue.seconds(1))
+            .warmupIterations(2)
+            .measurementTime(TimeValue.seconds(10))
+            .measurementIterations(5)
+            .threads(1)
+            .forks(1)
+            .shouldFailOnError(true)
+            .shouldDoGC(true)
+            // .jvmArgs("-XX:+UnlockDiagnosticVMOptions", "-XX:+PrintInlining")
+            // .addProfiler(WinPerfAsmProfiler.class)
+            .build();
 
-	            new Runner(opt).run();
-	        }
+    new Runner(opt).run();
+  }
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
 
-
     @Param({
-            CENSUS_INCOME, CENSUS1881, DIMENSION_008,
-            DIMENSION_003, DIMENSION_033, USCENSUS2000,
-            WEATHER_SEPT_85, WIKILEAKS_NOQUOTES, CENSUS_INCOME_SRT, CENSUS1881_SRT, WEATHER_SEPT_85_SRT,
-            WIKILEAKS_NOQUOTES_SRT
+      CENSUS_INCOME,
+      CENSUS1881,
+      DIMENSION_008,
+      DIMENSION_003,
+      DIMENSION_033,
+      USCENSUS2000,
+      WEATHER_SEPT_85,
+      WIKILEAKS_NOQUOTES,
+      CENSUS_INCOME_SRT,
+      CENSUS1881_SRT,
+      WEATHER_SEPT_85_SRT,
+      WIKILEAKS_NOQUOTES_SRT
     })
     public String dataset;
 
@@ -91,7 +99,8 @@ public class RealDataSerializationBenchmark {
     @Setup(Level.Trial)
     public void setup() throws Exception {
       ZipRealDataRetriever dataRetriever = new ZipRealDataRetriever(dataset);
-      RoaringBitmap[] bitmaps = StreamSupport.stream(dataRetriever.fetchBitPositions().spliterator(), false)
+      RoaringBitmap[] bitmaps =
+          StreamSupport.stream(dataRetriever.fetchBitPositions().spliterator(), false)
               .map(RoaringBitmap::bitmapOf)
               .toArray(RoaringBitmap[]::new);
       buffers = new byte[bitmaps.length][];
@@ -107,19 +116,19 @@ public class RealDataSerializationBenchmark {
     }
   }
 
-
   @Benchmark
   public void bufferBackedDataInput(BenchmarkState state, Blackhole bh) throws IOException {
-      byte[][] buffers = state.buffers;
-      for (int i = 0; i < buffers.length; ++i) {
-          RoaringBitmap bitmap = new RoaringBitmap();
-          bitmap.deserialize(new BufferDataInput(ByteBuffer.wrap(state.buffers[i])));
-          bh.consume(bitmap);
-      }
+    byte[][] buffers = state.buffers;
+    for (int i = 0; i < buffers.length; ++i) {
+      RoaringBitmap bitmap = new RoaringBitmap();
+      bitmap.deserialize(new BufferDataInput(ByteBuffer.wrap(state.buffers[i])));
+      bh.consume(bitmap);
+    }
   }
 
   @Benchmark
-  public void streamBackedDataInputWithBuffer(BenchmarkState state, Blackhole bh) throws IOException {
+  public void streamBackedDataInputWithBuffer(BenchmarkState state, Blackhole bh)
+      throws IOException {
     byte[][] buffers = state.buffers;
     for (int i = 0; i < buffers.length; ++i) {
       RoaringBitmap bitmap = new RoaringBitmap();
@@ -154,7 +163,8 @@ public class RealDataSerializationBenchmark {
   public void viaImmutable(BenchmarkState state, Blackhole bh) {
     byte[][] buffers = state.buffers;
     for (int i = 0; i < buffers.length; ++i) {
-      RoaringBitmap bitmap = new ImmutableRoaringBitmap(ByteBuffer.wrap(state.buffers[i])).toRoaringBitmap();
+      RoaringBitmap bitmap =
+          new ImmutableRoaringBitmap(ByteBuffer.wrap(state.buffers[i])).toRoaringBitmap();
       bh.consume(bitmap);
     }
   }
@@ -243,5 +253,4 @@ public class RealDataSerializationBenchmark {
       return null;
     }
   }
-
 }

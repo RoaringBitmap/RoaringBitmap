@@ -1,8 +1,7 @@
 package org.roaringbitmap.runcontainer;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RoaringBitmap;
 
 import io.druid.extendedset.intset.ConciseSet;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -11,8 +10,10 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RoaringBitmap;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -30,8 +31,9 @@ public class RunArrayXorBenchmark {
   public int XorRunContainer(BenchmarkState benchmarkState) {
     int answer = 0;
     for (int k = 1; k < benchmarkState.rc.size(); ++k)
-      answer += RoaringBitmap.xor(benchmarkState.rc.get(k - 1), benchmarkState.rc.get(k))
-          .getCardinality();
+      answer +=
+          RoaringBitmap.xor(benchmarkState.rc.get(k - 1), benchmarkState.rc.get(k))
+              .getCardinality();
     return answer;
   }
 
@@ -39,8 +41,9 @@ public class RunArrayXorBenchmark {
   public int XorBitmapContainer(BenchmarkState benchmarkState) {
     int answer = 0;
     for (int k = 1; k < benchmarkState.ac.size(); ++k)
-      answer += RoaringBitmap.xor(benchmarkState.ac.get(k - 1), benchmarkState.ac.get(k))
-          .getCardinality();
+      answer +=
+          RoaringBitmap.xor(benchmarkState.ac.get(k - 1), benchmarkState.ac.get(k))
+              .getCardinality();
     return answer;
   }
 
@@ -62,7 +65,6 @@ public class RunArrayXorBenchmark {
     Random rand = new Random();
     Container aggregate;
 
-
     public BenchmarkState() {
       int N = 30;
       Random rand = new Random(1234);
@@ -72,7 +74,7 @@ public class RunArrayXorBenchmark {
 
         for (int z = 0; z < 50; ++z) {
           int end = start + rand.nextInt(10000);
-          rb.add((long)start, (long)end);
+          rb.add((long) start, (long) end);
           start = end + rand.nextInt(1000);
         }
         cc.add(toConcise(rb.toArray()));
@@ -95,9 +97,7 @@ public class RunArrayXorBenchmark {
         rb = rb.clone();
         rb.runOptimize();
         rc.add(rb);
-
       }
     }
   }
-
 }

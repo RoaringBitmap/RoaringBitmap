@@ -20,7 +20,6 @@ public interface CharIterator extends Cloneable {
    */
   boolean hasNext();
 
-
   /**
    * @return next char value
    */
@@ -35,5 +34,4 @@ public interface CharIterator extends Cloneable {
    * If possible, remove the current value
    */
   void remove();
-
 }

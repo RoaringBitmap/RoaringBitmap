@@ -1,5 +1,11 @@
 package org.roaringbitmap.buffer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
+import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -13,10 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
-import static org.roaringbitmap.buffer.TestMappeableArrayContainer.newArrayContainer;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class TestMappeableRunContainer {
@@ -67,17 +69,19 @@ public class TestMappeableRunContainer {
   static MappeableRunContainer newRunContainer(int firstOfRun, final int lastOfRun) {
     CharBuffer buffer = CharBuffer.allocate(2);
     buffer.put((char) firstOfRun);
-    buffer.put((char) (lastOfRun-firstOfRun-1));
+    buffer.put((char) (lastOfRun - firstOfRun - 1));
     return new MappeableRunContainer(buffer.asReadOnlyBuffer(), 1);
   }
 
   @Test
   public void selectInvalidPosition() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      MappeableContainer bc = new MappeableRunContainer();
-      bc = bc.add(1, 13);
-      bc.select(100);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          MappeableContainer bc = new MappeableRunContainer();
+          bc = bc.add(1, 13);
+          bc.select(100);
+        });
   }
 
   @Test
@@ -221,18 +225,20 @@ public class TestMappeableRunContainer {
 
   @Test
   public void testRangeCardinality() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc =
+        TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     MappeableContainer result = rc.or(bc);
     assertEquals(8677, result.getCardinality());
   }
 
   @Test
   public void testRangeCardinality2() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    bc.add((char)22345); //important case to have greater element than run container
-    bc.add((char)Short.MAX_VALUE);
-    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 18000}, 3);
+    MappeableBitmapContainer bc =
+        TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    bc.add((char) 22345); // important case to have greater element than run container
+    bc.add((char) Short.MAX_VALUE);
+    MappeableRunContainer rc = generateContainer(new char[] {7, 300, 400, 900, 1400, 18000}, 3);
     assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
     MappeableContainer result = rc.andNot(bc);
     assertEquals(11437, result.getCardinality());
@@ -240,16 +246,18 @@ public class TestMappeableRunContainer {
 
   @Test
   public void testRangeCardinality3() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 5200}, 3);
+    MappeableBitmapContainer bc =
+        TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[] {7, 300, 400, 900, 1400, 5200}, 3);
     MappeableBitmapContainer result = (MappeableBitmapContainer) rc.and(bc);
     assertEquals(5046, result.getCardinality());
   }
 
   @Test
   public void testRangeCardinality4() {
-    MappeableBitmapContainer bc = TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
-    MappeableRunContainer rc = generateContainer(new char[]{7, 300, 400, 900, 1400, 2200}, 3);
+    MappeableBitmapContainer bc =
+        TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
+    MappeableRunContainer rc = generateContainer(new char[] {7, 300, 400, 900, 1400, 2200}, 3);
     MappeableBitmapContainer result = (MappeableBitmapContainer) rc.xor(bc);
     assertEquals(6031, result.getCardinality());
   }
@@ -290,7 +298,7 @@ public class TestMappeableRunContainer {
   public void testEqualsArrayContainer_NotEqual_ArrayDiscontiguous() {
     MappeableContainer rc = new MappeableRunContainer().add(0, 10);
     MappeableContainer ac = new MappeableArrayContainer().add(0, 11);
-    ac.flip((char)9);
+    ac.flip((char) 9);
     assertFalse(rc.equals(ac));
     assertFalse(ac.equals(rc));
   }

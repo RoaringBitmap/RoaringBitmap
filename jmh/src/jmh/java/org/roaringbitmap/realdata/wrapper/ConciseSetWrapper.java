@@ -1,14 +1,14 @@
 package org.roaringbitmap.realdata.wrapper;
 
+import org.roaringbitmap.IntConsumer;
+
+import io.druid.extendedset.intset.ConciseSet;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-
-import io.druid.extendedset.intset.ConciseSet;
-import org.roaringbitmap.IntConsumer;
 
 final class ConciseSetWrapper implements Bitmap {
 
@@ -69,10 +69,7 @@ final class ConciseSetWrapper implements Bitmap {
     // put this back, but have to hunt down the JMH param setting
     // so the comparison does not abort.
     return new ConciseSetWrapper(bitmap); // wrong result
-
   }
-
-
 
   @Override
   public Bitmap andNot(Bitmap other) {
@@ -115,13 +112,15 @@ final class ConciseSetWrapper implements Bitmap {
       @Override
       public Bitmap aggregate(Iterable<Bitmap> bitmaps) {
         PriorityQueue<ConciseSet> pq =
-            new PriorityQueue<ConciseSet>(128, new Comparator<ConciseSet>() {
-              @Override
-              public int compare(ConciseSet a, ConciseSet b) {
-                return (int) (a.size() * a.collectionCompressionRatio())
-                    - (int) (b.size() * b.collectionCompressionRatio());
-              }
-            });
+            new PriorityQueue<ConciseSet>(
+                128,
+                new Comparator<ConciseSet>() {
+                  @Override
+                  public int compare(ConciseSet a, ConciseSet b) {
+                    return (int) (a.size() * a.collectionCompressionRatio())
+                        - (int) (b.size() * b.collectionCompressionRatio());
+                  }
+                });
         for (Bitmap bitmap1 : bitmaps) {
           pq.add(((ConciseSetWrapper) bitmap1).bitmap);
         }
@@ -155,5 +154,4 @@ final class ConciseSetWrapper implements Bitmap {
   public Bitmap clone() {
     return new ConciseSetWrapper(bitmap.clone());
   }
-
 }

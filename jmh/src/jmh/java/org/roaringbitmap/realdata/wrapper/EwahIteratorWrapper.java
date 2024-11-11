@@ -19,5 +19,4 @@ final class EwahIteratorWrapper implements BitmapIterator {
   public int next() {
     return iterator.next();
   }
-
 }

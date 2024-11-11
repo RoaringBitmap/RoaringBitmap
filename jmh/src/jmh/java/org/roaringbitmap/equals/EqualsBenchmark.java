@@ -1,18 +1,29 @@
 // https://github.com/RoaringBitmap/RoaringBitmap/issues/161
 package org.roaringbitmap.equals;
 
-import org.openjdk.jmh.annotations.*;
-import org.roaringbitmap.*;
-
-import java.util.Arrays;
-
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.openjdk.jmh.annotations.Mode.AverageTime;
+
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RandomData;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RunContainer;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+
+import java.util.Arrays;
 
 @BenchmarkMode(AverageTime)
 @OutputTimeUnit(MICROSECONDS)
 public class EqualsBenchmark {
-
 
   @Benchmark
   public boolean runVsArrayEquals_FewRuns(EqualsFewRunsBenchmarkState benchmarkState) {
@@ -47,11 +58,9 @@ public class EqualsBenchmark {
       arrayContainer = addRange(arrayContainer, 501, 1500);
       runContainer = addRange(runContainer, 501, 1500);
 
-
       arrayContainer = addRange(arrayContainer, 3000, 4500);
       runContainer = addRange(runContainer, 3000, 4500);
     }
-
   }
 
   @State(Scope.Benchmark)
@@ -67,11 +76,11 @@ public class EqualsBenchmark {
     }
   }
 
-
   @State(Scope.Benchmark)
   public static class EqualArrayContainersBenchmarkState {
     @Param({"20", "200", "1000", "2000"})
     int size;
+
     @Param({"0.1", "0.5", "0.9", "1"})
     float firstMismatch;
 
@@ -111,9 +120,7 @@ public class EqualsBenchmark {
         runStart += runLength + shift;
       }
     }
-
   }
-
 
   private static char[] array(int size) {
     if (size >= 4096) {
@@ -129,5 +136,4 @@ public class EqualsBenchmark {
   static Container addRange(Container c, int min, int sup) {
     return c.iadd(min, sup);
   }
-
 }

@@ -1,13 +1,13 @@
 package org.roaringbitmap.realdata.wrapper;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.roaringbitmap.IntConsumer;
 
 import com.googlecode.javaewah32.EWAHCompressedBitmap32;
 import com.googlecode.javaewah32.FastAggregation32;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
 
 final class Ewah32BitmapWrapper implements Bitmap {
 
@@ -84,8 +84,6 @@ final class Ewah32BitmapWrapper implements Bitmap {
     return new Ewah32BitmapWrapper(temp);
   }
 
-
-
   @Override
   public Bitmap andNot(Bitmap other) {
     return new Ewah32BitmapWrapper(bitmap.andNot(((Ewah32BitmapWrapper) other).bitmap));
@@ -126,27 +124,25 @@ final class Ewah32BitmapWrapper implements Bitmap {
     return new BitmapAggregator() {
       @Override
       public Bitmap aggregate(final Iterable<Bitmap> bitmaps) {
-        Iterator<EWAHCompressedBitmap32> iterator = new Iterator<EWAHCompressedBitmap32>() {
-          final Iterator<Bitmap> i = bitmaps.iterator();
+        Iterator<EWAHCompressedBitmap32> iterator =
+            new Iterator<EWAHCompressedBitmap32>() {
+              final Iterator<Bitmap> i = bitmaps.iterator();
 
-          @Override
-          public boolean hasNext() {
-            return i.hasNext();
-          }
+              @Override
+              public boolean hasNext() {
+                return i.hasNext();
+              }
 
-          @Override
-          public EWAHCompressedBitmap32 next() {
-            return ((Ewah32BitmapWrapper) i.next()).bitmap;
-          }
+              @Override
+              public EWAHCompressedBitmap32 next() {
+                return ((Ewah32BitmapWrapper) i.next()).bitmap;
+              }
 
-
-          @Override
-          public void remove() {
-            throw new UnsupportedOperationException();
-          }
-
-
-        };
+              @Override
+              public void remove() {
+                throw new UnsupportedOperationException();
+              }
+            };
         return new Ewah32BitmapWrapper(FastAggregation32.or(iterator));
       }
     };
@@ -170,5 +166,4 @@ final class Ewah32BitmapWrapper implements Bitmap {
       throw new RuntimeException(e);
     }
   }
-
 }

@@ -1,7 +1,8 @@
 package org.roaringbitmap.art;
 
-import java.util.Iterator;
 import org.roaringbitmap.Container;
+
+import java.util.Iterator;
 
 public class ContainerIterator implements Iterator<Container> {
 

@@ -1,5 +1,10 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -7,11 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.roaringbitmap.ArrayContainer;
-import org.roaringbitmap.BitmapContainer;
-import org.roaringbitmap.Container;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.RunContainer;
 
 /**
  * To support the largest 2^48 different keys,we almost need 2^18 Container arrays which holds 2^31
@@ -62,7 +62,7 @@ public class Containers {
    * @return the corresponding Container
    */
   public Container getContainer(long idx) {
-    //split the idx into two part
+    // split the idx into two part
     int firstDimIdx = (int) (idx >>> 32);
     int secondDimIdx = (int) idx;
     Container[] containers = containerArrays.get(firstDimIdx);
@@ -214,7 +214,7 @@ public class Containers {
       Container[] containers = containerArrays.get(i);
       int secondLevelSize = containers.length;
       dataOutput.writeByte(NOT_TRIMMED_MARK);
-      //TODO:serialize the trimmed related data
+      // TODO:serialize the trimmed related data
       dataOutput.writeInt(Integer.reverseBytes(secondLevelSize));
       for (int j = 0; j < containers.length; j++) {
         Container container = containers[j];
@@ -247,7 +247,7 @@ public class Containers {
       Container[] containers = containerArrays.get(i);
       int secondLevelSize = containers.length;
       byteBuffer.put(NOT_TRIMMED_MARK);
-      //TODO:serialize the trimmed related data
+      // TODO:serialize the trimmed related data
       byteBuffer.putInt(secondLevelSize);
       for (int j = 0; j < containers.length; j++) {
         Container container = containers[j];
@@ -277,7 +277,7 @@ public class Containers {
     int firstLevelSize = Integer.reverseBytes(dataInput.readInt());
     ArrayList<Container[]> containersArray = new ArrayList<>(firstLevelSize);
     for (int i = 0; i < firstLevelSize; i++) {
-      //TODO:deserialize the trimmed related data
+      // TODO:deserialize the trimmed related data
       byte trimTag = dataInput.readByte();
       int secondLevelSize = Integer.reverseBytes(dataInput.readInt());
       Container[] containers = new Container[secondLevelSize];
@@ -312,7 +312,7 @@ public class Containers {
     int firstLevelSize = byteBuffer.getInt();
     ArrayList<Container[]> containersArray = new ArrayList<>(firstLevelSize);
     for (int i = 0; i < firstLevelSize; i++) {
-      //TODO:deserialize the trimmed related data
+      // TODO:deserialize the trimmed related data
       byte trimTag = byteBuffer.get();
       int secondLevelSize = byteBuffer.getInt();
       Container[] containers = new Container[secondLevelSize];

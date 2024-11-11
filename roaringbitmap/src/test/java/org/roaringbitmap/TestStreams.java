@@ -2,9 +2,10 @@
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
 
-
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -16,9 +17,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TestStreams {
   private static List<Integer> asList(IntIterator ints) {
@@ -34,22 +32,23 @@ public class TestStreams {
   }
 
   private static List<Integer> asList(final CharIterator shorts) {
-    return asList(new IntIterator() {
-      @Override
-      public IntIterator clone() {
-        throw new UnsupportedOperationException();
-      }
+    return asList(
+        new IntIterator() {
+          @Override
+          public IntIterator clone() {
+            throw new UnsupportedOperationException();
+          }
 
-      @Override
-      public boolean hasNext() {
-        return shorts.hasNext();
-      }
+          @Override
+          public boolean hasNext() {
+            return shorts.hasNext();
+          }
 
-      @Override
-      public int next() {
-        return shorts.next();
-      }
-    });
+          @Override
+          public int next() {
+            return shorts.next();
+          }
+        });
   }
 
   private static int[] takeSortedAndDistinct(Random source, int count) {
@@ -78,8 +77,10 @@ public class TestStreams {
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(data);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
-    final List<Integer> intIteratorCopy = bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
-    final List<Integer> reverseIntIteratorCopy = bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
+    final List<Integer> intIteratorCopy =
+        bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
+    final List<Integer> reverseIntIteratorCopy =
+        bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
 
     assertEquals(bitmap.getCardinality(), iteratorCopy.size());
     assertEquals(bitmap.getCardinality(), intIteratorCopy.size());
@@ -94,8 +95,10 @@ public class TestStreams {
     RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3);
 
     final List<Integer> iteratorCopy = ImmutableList.copyOf(bitmap.iterator());
-    final List<Integer> intIteratorCopy = bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
-    final List<Integer> reverseIntIteratorCopy = bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
+    final List<Integer> intIteratorCopy =
+        bitmap.stream().mapToObj(Integer::valueOf).collect(Collectors.toList());
+    final List<Integer> reverseIntIteratorCopy =
+        bitmap.reverseStream().mapToObj(Integer::valueOf).collect(Collectors.toList());
 
     assertEquals(ImmutableList.of(1, 2, 3), iteratorCopy);
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);

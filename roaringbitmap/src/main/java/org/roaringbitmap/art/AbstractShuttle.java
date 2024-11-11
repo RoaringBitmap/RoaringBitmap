@@ -10,7 +10,7 @@ public abstract class AbstractShuttle implements Shuttle {
 
   protected static final int MAX_DEPTH = 7;
   protected NodeEntry[] stack = new NodeEntry[MAX_DEPTH];
-  //started from 0
+  // started from 0
   protected int depth = -1;
   protected boolean hasRun = false;
   protected Art art;
@@ -57,22 +57,22 @@ public abstract class AbstractShuttle implements Shuttle {
         return false;
       }
     }
-    //skip the top leaf node
+    // skip the top leaf node
     Node node = stack[depth].node;
     if (node.nodeType == NodeType.LEAF_NODE) {
       depth--;
     }
-    //visit parent node
+    // visit parent node
     while (depth >= 0) {
       NodeEntry currentNodeEntry = stack[depth];
       if (currentNodeEntry.node.nodeType == NodeType.LEAF_NODE) {
-        //found current leaf node's next sibling node to benefit the removing operation
+        // found current leaf node's next sibling node to benefit the removing operation
         if (depth - 1 >= 0) {
           findNextSiblingKeyOfLeafNode();
         }
         return true;
       }
-      //visit the next child node
+      // visit the next child node
       int pos;
       int nextPos;
       if (!currentNodeEntry.visited) {
@@ -83,19 +83,19 @@ public abstract class AbstractShuttle implements Shuttle {
       } else if (currentNodeEntry.startFromNextSiblingPosition) {
         nextPos = currentNodeEntry.position;
         currentNodeEntry.startFromNextSiblingPosition = false;
-      } else  {
+      } else {
         pos = currentNodeEntry.position;
         nextPos = visitedNodeNextPosition(currentNodeEntry.node, pos);
       }
       if (nextPos != Node.ILLEGAL_IDX) {
         stack[depth].position = nextPos;
         depth++;
-        //add a fresh entry on the top of the visiting stack
+        // add a fresh entry on the top of the visiting stack
         NodeEntry freshEntry = new NodeEntry();
         freshEntry.node = currentNodeEntry.node.getChild(nextPos);
         stack[depth] = freshEntry;
       } else {
-        //current internal node doesn't have anymore unvisited child,move to a top node
+        // current internal node doesn't have anymore unvisited child,move to a top node
         depth--;
       }
     }
@@ -122,13 +122,13 @@ public abstract class AbstractShuttle implements Shuttle {
     }
     Node node = toolkit.freshMatchedParentNode;
     if (depth - 1 >= 0) {
-      //update the parent node to a fresh node as the parent node may changed by the
-      //art adaptive removing logic
+      // update the parent node to a fresh node as the parent node may changed by the
+      // art adaptive removing logic
       NodeEntry oldEntry = stack[depth - 1];
       oldEntry.visited = oldEntry.node == node;
       oldEntry.node = node;
       oldEntry.startFromNextSiblingPosition = true;
-      if (node.nodeType !=  NodeType.LEAF_NODE) {
+      if (node.nodeType != NodeType.LEAF_NODE) {
         oldEntry.position = node.getChildPos(oldEntry.leafNodeNextSiblingKey);
       }
     }
@@ -145,7 +145,7 @@ public abstract class AbstractShuttle implements Shuttle {
       stack[depth] = nodeEntry;
     }
     if (node.nodeType == NodeType.LEAF_NODE) {
-      //leaf node's corresponding NodeEntry will not have the position member set.
+      // leaf node's corresponding NodeEntry will not have the position member set.
       if (depth - 1 >= 0) {
         findNextSiblingKeyOfLeafNode();
       }
@@ -154,7 +154,7 @@ public abstract class AbstractShuttle implements Shuttle {
     if (depth == MAX_DEPTH) {
       return;
     }
-    //find next min child
+    // find next min child
     int pos = boundaryNodePosition(node, inRunDirection);
     stack[depth].position = pos;
     stack[depth].visited = true;
@@ -177,7 +177,7 @@ public abstract class AbstractShuttle implements Shuttle {
       stack[depth] = nodeEntry;
     }
     if (node.nodeType == NodeType.LEAF_NODE) {
-      //leaf node's corresponding NodeEntry will not have the position member set.
+      // leaf node's corresponding NodeEntry will not have the position member set.
       if (depth - 1 >= 0) {
         findNextSiblingKeyOfLeafNode();
       }
@@ -188,13 +188,8 @@ public abstract class AbstractShuttle implements Shuttle {
     }
 
     if (node.prefixLength > 0) {
-      int commonLength = Art.commonPrefixLength(
-              high,
-              keyDepth,
-              high.length,
-              node.prefix,
-              0,
-              node.prefixLength);
+      int commonLength =
+          Art.commonPrefixLength(high, keyDepth, high.length, node.prefix, 0, node.prefixLength);
       if (commonLength != node.prefixLength) {
         byte nodeValue = node.prefix[commonLength];
         byte highValue = high[keyDepth + commonLength];
@@ -203,10 +198,10 @@ public abstract class AbstractShuttle implements Shuttle {
         visitToLeaf(node, visitDirection);
         return;
       }
-      //common prefix is the same ,then increase the depth
+      // common prefix is the same ,then increase the depth
       keyDepth += node.prefixLength;
     }
-    //find next child
+    // find next child
     SearchResult result = node.getNearestChildPos(high[keyDepth]);
     int pos;
     boolean continueAtBoundary = false;

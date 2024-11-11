@@ -75,10 +75,11 @@ public interface ImmutableLongBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   default LongStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED
-        | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()),
-        getLongCardinality(), characteristics);
+    int characteristics =
+        Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED;
+    Spliterator.OfLong x =
+        Spliterators.spliterator(
+            new RoaringOfLong(getLongIterator()), getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
 
@@ -87,10 +88,12 @@ public interface ImmutableLongBitmapDataProvider {
    */
   default LongStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfLong x = Spliterators.spliterator(new RoaringOfLong(getLongIterator()),
-        getLongCardinality(), characteristics);
+    Spliterator.OfLong x =
+        Spliterators.spliterator(
+            new RoaringOfLong(getLongIterator()), getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
+
   /**
    * Estimate of the memory usage of this data structure.
    *
@@ -185,7 +188,7 @@ public interface ImmutableLongBitmapDataProvider {
    */
   long[] toArray();
 
-    /**
+  /**
    * An internal class to help provide streams.
    * Sad but true the interface of LongIterator and PrimitiveIterator.OfLong
    * Does not match. Otherwise it would be easier to just make LongIterator

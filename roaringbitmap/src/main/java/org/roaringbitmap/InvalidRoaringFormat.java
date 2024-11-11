@@ -29,13 +29,10 @@ public class InvalidRoaringFormat extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   /**
-  * Convert the exception to an IOException (convenience function)
-  * @return an IOException with a related error message.
-  */
+   * Convert the exception to an IOException (convenience function)
+   * @return an IOException with a related error message.
+   */
   public IOException toIOException() {
     return new IOException(toString());
   }
-
-
-
 }

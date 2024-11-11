@@ -646,8 +646,10 @@ it up in your favorite IDE.
 Contributing
 ------------
 
-Contributions are invited. We use the Google Java style (see `roaring_google_checks.xml`).
-Please do not reformat the code needlessly.
+Contributions are invited. We use the Google Java style (see `roaring_google_checks.xml`). It can be applied
+automatically to your code with `./gradlew spotlessApply`
+
+Please do not reformat the code needlessly (especially on comments/javadoc).
 
 FAQ
 ----

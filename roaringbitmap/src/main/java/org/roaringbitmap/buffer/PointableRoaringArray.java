@@ -42,7 +42,6 @@ public interface PointableRoaringArray extends Cloneable {
    */
   boolean containsForContainerAtIndex(int i, char x);
 
-
   /**
    * Returns the cardinality of the container at the given index. This method is expected to be
    * fast.
@@ -58,10 +57,9 @@ public interface PointableRoaringArray extends Cloneable {
    * @param x 16-bit key
    * @return matching container
    */
-  //MappeableContainer getContainer(short x);
+  // MappeableContainer getContainer(short x);
 
-
-   /**
+  /**
    * Returns either the index of the container corresponding to key x, or a negative value.
    * @param x 16-bit key
    * @return index of container (negative value if no container found)
@@ -127,7 +125,6 @@ public interface PointableRoaringArray extends Cloneable {
    * @return the size that the data structure occupies on disk
    */
   int serializedSizeInBytes();
-
 
   /**
    * @return number of keys

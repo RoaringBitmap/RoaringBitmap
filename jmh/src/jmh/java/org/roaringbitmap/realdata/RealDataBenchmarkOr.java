@@ -1,13 +1,14 @@
 package org.roaringbitmap.realdata;
 
-import java.util.concurrent.TimeUnit;
+import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
+import org.roaringbitmap.realdata.wrapper.BitmapIterator;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.roaringbitmap.realdata.state.RealDataBenchmarkState;
-import org.roaringbitmap.realdata.wrapper.BitmapIterator;
+
+import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -33,5 +34,4 @@ public class RealDataBenchmarkOr {
     }
     return total;
   }
-
 }

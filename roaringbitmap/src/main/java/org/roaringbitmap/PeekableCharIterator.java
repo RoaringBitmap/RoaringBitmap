@@ -3,8 +3,6 @@
  */
 package org.roaringbitmap;
 
-
-
 /**
  * Simple extension to the CharIterator interface
  *
@@ -39,4 +37,3 @@ public interface PeekableCharIterator extends CharIterator {
   @Override
   PeekableCharIterator clone();
 }
-

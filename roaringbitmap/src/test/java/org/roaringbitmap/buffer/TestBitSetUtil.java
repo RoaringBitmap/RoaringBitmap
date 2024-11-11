@@ -1,5 +1,7 @@
 package org.roaringbitmap.buffer;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -8,12 +10,10 @@ import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @Execution(ExecutionMode.CONCURRENT)
 public class TestBitSetUtil {
-  private static BitSet appendRandomBitset(final Random random, final int offset,
-      final BitSet bitset, final int nbits) {
+  private static BitSet appendRandomBitset(
+      final Random random, final int offset, final BitSet bitset, final int nbits) {
     for (int i = 0; i < nbits; i++) {
       final boolean b = random.nextBoolean();
       bitset.set(offset + i, b);
@@ -25,7 +25,6 @@ public class TestBitSetUtil {
     final BitSet bitset = new BitSet();
     return appendRandomBitset(random, offset, bitset, length);
   }
-
 
   private void assertEqualBitsets(final BitSet bitset, final MutableRoaringBitmap bitmap) {
     assertTrue(BufferBitSetUtil.equals(bitset, bitmap));
@@ -138,9 +137,9 @@ public class TestBitSetUtil {
     assertEqualBitsets(bitset, bitmap);
   }
 
-    /*
-    The ByteBuffer->RoaringBitmap just replicate similar tests written for BitSet/long[]->RoaringBitmap
-   */
+  /*
+   The ByteBuffer->RoaringBitmap just replicate similar tests written for BitSet/long[]->RoaringBitmap
+  */
 
   @Test
   public void testEmptyByteBuffer() {
@@ -205,7 +204,7 @@ public class TestBitSetUtil {
     final Random random = new Random(8934);
     final int runs = 100;
     final int maxNbits = 500000;
-    for (int i = 0;i < runs; ++i) {
+    for (int i = 0; i < runs; ++i) {
       final int offset = random.nextInt(maxNbits) & Integer.MAX_VALUE;
       final BitSet bitset = randomBitset(random, offset, random.nextInt(maxNbits));
       final MutableRoaringBitmap bitmap = BufferBitSetUtil.bitmapOf(toByteBuffer(bitset));
@@ -233,5 +232,4 @@ public class TestBitSetUtil {
   private static ByteBuffer toByteBuffer(BitSet bitset) {
     return ByteBuffer.wrap(bitset.toByteArray());
   }
-
 }

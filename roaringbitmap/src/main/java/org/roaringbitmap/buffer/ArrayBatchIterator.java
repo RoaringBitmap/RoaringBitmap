@@ -1,11 +1,10 @@
 package org.roaringbitmap.buffer;
 
+import static org.roaringbitmap.buffer.BufferUtil.unsignedBinarySearch;
+
 import org.roaringbitmap.ContainerBatchIterator;
 
 import java.nio.CharBuffer;
-
-import static org.roaringbitmap.buffer.BufferUtil.unsignedBinarySearch;
-
 
 public final class ArrayBatchIterator implements ContainerBatchIterator {
 
@@ -34,7 +33,7 @@ public final class ArrayBatchIterator implements ContainerBatchIterator {
   @Override
   public ContainerBatchIterator clone() {
     try {
-      return (ContainerBatchIterator)super.clone();
+      return (ContainerBatchIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       // won't happen
       throw new IllegalStateException(e);

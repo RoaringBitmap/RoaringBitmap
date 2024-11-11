@@ -1,8 +1,8 @@
 package org.roaringbitmap.longlong;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 public class IntegerUtilTest {
 
@@ -25,10 +25,10 @@ public class IntegerUtilTest {
   @Test
   public void testSetByte() {
     for (int i = 0; i < 4; ++i) {
-      int value = IntegerUtil.setByte(0x55555555, (byte)0xAA, i);
+      int value = IntegerUtil.setByte(0x55555555, (byte) 0xAA, i);
       byte[] bytes = IntegerUtil.toBDBytes(value);
       for (int j = 0; j < 4; ++j) {
-        byte expected = i == j ? (byte)0xAA : (byte)0x55;
+        byte expected = i == j ? (byte) 0xAA : (byte) 0x55;
         assertEquals(expected, bytes[j]);
       }
     }

@@ -87,10 +87,11 @@ public interface ImmutableBitmapDataProvider {
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order
    */
   public default IntStream stream() {
-    int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED
-        | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getIntIterator()),
-        getCardinality(), characteristics);
+    int characteristics =
+        Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED;
+    Spliterator.OfInt x =
+        Spliterators.spliterator(
+            new RoaringOfInt(getIntIterator()), getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
 
@@ -99,8 +100,9 @@ public interface ImmutableBitmapDataProvider {
    */
   public default IntStream reverseStream() {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
-    Spliterator.OfInt x = Spliterators.spliterator(new RoaringOfInt(getReverseIntIterator()),
-        getCardinality(), characteristics);
+    Spliterator.OfInt x =
+        Spliterators.spliterator(
+            new RoaringOfInt(getReverseIntIterator()), getCardinality(), characteristics);
     return StreamSupport.intStream(x, false);
   }
 
@@ -170,15 +172,15 @@ public interface ImmutableBitmapDataProvider {
   long rankLong(int x);
 
   /**
-  * Computes the number of values in the interval [start,end) where
-  * start is included and end excluded.
-  * rangeCardinality(0,0x100000000) provides the total cardinality (getLongCardinality).
-  * The answer is a 64-bit value between 1 and 0x100000000.
-  *
-  * @param start lower limit (included)
-  * @param end upper limit (excluded)
-  * @return the number of elements in [start,end), between 0 and 0x100000000.
-  */
+   * Computes the number of values in the interval [start,end) where
+   * start is included and end excluded.
+   * rangeCardinality(0,0x100000000) provides the total cardinality (getLongCardinality).
+   * The answer is a 64-bit value between 1 and 0x100000000.
+   *
+   * @param start lower limit (included)
+   * @param end upper limit (excluded)
+   * @return the number of elements in [start,end), between 0 and 0x100000000.
+   */
   long rangeCardinality(long start, long end);
 
   /**
@@ -324,7 +326,6 @@ public interface ImmutableBitmapDataProvider {
    * @return the number of containers
    */
   int getContainerCount();
-
 
   /**
    * An internal class to help provide streams.

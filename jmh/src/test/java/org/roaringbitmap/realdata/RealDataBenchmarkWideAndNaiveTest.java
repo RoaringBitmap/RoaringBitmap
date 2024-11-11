@@ -1,6 +1,5 @@
 package org.roaringbitmap.realdata;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RealDataBenchmarkWideAndNaiveTest extends RealDataBenchmarkSanityTest {

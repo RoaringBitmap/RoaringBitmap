@@ -18,8 +18,7 @@ public class Pair<T1, T2> implements Serializable {
   /**
    * Default constructor.
    */
-  public Pair() {
-  }
+  public Pair() {}
 
   /**
    * Constructor
@@ -96,17 +95,16 @@ public class Pair<T1, T2> implements Serializable {
   @Override
   @SuppressWarnings("rawtypes")
   public boolean equals(Object other) {
-    return other instanceof Pair && equals(left, ((Pair) other).left) && equals(right, ((Pair) other).right);
+    return other instanceof Pair
+        && equals(left, ((Pair) other).left)
+        && equals(right, ((Pair) other).right);
   }
 
   @Override
   public int hashCode() {
-    if (left == null)
-      return (right == null) ? 0 : right.hashCode() + 1;
-    else if (right == null)
-      return left.hashCode() + 2;
-    else
-      return left.hashCode() * 17 + right.hashCode();
+    if (left == null) return (right == null) ? 0 : right.hashCode() + 1;
+    else if (right == null) return left.hashCode() + 2;
+    else return left.hashCode() * 17 + right.hashCode();
   }
 
   @Override
@@ -114,5 +112,3 @@ public class Pair<T1, T2> implements Serializable {
     return "{" + getLeft() + "," + getRight() + "}";
   }
 }
-
-

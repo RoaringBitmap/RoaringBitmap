@@ -1,17 +1,23 @@
 package org.roaringbitmap.aggregation.or;
 
-import org.openjdk.jmh.annotations.*;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
 
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+
 import java.util.SplittableRandom;
-import java.util.concurrent.ThreadLocalRandom;
 
 @State(Scope.Benchmark)
 public class BitmapContainerOrBenchmark {
 
   @Param({"0.1", "0.5"})
   double thisDensity;
+
   @Param({"0.1", "0.5"})
   double thatDensity;
 

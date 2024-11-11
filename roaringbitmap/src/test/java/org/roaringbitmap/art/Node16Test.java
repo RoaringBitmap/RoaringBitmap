@@ -8,19 +8,19 @@ public class Node16Test {
   @Test
   public void test() {
     Node4 node4 = new Node4(0);
-    //insert 4 nodes
+    // insert 4 nodes
     for (int i = 0; i < 4; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       node4 = (Node4) Node4.insert(node4, leafNode, (byte) i);
     }
-    //insert the fifth node
+    // insert the fifth node
     LeafNode leafNode4 = new LeafNode(4, 4);
     Node16 node16 = (Node16) Node4.insert(node4, leafNode4, (byte) 4);
-    //remove two nodes to shrink to node4
+    // remove two nodes to shrink to node4
     node16 = (Node16) node16.remove(4);
     Node degenerativeNode = node16.remove(3);
     Assertions.assertTrue(degenerativeNode instanceof Node4);
-    //recover to node16 by re-insert two nodes
+    // recover to node16 by re-insert two nodes
     Node4 degenerativeNode4 = (Node4) degenerativeNode;
     Node node = Node4.insert(degenerativeNode4, leafNode4, (byte) 4);
     LeafNode leafNode3 = new LeafNode(3, 3);
@@ -173,7 +173,7 @@ public class Node16Test {
 
       // search in the "gaps" before the key
       {
-        byte bKey = (byte)(key - 1);
+        byte bKey = (byte) (key - 1);
         sr = nodes.getNearestChildPos(bKey);
         Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
         Assertions.assertFalse(sr.hasKeyPos());
@@ -184,10 +184,10 @@ public class Node16Test {
         } else {
           int expect = Byte.toUnsignedInt(key) - step;
           int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos()));
-          Assertions.assertEquals(  expect, result);
+          Assertions.assertEquals(expect, result);
         }
         // the NextLarger of the "key-1" should be the key
-        Assertions.assertEquals(keyPos ,sr.getNextLargerPos());
+        Assertions.assertEquals(keyPos, sr.getNextLargerPos());
         Assertions.assertEquals(key, nodes.getChildKey(sr.getNextLargerPos()));
       }
 

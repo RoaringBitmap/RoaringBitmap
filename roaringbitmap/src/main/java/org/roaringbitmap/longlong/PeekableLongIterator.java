@@ -3,7 +3,6 @@
  */
 package org.roaringbitmap.longlong;
 
-
 /**
  * Simple extension to the IntIterator interface.
  * It allows you to "skip" values using the advanceIfNeeded
@@ -95,5 +94,3 @@ public interface PeekableLongIterator extends LongIterator {
   @Override
   PeekableLongIterator clone();
 }
-
-

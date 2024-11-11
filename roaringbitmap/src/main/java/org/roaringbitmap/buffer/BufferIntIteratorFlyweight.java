@@ -28,7 +28,6 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
 
   private MappeableRunContainerCharIterator runIter = new MappeableRunContainerCharIterator();
 
-
   private int pos;
 
   private ImmutableRoaringBitmap roaringBitmap = null;
@@ -37,9 +36,7 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
    * Creates an instance that is not ready for iteration. You must first call
    * {@link #wrap(ImmutableRoaringBitmap)}.
    */
-  public BufferIntIteratorFlyweight() {
-
-  }
+  public BufferIntIteratorFlyweight() {}
 
   /**
    * Creates an instance that is ready for iteration.
@@ -54,12 +51,12 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
   public PeekableIntIterator clone() {
     try {
       BufferIntIteratorFlyweight x = (BufferIntIteratorFlyweight) super.clone();
-      if(this.iter != null) {
+      if (this.iter != null) {
         x.iter = this.iter.clone();
       }
       return x;
     } catch (CloneNotSupportedException e) {
-      return null;// will not happen
+      return null; // will not happen
     }
   }
 
@@ -129,6 +126,4 @@ public class BufferIntIteratorFlyweight implements PeekableIntIterator {
   public int peekNext() {
     return (iter.peekNext()) | hs;
   }
-
-
 }

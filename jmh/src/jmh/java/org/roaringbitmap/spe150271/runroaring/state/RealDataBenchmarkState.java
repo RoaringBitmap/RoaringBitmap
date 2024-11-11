@@ -11,16 +11,18 @@ import org.openjdk.jmh.annotations.State;
 @State(Scope.Benchmark)
 public class RealDataBenchmarkState extends org.roaringbitmap.AbstractBenchmarkState {
 
-  @Param({// putting the data sets in alpha. order
-      CENSUS_INCOME})
+  @Param({ // putting the data sets in alpha. order
+    CENSUS_INCOME
+  })
   public String dataset;
 
   @Param({ROARING_WITH_RUN})
   public String type;
 
-  @Param({"false",})
+  @Param({
+    "false",
+  })
   public boolean immutable;
-
 
   public RealDataBenchmarkState() {}
 
@@ -28,5 +30,4 @@ public class RealDataBenchmarkState extends org.roaringbitmap.AbstractBenchmarkS
   public void setup() throws Exception {
     super.setup(dataset, type, immutable);
   }
-
 }
