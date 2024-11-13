@@ -1,28 +1,27 @@
 package org.roaringbitmap.bsi.longlong;
 
+import static org.roaringbitmap.longlong.Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY;
+import static org.roaringbitmap.longlong.Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.Pair;
+import org.roaringbitmap.bsi.WritableUtils;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-/*
- * a Roaring64NavigableMap based bsi implementation
- * The serialization format is compatible with bsi implementation of roaring(Go)
+/**
+ * Roaring64NavigableMap based bsi implementation.
+ * The default serialization format for underlying Roaring64NavigableMap is
+ * {@link Roaring64NavigableMap#SERIALIZATION_MODE_PORTABLE}. And you can also switch to
+ * {@link Roaring64NavigableMap#SERIALIZATION_MODE_PORTABLE} mode as you wish.
+ * NOTE: The serialization format is *not* compatible with bsi implementation of roaring(Go),
  * @see <a href="https://github.com/RoaringBitmap/roaring/blob/b32ae1a8cc386adbf7753251b8a580ed37f270a9/roaring64/bsi64.go#L882">bsi64.WriteTo</a>
- *
- * So for this kind of BSI impl, the default serialization format for underlying Roaring64NavigableMap
- * is {@link Roaring64NavigableMap#SERIALIZATION_MODE_PORTABLE}
- *
  */
 public class Roaring64NavigableMapSliceIndex {
   /**
@@ -51,14 +50,14 @@ public class Roaring64NavigableMapSliceIndex {
    * The default serialization format is {@link Roaring64NavigableMap#SERIALIZATION_MODE_PORTABLE}.
    * all underlying 'Roaring64NavigableMap's should have the same serialization format
    */
-  private int serializationMode = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE;
+  private int serializationMode = SERIALIZATION_MODE_PORTABLE;
 
   /**
    * NewDefaultBSI constructs an auto-sized BSI, with portable serialization format
    * for underlying Roaring64NavigableMap as default.
    */
   public Roaring64NavigableMapSliceIndex() {
-    this(0L, 0L, Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    this(0L, 0L, SERIALIZATION_MODE_PORTABLE);
   }
 
   /**
@@ -67,7 +66,7 @@ public class Roaring64NavigableMapSliceIndex {
    * for underlying Roaring64NavigableMap as default.
    */
   public Roaring64NavigableMapSliceIndex(long minValue, long maxValue) {
-    this(minValue, maxValue, Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE);
+    this(minValue, maxValue, SERIALIZATION_MODE_PORTABLE);
   }
 
   /**
@@ -82,8 +81,8 @@ public class Roaring64NavigableMapSliceIndex {
     if (maxValue < minValue) {
       throw new IllegalArgumentException("maxValue should GE minValue");
     }
-    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
-        && serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
+    if (serializationMode != SERIALIZATION_MODE_PORTABLE
+        && serializationMode != SERIALIZATION_MODE_LEGACY) {
       // invalid serialization mode
       throw new IllegalArgumentException("Invalid serialization mode");
     }
@@ -97,9 +96,14 @@ public class Roaring64NavigableMapSliceIndex {
     setSerializationMode(serializationMode);
   }
 
+  /**
+   * set the serialization mode for underlying Roaring64NavigableMap
+   *
+   * @param serializationMode valid values: SERIALIZATION_MODE_PORTABLE or SERIALIZATION_MODE_LEGACY
+   */
   public void setSerializationMode(int serializationMode) {
-    if (serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
-        && serializationMode != Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY) {
+    if (serializationMode != SERIALIZATION_MODE_PORTABLE
+        && serializationMode != SERIALIZATION_MODE_LEGACY) {
       // invalid serialization mode
       throw new IllegalArgumentException("Invalid serialization mode");
     }
@@ -114,10 +118,16 @@ public class Roaring64NavigableMapSliceIndex {
     }
   }
 
+  /**
+   * get current serialization mode of underlying Roaring64NavigableMap
+   */
   public int getSerializationMode() {
     return serializationMode;
   }
 
+  /**
+   * add all content from another BSI instance, current bsi is modified
+   */
   public void add(Roaring64NavigableMapSliceIndex otherBsi) {
     if (null == otherBsi || otherBsi.ebM.isEmpty()) {
       return;
@@ -137,6 +147,9 @@ public class Roaring64NavigableMapSliceIndex {
     this.maxValue = maxValue();
   }
 
+  /**
+   * add the specify slice to current 'bA[]' at index 'i', and 'carry' will be processed automatically
+   */
   private void addDigit(Roaring64NavigableMap foundSet, int i) {
     Roaring64NavigableMap carry = Roaring64NavigableMap.and(this.bA[i], foundSet);
     this.bA[i].xor(foundSet);
@@ -148,6 +161,9 @@ public class Roaring64NavigableMapSliceIndex {
     }
   }
 
+  /**
+   * get the min value from the bsi
+   */
   private long minValue() {
     if (ebM.isEmpty()) {
       return 0;
@@ -164,6 +180,9 @@ public class Roaring64NavigableMapSliceIndex {
     return valueAt(minValuesId.first());
   }
 
+  /**
+   * get the max value from the bsi
+   */
   private long maxValue() {
     if (ebM.isEmpty()) {
       return 0;
@@ -180,6 +199,11 @@ public class Roaring64NavigableMapSliceIndex {
     return valueAt(maxValuesId.first());
   }
 
+  /**
+   * return the value associated with the input columnId
+   * @param columnId the column id
+   * @return the value associated with the input columnId
+   */
   private long valueAt(long columnId) {
     long value = 0;
     for (int i = 0; i < this.bitCount(); i += 1) {
@@ -217,16 +241,22 @@ public class Roaring64NavigableMapSliceIndex {
     return this.ebM;
   }
 
+  /**
+   * the number of slice
+   */
   public int bitCount() {
     return this.bA.length;
   }
 
+  /**
+   * get the cardinality of the bsi (the number of distinct values added to the ebM)
+   */
   public long getLongCardinality() {
     return this.ebM.getLongCardinality();
   }
 
   /**
-   * GetValue gets the value at the column ID.  Second param will be false for non-existence values.
+   * get the value at the column ID.
    */
   public Pair<Long, Boolean> getValue(long columnId) {
     boolean exists = this.ebM.contains(columnId);
@@ -247,50 +277,62 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * Serialize this bitmapsliceindex(bsi).
    * <p>
-   * There is no specification for now: it may change from one java version to
-   * another. This serialization format is compatible with bsi of roaring(Go)
-   * @see <a href="https://github.com/RoaringBitmap/roaring/blob/b32ae1a8cc386adbf7753251b8a580ed37f270a9/roaring64/bsi64.go#L882">bsi64.WriteTo</a>
-   * Current serialization format:
+   * <b>NOTICE:</b> This serialization format is <em>NOT</em> compatible with bsi of roaring(Go)</br>
+   * Current serialization format:<br/>
    * ---
-   * ebM: as standard Roaring64NavigableMap format (with specify legacy/portable format)
-   * loop over bA[]:  as standard Roaring64NavigableMap format (with specify legacy/portable format)
+   * <pre>
+   * <b>minValue</b> (long with zero-compressed encoding)
+   * <b>maxValue</b> (long with zero-compressed encoding)
+   * <b>runOptimized</b> (boolean)
+   * <b>serializationMode</b> (int with zero-compressed encoding)
+   * <b>ebM</b> as standard Roaring64NavigableMap format (with specify legacy/portable format)
+   * <b>number of slices</b> (int with zero-compressed encoding)
+   * <b>loop over bA[]</b>  as standard Roaring64NavigableMap format (with specify legacy/portable format)
+   * </pre>
    * ---
-   *
-   * <p>
+   * <br/>
    * Consider calling {@link #runOptimize} before serialization to improve compression.
-   * <p>
    * The current bsi is not modified.
-   *
+   * </p>
+   * @see <a href="https://github.com/RoaringBitmap/roaring/blob/b32ae1a8cc386adbf7753251b8a580ed37f270a9/roaring64/bsi64.go#L882">bsi64.WriteTo</a>
    * @param output the DataOutput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void serialize(DataOutput output) throws IOException {
+    // write meta
+    WritableUtils.writeVLong(output, minValue);
+    WritableUtils.writeVLong(output, maxValue);
+    output.writeBoolean(this.runOptimized);
+    WritableUtils.writeVInt(output, serializationMode);
+
+    // write ebm
     this.ebM.serialize(output);
+
+    // write ba
+    WritableUtils.writeVInt(output, this.bA.length);
     for (Roaring64NavigableMap rb : this.bA) {
       rb.serialize(output);
     }
   }
 
-  public void serialize(ByteBuffer buffer) throws IOException {
-    this.ebM.serializePortable(buffer);
-    for (Roaring64NavigableMap rb : this.bA) {
-      rb.serializePortable(buffer);
-    }
-  }
-
   /**
-   * Deserialize (retrieve) this bitmapsliceindex(bsi).
-   * <p>
-   * The default serialization format for underlying Roaring64NavigableMap is
-   * {@link Roaring64NavigableMap#SERIALIZATION_MODE_PORTABLE}
-   * <p>
+   * Deserialize (retrieve) this bitmapsliceindex(bsi).</br>
+   * The serialization format doc here {@link Roaring64NavigableMapSliceIndex#serialize(DataOutput)}
    * The current bsi is overwritten.
+   *
+   * NOTE: after {@link #deserialize}, the static variable 'SERIALIZATION_MODE' of Roaring64NavigableMap
+   * will be ineffective.
    *
    * @param in the DataInput stream
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserialize(DataInput in) throws IOException {
     this.clear();
+    // read meta
+    this.minValue = WritableUtils.readVInt(in);
+    this.maxValue = WritableUtils.readVInt(in);
+    this.runOptimized = in.readBoolean();
+    this.serializationMode = WritableUtils.readVInt(in);
 
     // read ebm
     Roaring64NavigableMap ebm = new Roaring64NavigableMap();
@@ -299,36 +341,15 @@ public class Roaring64NavigableMapSliceIndex {
     ebm.deserialize(in);
     this.ebM = ebm;
 
-    List<Roaring64NavigableMap> baList = new ArrayList<>();
-    try (DataInputStream is = new DataInputStream((InputStream) in); ) {
-      while (is.available() > 0) {
-        Roaring64NavigableMap rb = new Roaring64NavigableMap();
-        // set serialization format before deserialize
-        rb.setSerializationMode(serializationMode);
-        rb.deserialize(in);
-        baList.add(rb);
-      }
-    }
-    this.bA = baList.toArray(new Roaring64NavigableMap[0]);
-  }
-
-  public void deserialize(ByteBuffer buffer) throws IOException {
-    this.clear();
-    Roaring64NavigableMap ebm = new Roaring64NavigableMap();
-    ebm.setSerializationMode(serializationMode);
-    ebm.deserialize(buffer);
-    this.ebM = ebm;
-    // read back
-    buffer.position(buffer.position() + (int) ebm.serializedSizeInBytes());
-    List<Roaring64NavigableMap> baList = new ArrayList<>();
-    while (buffer.hasRemaining()) {
+    int bitDepth = WritableUtils.readVInt(in);
+    Roaring64NavigableMap[] ba = new Roaring64NavigableMap[bitDepth];
+    for (int i = 0; i < bitDepth; i++) {
       Roaring64NavigableMap rb = new Roaring64NavigableMap();
       rb.setSerializationMode(serializationMode);
-      rb.deserialize(buffer);
-      baList.add(rb);
-      buffer.position(buffer.position() + (int) rb.serializedSizeInBytes());
+      rb.deserialize(in);
+      ba[i] = rb;
     }
-    this.bA = baList.toArray(new Roaring64NavigableMap[0]);
+    this.bA = ba;
   }
 
   /*
@@ -345,7 +366,7 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * valueExists tests whether the value exists.
    */
-  public boolean valueExist(Long columnId) {
+  public boolean valueExist(long columnId) {
     return this.ebM.contains(columnId);
   }
 
@@ -403,6 +424,10 @@ public class Roaring64NavigableMapSliceIndex {
     this.bA = newBA;
   }
 
+  /**
+   * set list of values
+   * @param values list of value pairs
+   */
   public void setValues(List<Pair<Long, Long>> values) {
     if (values == null || values.isEmpty()) return;
     long maxValue =
@@ -453,17 +478,19 @@ public class Roaring64NavigableMapSliceIndex {
     this.minValue = Long.min(this.minValue, otherBsi.minValue);
   }
 
+  /**
+   * clone a bsi instance
+   */
   @Override
   public Roaring64NavigableMapSliceIndex clone() {
     Roaring64NavigableMapSliceIndex bitSliceIndex = new Roaring64NavigableMapSliceIndex();
     bitSliceIndex.minValue = this.minValue;
     bitSliceIndex.maxValue = this.maxValue;
+    bitSliceIndex.serializationMode = this.serializationMode;
     bitSliceIndex.ebM = this.ebM.clone();
-    bitSliceIndex.ebM.setSerializationMode(serializationMode);
     Roaring64NavigableMap[] cloneBA = new Roaring64NavigableMap[this.bitCount()];
     for (int i = 0; i < cloneBA.length; i++) {
       cloneBA[i] = this.bA[i].clone();
-      cloneBA[i].setSerializationMode(serializationMode);
     }
     bitSliceIndex.bA = cloneBA;
     bitSliceIndex.runOptimized = this.runOptimized;
@@ -646,6 +673,11 @@ public class Roaring64NavigableMapSliceIndex {
     return null;
   }
 
+  /**
+   * given columns in foundSet, return the count and sum of values found in BSI
+   * @param foundSet given columnIds (represent as Roaring64NavigableMap)
+   * @return the <sum, count> pair
+   */
   public Pair<Long, Long> sum(Roaring64NavigableMap foundSet) {
     if (null == foundSet || foundSet.isEmpty()) {
       return Pair.newPair(0L, 0L);
@@ -660,6 +692,12 @@ public class Roaring64NavigableMapSliceIndex {
     return Pair.newPair(sum, count);
   }
 
+  /**
+   * given columns in foundSet, return the top k columnId found in BSI
+   * @param foundSet the columnIds needs to be checked (represent as Roaring64NavigableMap)
+   * @param k top k
+   * @return the top k columnIds found in BSI
+   */
   public Roaring64NavigableMap topK(Roaring64NavigableMap foundSet, long k) {
     if (null == foundSet || foundSet.isEmpty()) {
       return new Roaring64NavigableMap();
@@ -684,6 +722,12 @@ public class Roaring64NavigableMapSliceIndex {
     return re;
   }
 
+  /**
+   * given columns in foundSet,
+   * 1. if one columnId of foundSet is in the bsi, then get the associated value
+   * 2. then return all the values as a Roaring64NavigableMap.
+   * @param foundSet the columnIds needs to be checked, null if all columnIds needs to be checked
+   */
   public Roaring64NavigableMap transpose(Roaring64NavigableMap foundSet) {
     Roaring64NavigableMap re = new Roaring64NavigableMap();
     Roaring64NavigableMap fixedFoundSet =
@@ -692,6 +736,12 @@ public class Roaring64NavigableMapSliceIndex {
     return re;
   }
 
+  /**
+   * given columns in foundSet,
+   * 1. if one columnId of foundSet is in the bsi, then get the associated value in the bsi
+   * 2. then return all the <value, # of columnIds> as a bsi.
+   * @param foundSet the columnIds needs to be checked, null if all columnIds needs to be checked
+   */
   public Roaring64NavigableMapSliceIndex transposeWithCount(Roaring64NavigableMap foundSet) {
     Roaring64NavigableMapSliceIndex re = new Roaring64NavigableMapSliceIndex();
     Roaring64NavigableMap fixedFoundSet =

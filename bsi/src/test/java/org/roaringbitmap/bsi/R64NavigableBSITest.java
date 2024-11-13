@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,27 +174,6 @@ public class R64NavigableBSITest {
     DataInputStream bdi = new DataInputStream(bis);
     newBsi.deserialize(bdi);
 
-    Assertions.assertEquals(newBsi.getExistenceBitmap().getLongCardinality(), 99);
-
-    LongStream.range(1, 100)
-        .forEach(
-            x -> {
-              Pair<Long, Boolean> bsiValue = newBsi.getValue(x);
-              Assertions.assertTrue(bsiValue.getRight());
-              Assertions.assertEquals((long) bsiValue.getKey(), x);
-            });
-  }
-
-  @Test
-  public void testIO4Buffer() throws IOException {
-    Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex(1, 99);
-    LongStream.range(1, 100).forEach(x -> bsi.setValue(x, x));
-    ByteBuffer buffer = ByteBuffer.allocate((int) bsi.serializedSizeInBytes());
-    bsi.serialize(buffer);
-
-    byte[] data = buffer.array();
-    Roaring64NavigableMapSliceIndex newBsi = new Roaring64NavigableMapSliceIndex();
-    newBsi.deserialize(ByteBuffer.wrap(data));
     Assertions.assertEquals(newBsi.getExistenceBitmap().getLongCardinality(), 99);
 
     LongStream.range(1, 100)
@@ -406,22 +384,6 @@ public class R64NavigableBSITest {
     Assertions.assertEquals(re.getValue(2).getKey(), 1);
     Assertions.assertEquals(re.getValue(4).getKey(), 2);
     Assertions.assertEquals(re.getValue(8).getKey(), 2);
-  }
-
-  @Test
-  public void testIssue743() throws IOException {
-    Roaring64NavigableMapSliceIndex bsi = new Roaring64NavigableMapSliceIndex();
-    bsi.setValue(100L, 3L);
-    bsi.setValue(1L, 392L);
-    System.out.println(bsi.getValue(100L));
-    System.out.println(bsi.getValue(1L));
-    ByteBuffer buffer = ByteBuffer.allocate((int) bsi.serializedSizeInBytes());
-    bsi.serialize(buffer);
-
-    Roaring64NavigableMapSliceIndex de_bsi = new Roaring64NavigableMapSliceIndex();
-    de_bsi.deserialize(ByteBuffer.wrap(buffer.array()));
-    Assertions.assertEquals(de_bsi.getValue(100L), bsi.getValue(100L));
-    Assertions.assertEquals(de_bsi.getValue(1L), bsi.getValue(1L));
   }
 
   @Test
