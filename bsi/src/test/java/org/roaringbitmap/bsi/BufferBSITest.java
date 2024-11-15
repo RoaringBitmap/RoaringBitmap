@@ -436,4 +436,21 @@ public class BufferBSITest {
     MutableRoaringBitmap top = bsi.topK(null, 1);
     System.out.println(top);
   }
+
+  @Test
+  public void testTopK2() {
+      MutableBitSliceIndex bsi = new MutableBitSliceIndex();
+      bsi.setValue(0, 0);
+      bsi.setValue(1, 6);
+      bsi.setValue(2, 1);
+      bsi.setValue(3, 7);
+      bsi.setValue(4, 0);
+      bsi.setValue(5, 9);
+      bsi.setValue(6, 9);
+      bsi.setValue(7, 8);
+      bsi.setValue(8, 9);
+      bsi.setValue(9, 8);
+
+    Assertions.assertEquals(bsi.topK(null, 4), MutableRoaringBitmap.bitmapOf(5, 6, 8, 9));
+  }
 }
