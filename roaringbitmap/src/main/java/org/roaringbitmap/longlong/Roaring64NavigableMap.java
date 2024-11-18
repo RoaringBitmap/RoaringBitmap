@@ -1316,7 +1316,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * serialization format is not well-defined: for now, it is strongly coupled with Java standard
    * serialization. Just like the serialization may be incompatible between various Java versions,
    * {@link Roaring64NavigableMap} are subject to incompatibilities. Moreover, even on a given Java
-   * versions, the serialization format may change from one Roaring64NavigableMap version to another
+   * versions, the serialization format may change from one RoaringBitmap version to another
    */
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {

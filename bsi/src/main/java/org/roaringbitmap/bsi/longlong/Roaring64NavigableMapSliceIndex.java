@@ -52,7 +52,6 @@ public class Roaring64NavigableMapSliceIndex {
    * The serialization format for Roaring64NavigableMapSliceIndex.</br>
    * Currently, {@link #BSI64_SERIALIZATION_MODE_COMPATIBLE_WITH_GO} is supported.</br>
    * Other serialization formats maybe added in the future, and the serialization formats may change.
-   *
    * See {@link #serialize} for more information for serialization format}
    */
   public static int DEFAULT_BSI64_NAVIGABLE_SERIALIZATION_MODE =
