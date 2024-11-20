@@ -1912,7 +1912,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * clone current Roaring64NavigableMap instance, the new cloned instance will have
    * the same serialization mode with this one.
    * <p>
-   * *NOTE* This can only handle instances where {@link #serializedSizeInBytes} < Integer.MAX_VALUE,
+   * *NOTE* This can only handle instances where {@link #serializedSizeInBytes} &lt; Integer.MAX_VALUE,
    * otherwise an UnsupportedOperationException will be thrown.
    */
   @Override

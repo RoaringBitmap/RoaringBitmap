@@ -628,7 +628,7 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * given columns in foundSet, return the count and sum of values found in BSI
    * @param foundSet given columnIds (represent as Roaring64NavigableMap)
-   * @return the <sum, count> pair
+   * @return the &lt;sum, count&gt; pair
    */
   public Pair<Long, Long> sum(Roaring64NavigableMap foundSet) {
     if (null == foundSet || foundSet.isEmpty()) {
@@ -709,7 +709,7 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * given columns in foundSet,
    * 1. if one columnId of foundSet is in the bsi, then get the associated value in the bsi
-   * 2. then return all the <value, # of columnIds> as a bsi.
+   * 2. then return all the &lt;value, # of columnIds&gt; as a bsi.
    * @param foundSet the columnIds needs to be checked, null if all columnIds needs to be checked
    */
   public Roaring64NavigableMapSliceIndex transposeWithCount(Roaring64NavigableMap foundSet) {
