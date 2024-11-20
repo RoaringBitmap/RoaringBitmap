@@ -856,6 +856,11 @@ public class TestRoaring64NavigableMap {
     right.addLong(234);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(234, right.select(0));
 
     assertEquals(2, result.getLongCardinality());
 
@@ -891,6 +896,12 @@ public class TestRoaring64NavigableMap {
     right.addLong(234);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE, left.select(1));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(234, right.select(0));
 
     assertEquals(3, result.getLongCardinality());
 
@@ -924,6 +935,11 @@ public class TestRoaring64NavigableMap {
     right.addLong(Long.MAX_VALUE / 2);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE / 2, right.select(0));
 
     assertEquals(2, result.getLongCardinality());
 
@@ -956,6 +972,11 @@ public class TestRoaring64NavigableMap {
     right.addLong(234);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(234, right.select(0));
 
     assertEquals(2, result.getLongCardinality());
 
@@ -988,6 +1009,11 @@ public class TestRoaring64NavigableMap {
     right.addLong(Long.MAX_VALUE);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, right.select(0));
 
     assertEquals(2, result.getLongCardinality());
 
@@ -1020,6 +1046,11 @@ public class TestRoaring64NavigableMap {
     right.addLong(234);
 
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(234, right.select(0));
 
     assertEquals(2, result.getLongCardinality());
 
@@ -1057,6 +1088,10 @@ public class TestRoaring64NavigableMap {
 
     // We push in left a bucket which does not exist
     Roaring64NavigableMap result = Roaring64NavigableMap.or(left, right);
+    // check that inputs have not changed
+    assertEquals(0, left.getLongCardinality());
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(123, right.select(0));
 
     // Then we mutate left: ensure it does not impact right as it should remain unchanged
     result.addLong(234);
@@ -1165,6 +1200,13 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+    // check that inputs have not changed
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
+    assertEquals(2, right.getLongCardinality());
+    assertEquals(234, right.select(0));
+    assertEquals(345, right.select(1));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(234, result.select(0));
@@ -1195,6 +1237,11 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(123, right.select(0));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(123, result.select(0));
@@ -1224,6 +1271,11 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, right.select(0));
 
     assertEquals(0, result.getLongCardinality());
   }
@@ -1255,6 +1307,12 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.and(left, right);
+    // check that inputs have not changed
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE, left.select(1));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, right.select(0));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(Long.MAX_VALUE, result.select(0));
@@ -1289,6 +1347,13 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+    // check that inputs have not changed
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(234, left.select(1));
+    assertEquals(2, right.getLongCardinality());
+    assertEquals(234, right.select(0));
+    assertEquals(345, right.select(1));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(123, result.select(0));
@@ -1317,8 +1382,12 @@ public class TestRoaring64NavigableMap {
     left.addLong(123);
     right.addLong(234);
 
-    // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(234, right.select(0));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(123, result.select(0));
@@ -1349,6 +1418,11 @@ public class TestRoaring64NavigableMap {
 
     // We have 1 shared value: 234
     Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+    // check that inputs have not changed
+    assertEquals(1, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, right.select(0));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(123, result.select(0));
@@ -1379,8 +1453,14 @@ public class TestRoaring64NavigableMap {
     left.addLong(Long.MAX_VALUE);
     right.addLong(Long.MAX_VALUE);
 
-    // We have 1 shared value: 234
+    // We have 1 shared value: Long.MAX_VALUE
     Roaring64NavigableMap result = Roaring64NavigableMap.andNot(left, right);
+    // check that inputs have not changed
+    assertEquals(2, left.getLongCardinality());
+    assertEquals(123, left.select(0));
+    assertEquals(Long.MAX_VALUE, left.select(1));
+    assertEquals(1, right.getLongCardinality());
+    assertEquals(Long.MAX_VALUE, right.select(0));
 
     assertEquals(1, result.getLongCardinality());
     assertEquals(123, result.select(0));
