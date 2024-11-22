@@ -105,6 +105,8 @@ public class R64NavigableBSITest {
 
     Assertions.assertEquals(bsi.getExistenceBitmap().getLongCardinality(), 99);
     final Roaring64NavigableMapSliceIndex clone = bsi.clone();
+    Assertions.assertEquals(clone.minValue(), 1);
+    Assertions.assertEquals(clone.maxValue(), 99);
 
     IntStream.range(1, 100)
         .forEach(
@@ -172,6 +174,8 @@ public class R64NavigableBSITest {
     newBsi.deserialize(bdi);
 
     Assertions.assertEquals(newBsi.getExistenceBitmap().getLongCardinality(), 99);
+    Assertions.assertEquals(newBsi.minValue(), 1);
+    Assertions.assertEquals(newBsi.maxValue(), 99);
 
     LongStream.range(1, 100)
         .forEach(

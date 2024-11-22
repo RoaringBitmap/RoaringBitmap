@@ -123,7 +123,7 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * get the min value from the bsi
    */
-  private long minValue() {
+  public long minValue() {
     if (ebM.isEmpty()) {
       return 0;
     }
@@ -142,7 +142,7 @@ public class Roaring64NavigableMapSliceIndex {
   /**
    * get the max value from the bsi
    */
-  private long maxValue() {
+  public long maxValue() {
     if (ebM.isEmpty()) {
       return 0;
     }
@@ -439,6 +439,8 @@ public class Roaring64NavigableMapSliceIndex {
   @Override
   public Roaring64NavigableMapSliceIndex clone() {
     Roaring64NavigableMapSliceIndex bitSliceIndex = new Roaring64NavigableMapSliceIndex();
+    bitSliceIndex.minValue = this.minValue;
+    bitSliceIndex.maxValue = this.maxValue;
     bitSliceIndex.ebM = this.ebM.clone();
     Roaring64NavigableMap[] cloneBA = new Roaring64NavigableMap[this.bitCount()];
     for (int i = 0; i < cloneBA.length; i++) {
@@ -446,8 +448,6 @@ public class Roaring64NavigableMapSliceIndex {
     }
     bitSliceIndex.bA = cloneBA;
     bitSliceIndex.runOptimized = this.runOptimized;
-    bitSliceIndex.minValue = this.minValue();
-    bitSliceIndex.maxValue = this.maxValue();
     return bitSliceIndex;
   }
 
