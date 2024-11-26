@@ -305,6 +305,10 @@ public class BitSliceIndexBase {
           "TopK param error,cardinality:" + fixedFoundSet.getLongCardinality() + " k:" + k);
     }
 
+    if (k == 0) {
+      return new MutableRoaringBitmap();
+    }
+
     MutableRoaringBitmap G = new MutableRoaringBitmap();
     ImmutableRoaringBitmap E = fixedFoundSet;
 
