@@ -2565,4 +2565,9 @@ public class TestRoaring64Bitmap {
     }
     assertEquals(2, addressSpace.getIntCardinality());
   }
+
+  @Test
+  public void testEmptyRoaring64BitmapClonesWithoutException() {
+    assertEquals(new Roaring64Bitmap(), new Roaring64Bitmap().clone());
+  }
 }
