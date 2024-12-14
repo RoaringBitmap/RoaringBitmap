@@ -185,7 +185,9 @@ public class HighLowContainer {
         buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
     if (art.isEmpty()) {
       byteBuffer.put(EMPTY_TAG);
-      buffer.position(buffer.position() + byteBuffer.position());
+      if (byteBuffer != buffer) {
+        buffer.position(buffer.position() + byteBuffer.position());
+      }
       return;
     } else {
       byteBuffer.put(NOT_EMPTY_TAG);
