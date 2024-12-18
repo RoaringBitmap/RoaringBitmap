@@ -2,6 +2,7 @@ package org.roaringbitmap.bsi.buffer;
 
 import org.roaringbitmap.BatchIterator;
 import org.roaringbitmap.IntConsumer;
+import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.bsi.BitmapSliceIndex;
 import org.roaringbitmap.bsi.BitmapSliceIndex.Operation;
 import org.roaringbitmap.bsi.Pair;
@@ -304,6 +305,10 @@ public class BitSliceIndexBase {
           "TopK param error,cardinality:" + fixedFoundSet.getLongCardinality() + " k:" + k);
     }
 
+    if (k == 0) {
+      return new MutableRoaringBitmap();
+    }
+
     MutableRoaringBitmap G = new MutableRoaringBitmap();
     ImmutableRoaringBitmap E = fixedFoundSet;
 
@@ -324,7 +329,14 @@ public class BitSliceIndexBase {
 
     MutableRoaringBitmap F = ImmutableRoaringBitmap.or(G, E);
     long n = F.getLongCardinality() - k;
-    F.remove(0L, (long) F.select((int) n));
+    if (n > 0) {
+      // turn off n bits from E in F
+      IntIterator iterator = E.getIntIterator();
+      while (iterator.hasNext() && n > 0) {
+        F.remove(iterator.next());
+        n--;
+      }
+    }
     assert (F.getLongCardinality() == k);
     return F;
   }
