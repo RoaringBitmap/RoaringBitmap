@@ -127,6 +127,27 @@ public final class RangeBitmap {
   }
 
   /**
+   * Returns a RoaringBitmap of rows which have a value in between the thresholds intersected with the context.
+   *
+   * @param min the inclusive minimum value.
+   * @param max the inclusive maximum value.
+   * @param context to be intersected with.
+   * @return a bitmap of matching rows.
+   */
+  public RoaringBitmap between(long min, long max, RoaringBitmap context) {
+    if (min == 0 || Long.numberOfLeadingZeros(min) < Long.numberOfLeadingZeros(mask)) {
+      return lte(max, context);
+    }
+    if (Long.numberOfLeadingZeros(max) < Long.numberOfLeadingZeros(mask)) {
+      return gte(min, context);
+    }
+    if (context.isEmpty()) {
+      return new RoaringBitmap();
+    }
+    return new DoubleEvaluation().compute(min - 1, max, context);
+  }
+
+  /**
    * Returns the number of rows which have a value in between the thresholds.
    *
    * @param min the inclusive minimum value.
@@ -157,6 +178,9 @@ public final class RangeBitmap {
     }
     if (Long.numberOfLeadingZeros(max) < Long.numberOfLeadingZeros(mask)) {
       return gteCardinality(min, context);
+    }
+    if (context.isEmpty()) {
+      return 0L;
     }
     return new DoubleEvaluation().count(min - 1, max, context);
   }
@@ -972,6 +996,54 @@ public final class RangeBitmap {
       return new RoaringBitmap(output);
     }
 
+    public RoaringBitmap compute(long lower, long upper, RoaringBitmap context) {
+      RoaringArray output = new RoaringArray();
+      long remaining = max;
+      int mPos = masksOffset;
+      RoaringArray contextArray = context.highLowContainer;
+      int contextPos = 0;
+      int maxContextKey = contextArray.keys[contextArray.size - 1];
+      for (int prefix = 0; prefix <= maxContextKey && remaining > 0; prefix++) {
+        long containerMask = getContainerMask(buffer, mPos, mask, bytesPerMask);
+        if (prefix < contextArray.keys[contextPos]) {
+          for (int i = 0; i < Long.bitCount(containerMask); i++) {
+            skipContainer();
+          }
+        } else {
+          evaluateHorizontalSlice(containerMask, remaining, lower, upper);
+          if (!low.empty && !high.empty) {
+            char key = contextArray.keys[contextPos];
+            Container container = contextArray.values[contextPos];
+            if (low.full && high.full) {
+              output.append(key, container.clone());
+            } else {
+              final long[] bits;
+              if (low.full) {
+                bits = high.bits;
+              } else if (high.full) {
+                bits = low.bits;
+              } else {
+                bits = low.bits;
+                for (int i = 0; i < Math.min(bits.length, high.bits.length); i++) {
+                  bits[i] &= high.bits[i];
+                }
+              }
+              Container toAppend =
+                  new BitmapContainer(bits, -1).repairAfterLazy().iand(container).runOptimize();
+              if (!toAppend.isEmpty()) {
+                output.append(
+                    key, toAppend instanceof BitmapContainer ? toAppend.clone() : toAppend);
+              }
+            }
+          }
+          contextPos++;
+        }
+        remaining -= 0x10000;
+        mPos += bytesPerMask;
+      }
+      return new RoaringBitmap(output);
+    }
+
     public long count(long lower, long upper) {
       long count = 0;
       long remaining = max;
@@ -1034,6 +1106,7 @@ public final class RangeBitmap {
               }
             }
           }
+          contextPos++;
         }
         remaining -= 0x10000;
         mPos += bytesPerMask;
