@@ -597,6 +597,27 @@ public class RangeBitmapTest {
     assertEquals(11, sut.betweenCardinality(0x10000 - 5, 0x10000 + 5));
   }
 
+  private static void assertBetweenNoContext(
+      RangeBitmap sut, long min, long max, RoaringBitmap expected) {
+    assertEquals(expected, sut.between(min, max));
+    assertEquals(expected.getLongCardinality(), sut.betweenCardinality(min, max));
+  }
+
+  private static void assertBetweenWithContext(
+      RangeBitmap sut, RoaringBitmap context, long min, long max, RoaringBitmap expected) {
+    assertEquals(RoaringBitmap.and(expected, context), sut.between(min, max, context));
+    assertEquals(
+        RoaringBitmap.andCardinality(expected, context), sut.betweenCardinality(min, max, context));
+  }
+
+  private static void assertBetween(
+      RangeBitmap sut, long min, long max, RoaringBitmap expected, RoaringBitmap... contexts) {
+    assertBetweenNoContext(sut, min, max, expected);
+    for (RoaringBitmap context : contexts) {
+      assertBetweenWithContext(sut, context, min, max, expected);
+    }
+  }
+
   @Test
   public void testBetween3() {
     long[] values = {
@@ -607,48 +628,158 @@ public class RangeBitmapTest {
     int numSequentialValues = 1 << 20;
     LongStream.range(0, numSequentialValues).forEach(appender::add);
     RangeBitmap sut = appender.build();
+    RoaringBitmap empty = new RoaringBitmap();
+    RoaringBitmap evens = new RoaringBitmap();
+    RoaringBitmap odds = new RoaringBitmap();
+    RoaringBitmap stripes = new RoaringBitmap();
+    RoaringBitmap frontloaded = RoaringBitmap.bitmapOfRange(0, 1 << 16);
+    RoaringBitmap backloaded = RoaringBitmap.bitmapOfRange(1 << 19, 1 << 20);
+    IntStream.range(0, 4 + (1 << 20))
+        .forEach(
+            i -> {
+              if (i % 2 == 0) {
+                evens.add(i);
+              } else {
+                odds.add(i);
+              }
+              int key = i >>> 16;
+              if (key % 2 == 0) {
+                stripes.add(i);
+              }
+            });
     RoaringBitmap sequentialValues = RoaringBitmap.bitmapOfRange(4, numSequentialValues + 4);
-    assertEquals(
-        RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
-    assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
-    assertEquals(RoaringBitmap.bitmapOfRange(5, 47), sut.between(1, 42));
-    assertEquals(42, sut.betweenCardinality(1, 42));
-    assertEquals(
+    assertBetween(
+        sut,
+        -4620693217682128896L,
+        -4616189618054758400L,
+        RoaringBitmap.bitmapOf(0),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        1,
+        42,
+        RoaringBitmap.bitmapOfRange(5, 47),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        0,
+        4571364728013586431L,
         RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues),
-        sut.between(0, 4571364728013586431L));
-    assertEquals(
-        RoaringBitmap.or(RoaringBitmap.bitmapOf(3), sequentialValues).getCardinality(),
-        sut.betweenCardinality(0, 4571364728013586431L));
-    assertEquals(
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        0,
+        4601552919265804287L,
         RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
-        sut.between(0, 4601552919265804287L));
-    assertEquals(
-        RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues).getCardinality(),
-        sut.betweenCardinality(0, 4601552919265804287L));
-    assertEquals(RoaringBitmap.bitmapOf(0), sut.between(Long.MAX_VALUE, -4616189618054758400L));
-    assertEquals(1, sut.betweenCardinality(Long.MAX_VALUE, -4616189618054758400L));
-    assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, -4586634745500139520L));
-    assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, -4586634745500139520L));
-    assertEquals(
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        Long.MAX_VALUE,
+        -4616189618054758400L,
+        RoaringBitmap.bitmapOf(0),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        Long.MAX_VALUE,
+        -4586634745500139520L,
+        RoaringBitmap.bitmapOf(0, 2),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        0,
+        0xFFFFFFFFFFFFFFFFL,
         RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4),
-        sut.between(0, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(
-        RoaringBitmap.bitmapOfRange(0, numSequentialValues + 4).getCardinality(),
-        sut.betweenCardinality(0, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        4571364728013586431L,
+        -4586634745500139520L,
         RoaringBitmap.bitmapOfRange(0, 4),
-        sut.between(4571364728013586431L, -4586634745500139520L));
-    assertEquals(4, sut.betweenCardinality(4571364728013586431L, -4586634745500139520L));
-    assertEquals(RoaringBitmap.bitmapOf(0, 2), sut.between(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(2, sut.betweenCardinality(Long.MAX_VALUE, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        Long.MAX_VALUE,
+        0xFFFFFFFFFFFFFFFFL,
+        RoaringBitmap.bitmapOf(0, 2),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        0,
+        Long.MAX_VALUE,
         RoaringBitmap.or(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
-        sut.between(0, Long.MAX_VALUE));
-    assertEquals(
-        RoaringBitmap.orCardinality(RoaringBitmap.bitmapOf(1, 3), sequentialValues),
-        sut.betweenCardinality(0, Long.MAX_VALUE));
-    assertEquals(new RoaringBitmap(), sut.between(-42, 0xFFFFFFFFFFFFFFFFL));
-    assertEquals(0, sut.betweenCardinality(-42, 0xFFFFFFFFFFFFFFFFL));
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        -42,
+        0xFFFFFFFFFFFFFFFFL,
+        new RoaringBitmap(),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
+    assertBetween(
+        sut,
+        (1L << 19) - 10,
+        (1L << 19) + 10,
+        RoaringBitmap.bitmapOfRange((1 << 19) - 10 + 4, (1 << 19) + 10 + 4 + 1),
+        evens,
+        odds,
+        stripes,
+        empty,
+        frontloaded,
+        backloaded);
   }
 
   @Test
@@ -861,6 +992,26 @@ public class RangeBitmapTest {
     assertEquals(
         RoaringBitmap.bitmapOf(0), sut.between(-4620693217682128896L, -4616189618054758400L));
     assertEquals(1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L));
+    RoaringBitmap matchingContext = RoaringBitmap.bitmapOfRange(0, 10);
+    RoaringBitmap mismatchingContext1 = RoaringBitmap.bitmapOfRange(10, 20);
+    RoaringBitmap mismatchingContext2 = RoaringBitmap.bitmapOfRange(0x20000, 0x30000);
+    assertEquals(
+        1, sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L, matchingContext));
+    assertEquals(
+        0,
+        sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L, mismatchingContext1));
+    assertEquals(
+        0,
+        sut.betweenCardinality(-4620693217682128896L, -4616189618054758400L, mismatchingContext2));
+    assertEquals(
+        RoaringBitmap.bitmapOf(0),
+        sut.between(-4620693217682128896L, -4616189618054758400L, matchingContext));
+    assertEquals(
+        new RoaringBitmap(),
+        sut.between(-4620693217682128896L, -4616189618054758400L, mismatchingContext1));
+    assertEquals(
+        new RoaringBitmap(),
+        sut.between(-4620693217682128896L, -4616189618054758400L, mismatchingContext2));
   }
 
   @ParameterizedTest
@@ -890,6 +1041,9 @@ public class RangeBitmapTest {
       RoaringBitmap bitmap = sut.between(min, max);
       bitmap.and(context);
       assertEquals(bitmap.getLongCardinality(), contextualCardinality);
+      RoaringBitmap contextBitmap = sut.between(min, max, context);
+      assertEquals(bitmap.getLongCardinality(), contextBitmap.getLongCardinality());
+      assertEquals(bitmap, contextBitmap);
     }
   }
 
@@ -905,6 +1059,8 @@ public class RangeBitmapTest {
     assertEquals(0, empty.gtCardinality(10, nonEmpty));
     assertEquals(new RoaringBitmap(), empty.gte(10, nonEmpty));
     assertEquals(0, empty.gteCardinality(10, nonEmpty));
+    assertEquals(new RoaringBitmap(), empty.between(10, 11, nonEmpty));
+    assertEquals(0, empty.betweenCardinality(10, 11, nonEmpty));
   }
 
   @Test
