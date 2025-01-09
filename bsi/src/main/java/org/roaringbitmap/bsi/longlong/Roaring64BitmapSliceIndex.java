@@ -206,8 +206,8 @@ public class Roaring64BitmapSliceIndex {
     this.clear();
 
     // read meta
-    this.minValue = WritableUtils.readVInt(in);
-    this.maxValue = WritableUtils.readVInt(in);
+    this.minValue = WritableUtils.readVLong(in);
+    this.maxValue = WritableUtils.readVLong(in);
     this.runOptimized = in.readBoolean();
 
     // read ebm
