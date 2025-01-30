@@ -90,7 +90,7 @@ public interface ImmutableLongBitmapDataProvider {
     int characteristics = Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.SIZED;
     Spliterator.OfLong x =
         Spliterators.spliterator(
-            new RoaringOfLong(getLongIterator()), getLongCardinality(), characteristics);
+            new RoaringOfLong(getReverseLongIterator()), getLongCardinality(), characteristics);
     return StreamSupport.longStream(x, false);
   }
 

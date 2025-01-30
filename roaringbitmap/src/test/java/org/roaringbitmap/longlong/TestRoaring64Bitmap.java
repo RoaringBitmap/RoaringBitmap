@@ -1,44 +1,24 @@
 package org.roaringbitmap.longlong;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.roaringbitmap.Util.toUnsignedLong;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
-
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.ValidationRangeConsumer;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
-
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.ValidationRangeConsumer;
+import org.roaringbitmap.art.LeafNode;
+import org.roaringbitmap.art.LeafNodeIterator;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.Util.toUnsignedLong;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 public class TestRoaring64Bitmap {
 
@@ -365,6 +345,48 @@ public class TestRoaring64Bitmap {
     assertTrue(iterator.hasNext());
     assertEquals(123, iterator.next());
     assertFalse(iterator.hasNext());
+  }
+
+  @Test
+  public void testStream_matchesIterator() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(123);
+    map.addLong(124);
+    map.addLong(12123);
+    map.addLong(9999999);
+    map.addLong(Long.MAX_VALUE);
+
+    int index = 0;
+    long[] arrayFromIterator = new long[5];
+    final PeekableLongIterator it = map.getLongIterator();
+    while (it.hasNext()) {
+      arrayFromIterator[index++] = it.next();
+    }
+
+    final long[] arrayFromStream = map.stream().toArray();
+    assertArrayEquals(arrayFromIterator, arrayFromStream);
+  }
+
+  @Test
+  public void testReverseStream_matchesReverseIterator() {
+    Roaring64Bitmap map = newDefaultCtor();
+
+    map.addLong(123);
+    map.addLong(124);
+    map.addLong(12123);
+    map.addLong(9999999);
+    map.addLong(Long.MAX_VALUE);
+
+    int index = 0;
+    long[] arrayFromIterator = new long[5];
+    final PeekableLongIterator it = map.getReverseLongIterator();
+    while (it.hasNext()) {
+      arrayFromIterator[index++] = it.next();
+    }
+
+    final long[] arrayFromStream = map.reverseStream().toArray();
+    assertArrayEquals(arrayFromIterator, arrayFromStream);
   }
 
   @Test
