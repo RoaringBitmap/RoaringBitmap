@@ -366,6 +366,7 @@ public class TestRoaring64Bitmap {
 
     final long[] arrayFromStream = map.stream().toArray();
     assertArrayEquals(arrayFromIterator, arrayFromStream);
+    assertArrayEquals(new long[] {123, 124, 12123, 9999999, Long.MAX_VALUE}, arrayFromStream);
   }
 
   @Test
@@ -387,6 +388,7 @@ public class TestRoaring64Bitmap {
 
     final long[] arrayFromStream = map.reverseStream().toArray();
     assertArrayEquals(arrayFromIterator, arrayFromStream);
+    assertArrayEquals(new long[] {Long.MAX_VALUE, 9999999, 12123, 124, 123}, arrayFromStream);
   }
 
   @Test
