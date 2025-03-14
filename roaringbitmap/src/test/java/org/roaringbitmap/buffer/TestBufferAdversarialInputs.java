@@ -2,6 +2,7 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.TestAdversarialInputs;
 
@@ -63,6 +64,7 @@ public class TestBufferAdversarialInputs {
     MutableRoaringBitmap rb = new MutableRoaringBitmap();
     // should not throw an exception
     rb.deserialize(new DataInputStream(new FileInputStream(file)));
+    assertTrue(rb.validate());
     assertEquals(rb.getCardinality(), 200100);
     file.delete();
   }

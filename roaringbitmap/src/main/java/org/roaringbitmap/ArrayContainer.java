@@ -1276,6 +1276,22 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public Boolean validate() {
+    if (cardinality <= 0) {
+      return false;
+    }
+    if (cardinality > DEFAULT_MAX_SIZE) {
+      return false;
+    }
+    for (int k = 1; k < cardinality; ++k) {
+      if (content[k - 1] >= content[k]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   public int last() {
     assertNonEmpty(cardinality == 0);
     return (content[cardinality - 1]);

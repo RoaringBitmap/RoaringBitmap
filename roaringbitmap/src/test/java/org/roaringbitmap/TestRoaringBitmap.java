@@ -4233,8 +4233,10 @@ public class TestRoaringBitmap {
     assertEquals(howmuch, bos.toByteArray().length);
     final RoaringBitmap rrback = new RoaringBitmap();
     rrback.deserialize(new DataInputStream(new ByteArrayInputStream(bos.toByteArray())));
+    assertTrue(rrback.validate());
     assertEquals(rr.getCardinality(), rrback.getCardinality());
     assertEquals(rr, rrback);
+
     // Deserialize DataInput with a buffer
     rrback.deserialize(new DataInputStream(new ByteArrayInputStream(bos.toByteArray())), null);
     assertEquals(rr.getCardinality(), rrback.getCardinality());
@@ -4383,6 +4385,7 @@ public class TestRoaringBitmap {
     final RoaringBitmap rrback = new RoaringBitmap();
     final ByteBuffer buf = ByteBuffer.wrap(bos.toByteArray());
     rrback.deserialize(buf);
+    assertTrue(rrback.validate());
     assertEquals(rr.getCardinality(), rrback.getCardinality());
     assertEquals(rr, rrback);
   }

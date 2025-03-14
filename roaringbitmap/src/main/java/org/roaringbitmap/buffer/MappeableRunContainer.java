@@ -110,6 +110,33 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     this(DEFAULT_INIT_SIZE);
   }
 
+  @Override
+  public Boolean validate() {
+    if (nbrruns == 0) {
+      return false;
+    }
+    int runEnd = -2;
+    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
+      int runStart = (this.getValue(rlepos));
+      if (runStart <= runEnd + 1) {
+        return false;
+      }
+      runEnd = runStart + (this.getLength(rlepos));
+      if (runStart > runEnd) {
+        return false;
+      }
+    }
+
+    int sizeAsRunContainer = MappeableArrayContainer.serializedSizeInBytes(this.nbrruns);
+    int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
+    int card = this.getCardinality();
+    int sizeAsArrayContainer = MappeableArrayContainer.serializedSizeInBytes(card);
+    if (sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Create an array container with specified capacity
    *

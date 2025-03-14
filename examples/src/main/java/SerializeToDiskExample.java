@@ -38,10 +38,12 @@ public class SerializeToDiskExample {
     RoaringBitmap rbtest = new RoaringBitmap();
     try (DataInputStream in = new DataInputStream(new FileInputStream(file1))) {
       rbtest.deserialize(in);
+      if (!rbtest.validate()) throw new RuntimeException("bug!");
     }
     if (!rbtest.equals(rb)) throw new RuntimeException("bug!");
     try (DataInputStream in = new DataInputStream(new FileInputStream(file2))) {
       rbtest.deserialize(in);
+      if (!rbtest.validate()) throw new RuntimeException("bug!");
     }
     if (!rbtest.equals(rb)) throw new RuntimeException("bug!");
     System.out.println("Serialized bitmaps to " + file1 + " and " + file2);

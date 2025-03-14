@@ -387,8 +387,10 @@ public class TestImmutableRoaringBitmapOrNot {
     ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
     MutableRoaringBitmap l = new MutableRoaringBitmap();
     l.deserialize(lBuffer);
+    assertTrue(l.validate());
     MutableRoaringBitmap r = new MutableRoaringBitmap();
     r.deserialize(rBuffer);
+    assertTrue(r.validate());
 
     MutableRoaringBitmap range = new MutableRoaringBitmap();
     long limit = toUnsignedLong(l.last()) + 1;
@@ -412,8 +414,10 @@ public class TestImmutableRoaringBitmapOrNot {
     ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
     MutableRoaringBitmap l = new MutableRoaringBitmap();
     l.deserialize(lBuffer);
+    assertTrue(l.validate());
     MutableRoaringBitmap r = new MutableRoaringBitmap();
     r.deserialize(rBuffer);
+    assertTrue(r.validate());
 
     MutableRoaringBitmap range = new MutableRoaringBitmap();
     long limit = toUnsignedLong(l.last()) + 1;

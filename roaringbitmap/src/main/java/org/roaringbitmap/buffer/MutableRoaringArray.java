@@ -135,6 +135,23 @@ public final class MutableRoaringArray
     }
   }
 
+  @Override
+  public Boolean validate() {
+    for (int k = 0; k < size; ++k) {
+      if (k > 0 && getKeyAtIndex(k - 1) >= getKeyAtIndex(k)) {
+        return false;
+      }
+      MappeableContainer container = getContainerAtIndex(k);
+      if (container == null) {
+        return false;
+      }
+      if (!container.validate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Append copies of the values AFTER a specified key (may or may not be present) to end.
    *

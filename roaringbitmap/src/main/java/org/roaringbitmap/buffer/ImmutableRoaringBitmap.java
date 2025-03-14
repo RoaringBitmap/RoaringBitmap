@@ -76,6 +76,10 @@ import java.util.Iterator;
  * }
  * </pre>
  *
+ * When deserializing from untrusted source, we recommend calling 'validate()'
+ * after deserialization to ensure that the result is a valid bitmap. Furthermore,
+ * we recommend using hashing to ensure that the bitmap has not been tampered with.
+ *
  *
  * @see MutableRoaringBitmap
  */
@@ -364,6 +368,14 @@ public class ImmutableRoaringBitmap
       }
     }
     return answer;
+  }
+
+  /**
+   * Validate the content of the bitmap. Useful after deserialization.
+   * @return true if the content is valid.
+   */
+  public Boolean validate() {
+    return this.highLowContainer.validate();
   }
 
   /**
@@ -1169,6 +1181,10 @@ public class ImmutableRoaringBitmap
    *
    * It is not necessary that limit() on the input ByteBuffer indicates the end of the serialized
    * data.
+   *
+   * When deserializing from untrusted source, we recommend calling 'validate()'
+   * after deserialization to ensure that the result is a valid bitmap. Furthermore,
+   * we recommend using hashing to ensure that the bitmap has not been tampered with.
    *
    * After creating this ImmutableRoaringBitmap, you can advance to the rest of the data (if there
    * is more) by setting b.position(b.position() + bitmap.serializedSizeInBytes());

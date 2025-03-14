@@ -914,4 +914,10 @@ public abstract class MappeableContainer
       throw new NoSuchElementException("Empty " + getContainerName());
     }
   }
+
+  /**
+   * Validate the content of the container. Useful after deserialization.
+   * @return true if the container is valid.
+   */
+  public abstract Boolean validate();
 }

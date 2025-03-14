@@ -242,6 +242,22 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
+  public Boolean validate() {
+    if (cardinality <= 0) {
+      return false;
+    }
+    if (cardinality > DEFAULT_MAX_SIZE) {
+      return false;
+    }
+    for (int k = 1; k < cardinality; ++k) {
+      if (content.get(k - 1) >= content.get(k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
   public boolean isFull() {
     return false;
   }

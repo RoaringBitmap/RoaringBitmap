@@ -3,6 +3,7 @@ package org.roaringbitmap.buffer;
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.file.Files.delete;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.SeededTestData;
 
@@ -131,6 +132,7 @@ public class TestSerializationViaByteBuffer {
       buffer.order(order);
       MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
       deserialised.deserialize(buffer);
+      assertTrue(deserialised.validate());
       assertEquals(input, deserialised);
     }
   }
@@ -164,6 +166,7 @@ public class TestSerializationViaByteBuffer {
     ByteBuffer buffer = ByteBuffer.wrap(serialised).order(order);
     MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
+    assertTrue(deserialised.validate());
     assertEquals(input, deserialised);
   }
 
@@ -178,6 +181,7 @@ public class TestSerializationViaByteBuffer {
     buffer.position(0);
     MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
+    assertTrue(deserialised.validate());
     assertEquals(input, deserialised);
   }
 
@@ -193,6 +197,7 @@ public class TestSerializationViaByteBuffer {
     buffer.position(10);
     MutableRoaringBitmap deserialised = new MutableRoaringBitmap();
     deserialised.deserialize(buffer);
+    assertTrue(deserialised.validate());
     assertEquals(input, deserialised);
   }
 

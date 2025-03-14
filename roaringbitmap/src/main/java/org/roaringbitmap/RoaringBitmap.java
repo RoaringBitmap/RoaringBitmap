@@ -350,6 +350,14 @@ public class RoaringBitmap
   }
 
   /**
+   * Validate the content of the bitmap. Useful after deserialization.
+   * @return true if the content is valid.
+   */
+  public Boolean validate() {
+    return this.highLowContainer.validate();
+  }
+
+  /**
    *
    * Generate a new bitmap with all integers in [rangeStart,rangeEnd) added.
    *
@@ -1764,6 +1772,10 @@ public class RoaringBitmap
    * https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * The current bitmap is overwritten.
+   *
+   * When deserializing from untrusted source, we recommend calling 'validate()'
+   * after deserialization to ensure that the result is a valid bitmap. Furthermore,
+   * we recommend using hashing to ensure that the bitmap has not been tampered with.
    *
    * @param in the DataInput stream
    * @param buffer The buffer gets overwritten with data during deserialization. You can pass a NULL

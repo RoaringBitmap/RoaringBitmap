@@ -293,6 +293,23 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
     };
   }
 
+  @Override
+  public Boolean validate() {
+    for (int k = 0; k < size; ++k) {
+      if (k > 0 && getKey(k - 1) >= getKey(k)) {
+        return false;
+      }
+      MappeableContainer container = getContainerAtIndex(k);
+      if (container == null) {
+        return false;
+      }
+      if (!container.validate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // involves a binary search
   @Override
   public int getIndex(char x) {
