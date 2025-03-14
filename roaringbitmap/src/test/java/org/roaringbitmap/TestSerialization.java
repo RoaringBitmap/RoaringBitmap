@@ -324,11 +324,12 @@ public class TestSerialization {
     // This example binary comes from
     // https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
     String resourceName = "/testdata/bad-bitmap.bin";
-    InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
-    RoaringBitmap bitmap = new RoaringBitmap();
-    bitmap.deserialize(new DataInputStream(inputStream));
-    assertFalse(bitmap.validate());
-    inputStream.close();
+    try (InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
+         DataInputStream dataInputStream = new DataInputStream(inputStream)) {
+      RoaringBitmap bitmap = new RoaringBitmap();
+      bitmap.deserialize(dataInputStream);
+      assertFalse(bitmap.validate());
+    }
   }
 
   @Test
