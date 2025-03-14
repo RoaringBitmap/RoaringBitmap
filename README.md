@@ -2,7 +2,6 @@ RoaringBitmap
 =============
 [![][license img]][license]
 [![docs-badge][]][docs]
-![Java 11 CI](https://github.com/RoaringBitmap/RoaringBitmap/workflows/Java%2011%20CI/badge.svg)
 
 - [Introduction](#introduction)
 - [When should you use a bitmap?](#when-should-you-use-a-bitmap)
