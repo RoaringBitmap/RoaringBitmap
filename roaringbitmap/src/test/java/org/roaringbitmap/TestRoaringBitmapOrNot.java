@@ -387,8 +387,10 @@ public class TestRoaringBitmapOrNot {
     ByteBuffer rBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(base64Bitmaps.get(1)));
     RoaringBitmap l = new RoaringBitmap();
     l.deserialize(lBuffer);
+    assertTrue(l.validate());
     RoaringBitmap r = new RoaringBitmap();
     r.deserialize(rBuffer);
+    assertTrue(r.validate());
 
     RoaringBitmap range = new RoaringBitmap();
     long limit = toUnsignedLong(l.last()) + 1;

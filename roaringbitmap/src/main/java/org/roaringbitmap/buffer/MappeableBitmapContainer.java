@@ -184,6 +184,22 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
+  public Boolean validate() {
+    if (cardinality <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
+      return false;
+    }
+    int computed_cardinality = 0;
+    int len = this.bitmap.limit();
+    if (len != MAX_CAPACITY / 64) {
+      return false;
+    }
+    for (int k = 0; k < len; ++k) {
+      computed_cardinality += Long.bitCount(this.bitmap.get(k));
+    }
+    return cardinality == computed_cardinality;
+  }
+
+  @Override
   public MappeableContainer and(final MappeableBitmapContainer value2) {
     int newCardinality = 0;
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)

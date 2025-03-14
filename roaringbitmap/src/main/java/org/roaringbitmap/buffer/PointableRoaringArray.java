@@ -52,6 +52,12 @@ public interface PointableRoaringArray extends Cloneable {
   int getCardinality(int i);
 
   /**
+   * Validate the content, useful after deserialization.
+   * @return true if the content is valid.
+   */
+  public Boolean validate();
+
+  /**
    * Obsolete method (retired because it forces us to create a new container).
    *
    * @param x 16-bit key

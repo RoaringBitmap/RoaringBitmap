@@ -199,6 +199,38 @@ public class Basic {
 }
 ```
 
+You can serialize and deserialize bitmaps:
+
+```Java
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int k = 0; k < 100000; k += 1000) {
+      rb.add(k);
+    }
+    String file1 = "bitmapwithoutruns.bin";
+    try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file1))) {
+      rb.serialize(out);
+    }
+    rb.runOptimize();
+    String file2 = "bitmapwithruns.bin";
+    try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file2))) {
+      rb.serialize(out);
+    }
+    // recover
+    RoaringBitmap rbtest = new RoaringBitmap();
+    try (DataInputStream in = new DataInputStream(new FileInputStream(file1))) {
+      rbtest.deserialize(in);
+      if(!rbtest.validate()) throw new RuntimeException("bug!");
+    }
+```
+
+Observe how, after calling `deserialize`, we call `validate()`: when deserializing
+content from untrusted sources, we recommand calling `validate()` to ensure that the
+content is a valid bitmap. Furthermore, we recommend using hashing to ensure that
+the content has not been tempered with.
+
+This last examples also illustrates the use of `runOptimize()` which is sometimes
+helpful to reduce the size of the bitmaps.
+
 Please see the examples folder for more examples, which you can run with `./gradlew :examples:runAll`, or run a specific one with `./gradlew :examples:runExampleBitmap64`, etc.
 
 API docs
@@ -465,6 +497,18 @@ in RAM while the actual data is accessed from the ByteBuffer on demand.
         bb.position(bb.position() + rrback1.serializedSizeInBytes());
         ImmutableRoaringBitmap rrback2 = new ImmutableRoaringBitmap(bb);
 ```
+
+When deserializing from untrusted source, we recommend calling `validate()`
+after deserialization to ensure that the result is a valid bitmap:
+
+```Java
+ImmutableRoaringBitmap rrback1 = new ImmutableRoaringBitmap(bb);
+if(!rrback1.validate()) {
+    // something is wrong, it cannot be a valid bitmap.
+}
+```
+
+Furthermore, we recommend using hashing to ensure that the bitmap has not been tampered with.
 
 Alternatively, we can serialize directly to a `ByteBuffer` with the `serialize(ByteBuffer)` method.
 

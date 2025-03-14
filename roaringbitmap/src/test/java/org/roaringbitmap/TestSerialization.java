@@ -1,6 +1,8 @@
 package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
@@ -190,6 +192,8 @@ public class TestSerialization {
     DataInputStream dis = new DataInputStream(in);
     bitmap_empty.deserialize(dis);
     bitmap_b.deserialize(dis);
+    assertTrue(bitmap_b.validate());
+    assertTrue(bitmap_empty.validate());
   }
 
   @Test
@@ -199,6 +203,8 @@ public class TestSerialization {
     DataInputStream dis = new DataInputStream(in);
     bitmap_empty.deserialize(dis, buffer);
     bitmap_b.deserialize(dis, buffer);
+    assertTrue(bitmap_empty.validate());
+    assertTrue(bitmap_b.validate());
     assertEquals(bitmap_a, bitmap_b);
   }
 
@@ -314,12 +320,27 @@ public class TestSerialization {
   }
 
   @Test
+  public void testSerialization_bad() throws IOException {
+    // This example binary comes from
+    // https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    String resourceName = "/testdata/bad-bitmap.bin";
+    try (InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
+         DataInputStream dataInputStream = new DataInputStream(inputStream)) {
+      RoaringBitmap bitmap = new RoaringBitmap();
+      bitmap.deserialize(dataInputStream);
+      assertFalse(bitmap.validate());
+    }
+  }
+
+  @Test
   public void testMutableDeserializeMutable() throws IOException {
     presoutbb.rewind();
     ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(presoutbb);
     DataInputStream dis = new DataInputStream(in);
     bitmap_emptyr.deserialize(dis);
     bitmap_br.deserialize(dis);
+    assertTrue(bitmap_emptyr.validate());
+    assertTrue(bitmap_br.validate());
   }
 
   @Test
@@ -376,6 +397,10 @@ public class TestSerialization {
     bitmap_c2.deserialize(in);
     bitmap_c3.deserialize(in);
     bitmap_c4.deserialize(in);
+    assertTrue(bitmap_c1.validate());
+    assertTrue(bitmap_c2.validate());
+    assertTrue(bitmap_c3.validate());
+    assertTrue(bitmap_c4.validate());
 
     assertEquals(bitmap_a, bitmap_c1);
     assertEquals(bitmap_a, bitmap_c2);
@@ -429,6 +454,7 @@ public class TestSerialization {
 
     ByteBufferBackedInputStream in = new ByteBufferBackedInputStream(outbuf);
     bitmap_c.deserialize(new DataInputStream(in));
+    assertTrue(bitmap_c.validate());
 
     assertEquals(bitmap_a, bitmap_c);
   }
@@ -456,6 +482,7 @@ public class TestSerialization {
     DataInputStream dis = new DataInputStream(in);
     RoaringBitmap r = new RoaringBitmap();
     r.deserialize(dis);
+    assertTrue(r.validate());
     return r;
   }
 
@@ -481,6 +508,7 @@ public class TestSerialization {
     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
     RoaringBitmap target = new RoaringBitmap();
     target.deserialize(new DataInputStream(inputStream));
+    assertTrue(target.validate());
 
     boolean actual = target.intersects(26244001, 27293761);
     assertEquals(actual, expected);

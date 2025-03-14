@@ -15,6 +15,7 @@ import org.roaringbitmap.IntConsumer;
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.TestAdversarialInputs;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
@@ -2809,6 +2811,19 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testSerialization_bad() throws IOException {
+    // This example binary comes from
+    // https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
+    String resourceName = "/testdata/bad-bitmap.bin";
+    try (InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
+         DataInputStream dataInputStream = new DataInputStream(inputStream)) {
+        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+        bitmap.deserialize(dataInputStream);
+        assertFalse(bitmap.validate());
+    }
+  }
+
+  @Test
   public void testSerialization3() throws IOException, ClassNotFoundException {
     final MutableRoaringBitmap rr = new MutableRoaringBitmap();
     for (int k = 65000; k < 2 * 65000; ++k) {
@@ -2826,6 +2841,7 @@ public class TestRoaringBitmap {
     final MutableRoaringBitmap rrback = new MutableRoaringBitmap();
     final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     rrback.deserialize(new DataInputStream(bis));
+    assertTrue(rrback.validate());
     assertEquals(rr.getCardinality(), rrback.getCardinality());
     assertTrue(rr.equals(rrback));
   }

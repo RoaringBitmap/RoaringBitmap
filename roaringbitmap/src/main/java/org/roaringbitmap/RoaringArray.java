@@ -758,6 +758,26 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     return hashvalue;
   }
 
+  /**
+   * Validate the RoaringArray. This is useful for checking a recently
+   * deserialized RoaringArray.
+   * @return true if the RoaringArray is valid
+   */
+  public boolean validate() {
+    for (int k = 0; k < size; ++k) {
+      if (k > 0 && keys[k - 1] >= keys[k]) {
+        return false;
+      }
+      if (values[k] == null) {
+        return false;
+      }
+      if (!values[k].validate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private boolean hasRunContainer() {
     for (int k = 0; k < size; ++k) {
       Container ck = values[k];

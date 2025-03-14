@@ -270,6 +270,18 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public Boolean validate() {
+    if (cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
+      return false;
+    }
+    int computed_cardinality = 0;
+    for (int k = 0; k < this.bitmap.length; k++) {
+      computed_cardinality += Long.bitCount(this.bitmap[k]);
+    }
+    return cardinality == computed_cardinality;
+  }
+
+  @Override
   public void clear() {
     if (cardinality != 0) {
       cardinality = 0;

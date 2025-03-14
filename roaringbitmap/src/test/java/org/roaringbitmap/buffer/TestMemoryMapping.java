@@ -480,6 +480,7 @@ public class TestMemoryMapping {
       ByteArrayInputStream bis = new ByteArrayInputStream(arr);
       RoaringBitmap newr = new RoaringBitmap();
       newr.deserialize(new DataInputStream(bis));
+      assertTrue(newr.validate());
       arr = null;
       RoaringBitmap rrasroaring = rr.toRoaringBitmap();
       assertEquals(newr, rrasroaring);
