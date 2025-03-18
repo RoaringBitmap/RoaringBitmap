@@ -1169,6 +1169,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
   /**
    * Deserialize the bitmap (retrieve from the input stream). The current bitmap is overwritten.
    *
+   * When deserializing from untrusted source, we recommend calling 'validate()'
+   * after deserialization to ensure that the result is a valid bitmap. Furthermore,
+   * we recommend using hashing to ensure that the bitmap has not been tampered with.
+   *
    *  See format specification at https://github.com/RoaringBitmap/RoaringFormatSpec
    *
    * @param in the DataInput stream
