@@ -320,7 +320,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
 
   /**
    * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
-   *
+   * In general, it is a a mutator method due to caching: this function modifies
+   * the internal state of the bitmap.
    * @return the cardinality
    */
   @Override
@@ -347,7 +348,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
-   *
+   * Returns the number of distinct integers added to the bitmap (e.g., number of bits set).
+   * In general, it is a a mutator method due to caching: this function modifies
+   * the internal state of the bitmap.
    * @return the cardinality as an int
    *
    * @throws UnsupportedOperationException if the cardinality does not fit in an int
@@ -1481,6 +1484,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   @Override
+  /**
+   * Returns true if the bitmap is empty (i.e., has no set bits).
+   * In general, it is a a mutator method due to caching: this function modifies
+   * the internal state of the bitmap.
+   */
   public boolean isEmpty() {
     return getLongCardinality() == 0L;
   }
