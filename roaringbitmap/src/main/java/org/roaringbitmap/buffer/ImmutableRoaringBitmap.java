@@ -630,19 +630,19 @@ public class ImmutableRoaringBitmap
     answer.getMappeableRoaringArray().appendCopiesUntil(bm.highLowContainer, hbStart);
 
     final int max = (BufferUtil.maxLowBit());
-    for (char hb = hbStart; hb <= hbLast; ++hb) {
-      final int containerStart = (hb == hbStart) ? (lbStart) : 0;
-      final int containerLast = (hb == hbLast) ? (lbLast) : max;
+    for (int hb = hbStart; hb <= hbLast; ++hb) {
+      final int containerStart = (hb == hbStart) ? lbStart : 0;
+      final int containerLast = (hb == hbLast) ? lbLast : max;
 
-      final int i = bm.highLowContainer.getIndex(hb);
-      final int j = answer.getMappeableRoaringArray().getIndex(hb);
+      final int i = bm.highLowContainer.getIndex((char) hb);
+      final int j = answer.getMappeableRoaringArray().getIndex((char) hb);
       assert j < 0;
 
       if (i >= 0) {
         final MappeableContainer c =
             bm.highLowContainer.getContainerAtIndex(i).not(containerStart, containerLast + 1);
         if (!c.isEmpty()) {
-          answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, hb, c);
+          answer.getMappeableRoaringArray().insertNewKeyValueAt(-j - 1, (char) hb, c);
         }
 
       } else { // *think* the range of ones must never be
@@ -650,7 +650,9 @@ public class ImmutableRoaringBitmap
         answer
             .getMappeableRoaringArray()
             .insertNewKeyValueAt(
-                -j - 1, hb, MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
+                -j - 1,
+                (char) hb,
+                MappeableContainer.rangeOfOnes(containerStart, containerLast + 1));
       }
     }
     // copy the containers after the active area.

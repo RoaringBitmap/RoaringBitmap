@@ -338,7 +338,7 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
-  public void fliptest1() {
+  public void testMutableRoaringBitmapFlip() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(0);
     rb.add(2);
@@ -350,7 +350,17 @@ public class TestImmutableRoaringBitmap {
   }
 
   @Test
-  public void fliptest2() {
+  public void testMutableRoaringBitmapFlip_WithRangeEndInMaxHighBitsContainer() {
+    final MutableRoaringBitmap rb = MutableRoaringBitmap.bitmapOfRange(0L, 3L);
+
+    final MutableRoaringBitmap actual = MutableRoaringBitmap.flip(rb, (1L << 32) - 3, 1L << 32);
+    final MutableRoaringBitmap expected = MutableRoaringBitmap.bitmapOf(0, 1, 2, -3, -2, -1);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testImmutableRoaringBitmapFlip() {
     final MutableRoaringBitmap rb = new MutableRoaringBitmap();
     rb.add(0);
     rb.add(2);
@@ -359,6 +369,16 @@ public class TestImmutableRoaringBitmap {
     result.add(1);
 
     assertEquals(result, rb2);
+  }
+
+  @Test
+  public void testImmutableRoaringBitmapFlip_WithRangeEndInMaxHighBitsContainer() {
+    final MutableRoaringBitmap rb = MutableRoaringBitmap.bitmapOfRange(0L, 3L);
+
+    final MutableRoaringBitmap actual = ImmutableRoaringBitmap.flip(rb, (1L << 32) - 3, 1L << 32);
+    final MutableRoaringBitmap expected = MutableRoaringBitmap.bitmapOf(0, 1, 2, -3, -2, -1);
+
+    assertEquals(expected, actual);
   }
 
   @Test
