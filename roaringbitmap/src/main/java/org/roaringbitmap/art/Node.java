@@ -17,6 +17,7 @@ public abstract class Node {
   // to benefit calculation,we keep the value as a short type
   protected short count;
   public static final int ILLEGAL_IDX = -1;
+  private static final byte[] EMPTY_BYTES = new byte[0];
 
   /**
    * constructor
@@ -27,7 +28,7 @@ public abstract class Node {
   public Node(NodeType nodeType, int compressedPrefixSize) {
     this.nodeType = nodeType;
     this.prefixLength = (byte) compressedPrefixSize;
-    prefix = new byte[prefixLength];
+    prefix = compressedPrefixSize == 0 ? EMPTY_BYTES : new byte[prefixLength];
     count = 0;
   }
 
@@ -351,11 +352,13 @@ public abstract class Node {
   }
 
   private static Node deserializeHeader(DataInput dataInput) throws IOException {
-    int nodeTypeOrdinal = dataInput.readByte();
-    short count = Short.reverseBytes(dataInput.readShort());
-    byte prefixLength = dataInput.readByte();
-    byte[] prefix = new byte[0];
-    if (prefixLength > 0) {
+    final int nodeTypeOrdinal = dataInput.readByte();
+    final short count = Short.reverseBytes(dataInput.readShort());
+    final byte prefixLength = dataInput.readByte();
+    final byte[] prefix;
+    if (prefixLength == 0) {
+      prefix = EMPTY_BYTES;
+    } else {
       prefix = new byte[prefixLength];
       dataInput.readFully(prefix);
     }
@@ -398,11 +401,13 @@ public abstract class Node {
   }
 
   private static Node deserializeHeader(ByteBuffer byteBuffer) throws IOException {
-    int nodeTypeOrdinal = byteBuffer.get();
-    short count = byteBuffer.getShort();
-    byte prefixLength = byteBuffer.get();
-    byte[] prefix = new byte[0];
-    if (prefixLength > 0) {
+    final int nodeTypeOrdinal = byteBuffer.get();
+    final short count = byteBuffer.getShort();
+    final byte prefixLength = byteBuffer.get();
+    final byte[] prefix;
+    if (prefixLength == 0) {
+      prefix = EMPTY_BYTES;
+    } else {
       prefix = new byte[prefixLength];
       byteBuffer.get(prefix);
     }

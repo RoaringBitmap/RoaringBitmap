@@ -254,7 +254,7 @@ public class Art {
           System.arraycopy(node.prefix, mismatchPos + 1, node.prefix, 0, node.prefixLength);
         } else {
           // TODO:to reduce the 0 prefix memory space,we could mark the prefix as null
-          node.prefix = new byte[0];
+          node.prefix = EMPTY_BYTES;
         }
         LeafNode leafNode = new LeafNode(key, containerIdx);
         Node4.insert(node4, leafNode, key[mismatchPos + depth]);
