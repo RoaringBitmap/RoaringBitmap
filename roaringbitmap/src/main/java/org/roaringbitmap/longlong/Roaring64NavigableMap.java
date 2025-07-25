@@ -1483,14 +1483,17 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return size;
   }
 
-  @Override
   /**
    * Returns true if the bitmap is empty (i.e., has no set bits).
-   * In general, it is a a mutator method due to caching: this function modifies
-   * the internal state of the bitmap.
    */
+  @Override
   public boolean isEmpty() {
-    return getLongCardinality() == 0L;
+    for (BitmapDataProvider bitmap : highToBitmap.values()) {
+      if (!bitmap.isEmpty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
