@@ -841,7 +841,17 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
   @Override
   public boolean isEmpty() {
-    return getLongCardinality() == 0L;
+
+    if (highLowContainer.isEmpty()) {
+      return true;
+    }
+    Iterator<Container> containerIterator = highLowContainer.containerIterator();
+    while (containerIterator.hasNext()) {
+      Container container = containerIterator.next();
+      if (!container.isEmpty())
+        return false;
+    }
+    return true;
   }
 
   @Override
