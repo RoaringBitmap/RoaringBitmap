@@ -22,7 +22,7 @@ public class LeafNode extends Node {
    * @param containerIdx the corresponding container index
    */
   public LeafNode(byte[] key, long containerIdx) {
-    super(NodeType.LEAF_NODE, 0);
+    super();
     byte[] bytes = new byte[8];
     System.arraycopy(key, 0, bytes, 0, LEAF_NODE_KEY_LENGTH_IN_BYTES);
     this.key = LongUtils.fromBDBytes(bytes);
@@ -35,7 +35,7 @@ public class LeafNode extends Node {
    * @param containerIdx the corresponding container index
    */
   public LeafNode(long key, long containerIdx) {
-    super(NodeType.LEAF_NODE, 0);
+    super();
     this.key = key;
     this.containerIdx = containerIdx;
   }
@@ -75,61 +75,6 @@ public class LeafNode extends Node {
     return LEAF_NODE_KEY_LENGTH_IN_BYTES + 8;
   }
 
-  @Override
-  public int getChildPos(byte k) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public SearchResult getNearestChildPos(byte key) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public byte getChildKey(int pos) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Node getChild(int pos) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void replaceNode(int pos, Node freshOne) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getMinPos() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getNextLargerPos(int pos) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getMaxPos() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public int getNextSmallerPos(int pos) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Node remove(int pos) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void replaceChildren(Node[] children) {
-    throw new UnsupportedOperationException();
-  }
-
   public long getContainerIdx() {
     return containerIdx;
   }
@@ -141,4 +86,19 @@ public class LeafNode extends Node {
   public long getKey() {
     return key >>> 16;
   }
+
+  protected void serializeHeader(DataOutput dataOutput) throws IOException {
+    // first byte: node type
+    dataOutput.writeByte((byte) NodeType.LEAF_NODE.ordinal());
+    // non null object count
+    dataOutput.writeShort(0);
+    dataOutput.writeByte(0);
+  }
+
+  protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
+    byteBuffer.put((byte) NodeType.LEAF_NODE.ordinal());
+    byteBuffer.putShort((short)0);
+    byteBuffer.put((byte)0);
+  }
+
 }

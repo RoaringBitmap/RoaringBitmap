@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 
-public class Node256 extends Node {
+public class Node256 extends BranchNode {
 
   Node[] children = new Node[256];
   // a helper utility field

@@ -15,12 +15,12 @@ public class BackwardShuttle extends AbstractShuttle {
   }
 
   @Override
-  protected int visitedNodeNextPosition(Node node, int pos) {
+  protected int visitedNodeNextPosition(BranchNode node, int pos) {
     return node.getNextSmallerPos(pos);
   }
 
   @Override
-  protected int boundaryNodePosition(Node node, boolean inRunDirection) {
+  protected int boundaryNodePosition(BranchNode node, boolean inRunDirection) {
     if (inRunDirection) {
       return node.getMinPos();
     } else {

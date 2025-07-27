@@ -1,9 +1,6 @@
 package org.roaringbitmap.longlong;
 
-import org.roaringbitmap.art.Art;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
-import org.roaringbitmap.art.Node;
+import org.roaringbitmap.art.*;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,7 +30,7 @@ public class ArtTest {
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(!hasNext);
     art.remove(key1);
-    Assertions.assertTrue(art.findByKey(key1) == Node.ILLEGAL_IDX);
+    Assertions.assertTrue(art.findByKey(key1) == BranchNode.ILLEGAL_IDX);
   }
 
   // one node4 with two leaf nodes
@@ -177,7 +174,7 @@ public class ArtTest {
     Assertions.assertTrue(containerIdx == 36);
     key = new byte[] {1, 2, 3, 4, 5, 51};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == Node.ILLEGAL_IDX);
+    Assertions.assertTrue(containerIdx == BranchNode.ILLEGAL_IDX);
     long sizeInBytesL = art.serializeSizeInBytes();
     int sizeInBytesI = (int) sizeInBytesL;
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInBytesI);

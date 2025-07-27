@@ -17,7 +17,7 @@ public class Art {
   private Node root;
   private long keySize = 0;
 
-  private static byte[] EMPTY_BYTES = new byte[0];
+  static byte[] EMPTY_BYTES = new byte[0];
 
   public Art() {
     root = null;
@@ -51,12 +51,12 @@ public class Art {
       LeafNode leafNode = (LeafNode) node;
       return leafNode.containerIdx;
     }
-    return Node.ILLEGAL_IDX;
+    return BranchNode.ILLEGAL_IDX;
   }
 
   private Node findByKey(Node node, byte[] key, int depth) {
     while (node != null) {
-      if (node.nodeType == NodeType.LEAF_NODE) {
+      if (node instanceof LeafNode) {
         LeafNode leafNode = (LeafNode) node;
         byte[] leafNodeKeyBytes = leafNode.getKeyBytes();
         if (depth == LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES) {
@@ -75,20 +75,21 @@ public class Art {
         }
         return leafNode;
       }
-      if (node.prefixLength > 0) {
+      BranchNode branchNode = (BranchNode) node;
+      if (branchNode.prefixLength > 0) {
         int commonLength =
-            commonPrefixLength(key, depth, key.length, node.prefix, 0, node.prefixLength);
-        if (commonLength != node.prefixLength) {
+            commonPrefixLength(key, depth, key.length, branchNode.prefix, 0, branchNode.prefixLength);
+        if (commonLength != branchNode.prefixLength) {
           return null;
         }
         // common prefix is the same ,then increase the depth
-        depth += node.prefixLength;
+        depth += branchNode.prefixLength;
       }
-      int pos = node.getChildPos(key[depth]);
-      if (pos == Node.ILLEGAL_IDX) {
+      int pos = branchNode.getChildPos(key[depth]);
+      if (pos == BranchNode.ILLEGAL_IDX) {
         return null;
       }
-      node = node.getChild(pos);
+      node = branchNode.getChild(pos);
       depth++;
     }
     return null;
@@ -113,19 +114,19 @@ public class Art {
     if (toolkit != null) {
       return toolkit.matchedContainerId;
     }
-    return Node.ILLEGAL_IDX;
+    return BranchNode.ILLEGAL_IDX;
   }
 
   protected Toolkit removeSpecifyKey(Node node, byte[] key, int dep) {
     if (node == null) {
       return null;
     }
-    if (node.nodeType == NodeType.LEAF_NODE) {
+    if (node instanceof LeafNode) {
       // root is null
       LeafNode leafNode = (LeafNode) node;
       if (leafMatch(leafNode, key, dep)) {
         // remove this node
-        if (node == this.root) {
+        if (leafNode == this.root) {
           this.root = null;
         }
         keySize--;
@@ -134,26 +135,27 @@ public class Art {
         return null;
       }
     }
-    if (node.prefixLength > 0) {
+    BranchNode branchNode = (BranchNode) node;
+    if (branchNode.prefixLength > 0) {
       int commonLength =
-          commonPrefixLength(key, dep, key.length, node.prefix, 0, node.prefixLength);
-      if (commonLength != node.prefixLength) {
+          commonPrefixLength(key, dep, key.length, branchNode.prefix, 0, branchNode.prefixLength);
+      if (commonLength != branchNode.prefixLength) {
         return null;
       }
-      dep += node.prefixLength;
+      dep += branchNode.prefixLength;
     }
-    int pos = node.getChildPos(key[dep]);
-    if (pos != Node.ILLEGAL_IDX) {
-      Node child = node.getChild(pos);
-      if (child.nodeType == NodeType.LEAF_NODE && leafMatch((LeafNode) child, key, dep)) {
+    int pos = branchNode.getChildPos(key[dep]);
+    if (pos != BranchNode.ILLEGAL_IDX) {
+      Node child = branchNode.getChild(pos);
+      if (child instanceof LeafNode && leafMatch((LeafNode) child, key, dep)) {
         // found matched leaf node from the current node.
-        Node freshNode = node.remove(pos);
+        Node freshNode = branchNode.remove(pos);
         keySize--;
-        if (node == this.root && freshNode != node) {
+        if (branchNode == this.root && freshNode != branchNode) {
           this.root = freshNode;
         }
         long matchedContainerIdx = ((LeafNode) child).getContainerIdx();
-        Toolkit toolkit = new Toolkit(freshNode, matchedContainerIdx, node);
+        Toolkit toolkit = new Toolkit(freshNode, matchedContainerIdx, branchNode);
         toolkit.needToVerifyReplacing = true;
         return toolkit;
       } else {
@@ -163,7 +165,7 @@ public class Art {
             && toolkit.freshMatchedParentNode != null
             && toolkit.freshMatchedParentNode != toolkit.originalMatchedParentNode) {
           // meaning find the matched key and the shrinking happened
-          node.replaceNode(pos, toolkit.freshMatchedParentNode);
+          branchNode.replaceNode(pos, toolkit.freshMatchedParentNode);
           toolkit.needToVerifyReplacing = false;
           return toolkit;
         }
@@ -215,14 +217,11 @@ public class Art {
       LeafNode leafNode = new LeafNode(key, containerIdx);
       return leafNode;
     }
-    if (node.nodeType == NodeType.LEAF_NODE) {
+    if (node instanceof LeafNode) {
       LeafNode leafNode = (LeafNode) node;
       byte[] prefix = leafNode.getKeyBytes();
       int commonPrefix = commonPrefixLength(prefix, depth, prefix.length, key, depth, key.length);
-      // The leaf node maybe was shrunk from some other node type before and
-      // contained an old prefixLength,so we reset it to 0 here.
-      leafNode.prefixLength = 0;
-      leafNode.prefix = EMPTY_BYTES;
+
       Node4 node4 = new Node4(commonPrefix);
       // copy common prefix
       node4.prefixLength = (byte) commonPrefix;
@@ -234,47 +233,47 @@ public class Art {
       // replace the current node with this internal node4
       return node4;
     }
+    BranchNode branchNode = (BranchNode) node;
     // to a inner node case
-    if (node.prefixLength > 0) {
+    if (branchNode.prefixLength > 0) {
       // find the mismatch position
       int mismatchPos =
-          ArraysShim.mismatch(node.prefix, 0, node.prefixLength, key, depth, key.length);
-      if (mismatchPos != node.prefixLength) {
+          ArraysShim.mismatch(branchNode.prefix, 0, branchNode.prefixLength, key, depth, key.length);
+      if (mismatchPos != branchNode.prefixLength) {
         Node4 node4 = new Node4(mismatchPos);
         // copy prefix
         node4.prefixLength = (byte) mismatchPos;
-        System.arraycopy(node.prefix, 0, node4.prefix, 0, mismatchPos);
+        System.arraycopy(branchNode.prefix, 0, node4.prefix, 0, mismatchPos);
         // split the current internal node, spawn a fresh node4 and let the
         // current internal node as its children.
-        Node4.insert(node4, node, node.prefix[mismatchPos]);
-        int nodeOriginalPrefixLength = node.prefixLength;
-        node.prefixLength = (byte) (nodeOriginalPrefixLength - (mismatchPos + (byte) 1));
+        Node4.insert(node4, branchNode, branchNode.prefix[mismatchPos]);
+        int nodeOriginalPrefixLength = branchNode.prefixLength;
+        branchNode.prefixLength = (byte) (nodeOriginalPrefixLength - (mismatchPos + (byte) 1));
         // move the remained common prefix of the initial internal node
-        if (node.prefixLength > 0) {
-          System.arraycopy(node.prefix, mismatchPos + 1, node.prefix, 0, node.prefixLength);
+        if (branchNode.prefixLength > 0) {
+          System.arraycopy(branchNode.prefix, mismatchPos + 1, branchNode.prefix, 0, branchNode.prefixLength);
         } else {
-          // TODO:to reduce the 0 prefix memory space,we could mark the prefix as null
-          node.prefix = EMPTY_BYTES;
+          branchNode.prefix = EMPTY_BYTES;
         }
         LeafNode leafNode = new LeafNode(key, containerIdx);
         Node4.insert(node4, leafNode, key[mismatchPos + depth]);
         return node4;
       }
-      depth += node.prefixLength;
+      depth += branchNode.prefixLength;
     }
-    int pos = node.getChildPos(key[depth]);
-    if (pos != Node.ILLEGAL_IDX) {
+    int pos = branchNode.getChildPos(key[depth]);
+    if (pos != BranchNode.ILLEGAL_IDX) {
       // insert the key as current internal node's children's child node.
-      Node child = node.getChild(pos);
+      Node child = branchNode.getChild(pos);
       Node freshOne = insert(child, key, depth + 1, containerIdx);
       if (freshOne != child) {
-        node.replaceNode(pos, freshOne);
+        branchNode.replaceNode(pos, freshOne);
       }
-      return node;
+      return branchNode;
     }
     // insert the key as a child leaf node of the current internal node
     LeafNode leafNode = new LeafNode(key, containerIdx);
-    Node freshOne = Node.insertLeaf(node, leafNode, key[depth]);
+    Node freshOne = BranchNode.insertLeaf(branchNode, leafNode, key[depth]);
     return freshOne;
   }
 
@@ -299,12 +298,11 @@ public class Art {
   private LeafNode getExtremeLeaf(boolean reverse) {
     Node parent = getRoot();
     for (int depth = 0; depth < AbstractShuttle.MAX_DEPTH; depth++) {
-      if (parent.nodeType == NodeType.LEAF_NODE) {
-        break;
+      if (parent instanceof BranchNode) {
+        BranchNode branchNode = (BranchNode) parent;
+        int childIndex = reverse ? branchNode.getMaxPos() : branchNode.getMinPos();
+        parent = branchNode.getChild(childIndex);
       }
-
-      int childIndex = reverse ? parent.getMaxPos() : parent.getMinPos();
-      parent = parent.getChild(childIndex);
     }
     return (LeafNode) parent;
   }
@@ -346,16 +344,17 @@ public class Art {
   }
 
   private void serialize(Node node, DataOutput dataOutput) throws IOException {
-    if (node.nodeType != NodeType.LEAF_NODE) {
+    if (node instanceof BranchNode) {
+      BranchNode branchNode = (BranchNode)node;
       // serialize the internal node itself first
-      node.serialize(dataOutput);
+      branchNode.serialize(dataOutput);
       // then all the internal node's children
-      int nexPos = node.getNextLargerPos(Node.ILLEGAL_IDX);
-      while (nexPos != Node.ILLEGAL_IDX) {
+      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
+      while (nexPos != BranchNode.ILLEGAL_IDX) {
         // serialize all the not null child node
-        Node child = node.getChild(nexPos);
+        Node child = branchNode.getChild(nexPos);
         serialize(child, dataOutput);
-        nexPos = node.getNextLargerPos(nexPos);
+        nexPos = branchNode.getNextLargerPos(nexPos);
       }
     } else {
       // serialize the leaf node
@@ -364,16 +363,17 @@ public class Art {
   }
 
   private void serialize(Node node, ByteBuffer byteBuffer) throws IOException {
-    if (node.nodeType != NodeType.LEAF_NODE) {
+    if (node instanceof BranchNode) {
+      BranchNode branchNode = (BranchNode)node;
       // serialize the internal node itself first
-      node.serialize(byteBuffer);
+      branchNode.serialize(byteBuffer);
       // then all the internal node's children
-      int nexPos = node.getNextLargerPos(Node.ILLEGAL_IDX);
-      while (nexPos != Node.ILLEGAL_IDX) {
+      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
+      while (nexPos != BranchNode.ILLEGAL_IDX) {
         // serialize all the not null child node
-        Node child = node.getChild(nexPos);
+        Node child = branchNode.getChild(nexPos);
         serialize(child, byteBuffer);
-        nexPos = node.getNextLargerPos(nexPos);
+        nexPos = branchNode.getNextLargerPos(nexPos);
       }
     } else {
       // serialize the leaf node
@@ -386,19 +386,20 @@ public class Art {
     if (oneNode == null) {
       return null;
     }
-    if (oneNode.nodeType == NodeType.LEAF_NODE) {
+    if (oneNode instanceof LeafNode) {
       return oneNode;
     } else {
+      BranchNode branch = (BranchNode) oneNode;
       // internal node
-      int count = oneNode.count;
+      int count = branch.count;
       // all the not null child nodes
       Node[] children = new Node[count];
       for (int i = 0; i < count; i++) {
         Node child = deserialize(dataInput);
         children[i] = child;
       }
-      oneNode.replaceChildren(children);
-      return oneNode;
+      branch.replaceChildren(children);
+      return branch;
     }
   }
 
@@ -407,19 +408,20 @@ public class Art {
     if (oneNode == null) {
       return null;
     }
-    if (oneNode.nodeType == NodeType.LEAF_NODE) {
+    if (oneNode instanceof LeafNode) {
       return oneNode;
     } else {
+      BranchNode branchNode = (BranchNode) oneNode;
       // internal node
-      int count = oneNode.count;
+      int count = branchNode.count;
       // all the not null child nodes
       Node[] children = new Node[count];
       for (int i = 0; i < count; i++) {
         Node child = deserialize(byteBuffer);
         children[i] = child;
       }
-      oneNode.replaceChildren(children);
-      return oneNode;
+      branchNode.replaceChildren(children);
+      return branchNode;
     }
   }
 
@@ -432,17 +434,18 @@ public class Art {
   }
 
   private long serializeSizeInBytes(Node node) {
-    if (node.nodeType != NodeType.LEAF_NODE) {
+    if (node instanceof BranchNode) {
+      BranchNode branchNode = (BranchNode) node;
       // serialize the internal node itself first
-      int currentNodeSize = node.serializeSizeInBytes();
+      int currentNodeSize = branchNode.serializeSizeInBytes();
       // then all the internal node's children
       long childrenTotalSize = 0L;
-      int nexPos = node.getNextLargerPos(Node.ILLEGAL_IDX);
-      while (nexPos != Node.ILLEGAL_IDX) {
+      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
+      while (nexPos != BranchNode.ILLEGAL_IDX) {
         // serialize all the not null child node
-        Node child = node.getChild(nexPos);
+        Node child = branchNode.getChild(nexPos);
         long childSize = serializeSizeInBytes(child);
-        nexPos = node.getNextLargerPos(nexPos);
+        nexPos = branchNode.getNextLargerPos(nexPos);
         childrenTotalSize += childSize;
       }
       return currentNodeSize + childrenTotalSize;

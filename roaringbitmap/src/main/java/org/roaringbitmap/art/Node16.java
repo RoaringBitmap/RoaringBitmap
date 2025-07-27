@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class Node16 extends Node {
+public class Node16 extends BranchNode {
 
   long firstV = 0L;
   long secondV = 0L;
@@ -22,14 +22,14 @@ public class Node16 extends Node {
   public int getChildPos(byte k) {
     byte[] firstBytes = LongUtils.toBDBytes(firstV);
     if (count <= 8) {
-      return Node.binarySearch(firstBytes, 0, count, k);
+      return binarySearch(firstBytes, 0, count, k);
     } else {
-      int pos = Node.binarySearch(firstBytes, 0, 8, k);
+      int pos = binarySearch(firstBytes, 0, 8, k);
       if (pos != ILLEGAL_IDX) {
         return pos;
       } else {
         byte[] secondBytes = LongUtils.toBDBytes(secondV);
-        pos = Node.binarySearch(secondBytes, 0, (count - 8), k);
+        pos = binarySearch(secondBytes, 0, (count - 8), k);
         if (pos != ILLEGAL_IDX) {
           return 8 + pos;
         } else {
@@ -43,16 +43,16 @@ public class Node16 extends Node {
   public SearchResult getNearestChildPos(byte k) {
     byte[] firstBytes = LongUtils.toBDBytes(firstV);
     if (count <= 8) {
-      return Node.binarySearchWithResult(firstBytes, 0, count, k);
+      return binarySearchWithResult(firstBytes, 0, count, k);
     } else {
-      SearchResult firstResult = Node.binarySearchWithResult(firstBytes, 0, 8, k);
+      SearchResult firstResult = binarySearchWithResult(firstBytes, 0, 8, k);
       // given the values are "in order" if we found a match or a value larger than
       // the target we are done.
       if (firstResult.outcome == SearchResult.Outcome.FOUND || firstResult.hasNextLargerPos()) {
         return firstResult;
       } else {
         byte[] secondBytes = LongUtils.toBDBytes(secondV);
-        SearchResult secondResult = Node.binarySearchWithResult(secondBytes, 0, (count - 8), k);
+        SearchResult secondResult = binarySearchWithResult(secondBytes, 0, (count - 8), k);
 
         switch (secondResult.outcome) {
           case FOUND:
@@ -144,7 +144,7 @@ public class Node16 extends Node {
    * @param key the key byte
    * @return the adaptive changed node of the parent node16
    */
-  public static Node insert(Node node, Node child, byte key) {
+  public static BranchNode insert(BranchNode node, Node child, byte key) {
     Node16 currentNode16 = (Node16) node;
     if (currentNode16.count < 8) {
       // first
@@ -185,7 +185,7 @@ public class Node16 extends Node {
       }
       copyPrefix(currentNode16, node48);
       node48.count = currentNode16.count;
-      Node freshOne = Node48.insert(node48, child, key);
+      BranchNode freshOne = Node48.insert(node48, child, key);
       return freshOne;
     }
   }

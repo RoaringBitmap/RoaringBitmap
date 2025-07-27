@@ -24,7 +24,7 @@ class SearchResult {
   }
 
   static SearchResult found(int keyPos) {
-    return new SearchResult(Outcome.FOUND, keyPos, Node.ILLEGAL_IDX);
+    return new SearchResult(Outcome.FOUND, keyPos, BranchNode.ILLEGAL_IDX);
   }
 
   static SearchResult notFound(int lowerPos, int higherPos) {
@@ -34,7 +34,7 @@ class SearchResult {
   boolean hasKeyPos() {
     if (outcome == Outcome.FOUND) {
       // this would be an illegal state
-      assert lessOrEqualPos != Node.ILLEGAL_IDX;
+      assert lessOrEqualPos != BranchNode.ILLEGAL_IDX;
       return true;
     }
     return false;
@@ -48,7 +48,7 @@ class SearchResult {
   }
 
   boolean hasNextSmallerPos() {
-    return outcome == Outcome.NOT_FOUND && lessOrEqualPos != Node.ILLEGAL_IDX;
+    return outcome == Outcome.NOT_FOUND && lessOrEqualPos != BranchNode.ILLEGAL_IDX;
   }
 
   int getNextSmallerPos() {
@@ -59,7 +59,7 @@ class SearchResult {
   }
 
   boolean hasNextLargerPos() {
-    return outcome == Outcome.NOT_FOUND && greaterPos != Node.ILLEGAL_IDX;
+    return outcome == Outcome.NOT_FOUND && greaterPos != BranchNode.ILLEGAL_IDX;
   }
 
   int getNextLargerPos() {
