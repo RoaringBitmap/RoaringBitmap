@@ -227,9 +227,9 @@ public class Art {
       node4.prefixLength = (byte) commonPrefix;
       System.arraycopy(key, depth, node4.prefix, 0, commonPrefix);
       // generate two leaf nodes as the children of the fresh node4
-      Node4.insert(node4, leafNode, prefix[depth + commonPrefix]);
+      node4.insert(leafNode, prefix[depth + commonPrefix]);
       LeafNode anotherLeaf = new LeafNode(key, containerIdx);
-      Node4.insert(node4, anotherLeaf, key[depth + commonPrefix]);
+      node4.insert(anotherLeaf, key[depth + commonPrefix]);
       // replace the current node with this internal node4
       return node4;
     }
@@ -246,7 +246,7 @@ public class Art {
         System.arraycopy(branchNode.prefix, 0, node4.prefix, 0, mismatchPos);
         // split the current internal node, spawn a fresh node4 and let the
         // current internal node as its children.
-        Node4.insert(node4, branchNode, branchNode.prefix[mismatchPos]);
+        node4.insert(branchNode, branchNode.prefix[mismatchPos]);
         int nodeOriginalPrefixLength = branchNode.prefixLength;
         branchNode.prefixLength = (byte) (nodeOriginalPrefixLength - (mismatchPos + (byte) 1));
         // move the remained common prefix of the initial internal node
@@ -256,7 +256,7 @@ public class Art {
           branchNode.prefix = EMPTY_BYTES;
         }
         LeafNode leafNode = new LeafNode(key, containerIdx);
-        Node4.insert(node4, leafNode, key[mismatchPos + depth]);
+        node4.insert(leafNode, key[mismatchPos + depth]);
         return node4;
       }
       depth += branchNode.prefixLength;
@@ -273,8 +273,7 @@ public class Art {
     }
     // insert the key as a child leaf node of the current internal node
     LeafNode leafNode = new LeafNode(key, containerIdx);
-    Node freshOne = BranchNode.insertLeaf(branchNode, leafNode, key[depth]);
-    return freshOne;
+    return branchNode.insert(leafNode, key[depth]);
   }
 
   // find common prefix length

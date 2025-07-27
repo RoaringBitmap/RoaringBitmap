@@ -18,20 +18,20 @@ public class Node4Test {
     LeafNode leafNode3 = new LeafNode(3, 3);
     Node4 node4 = new Node4(0);
     byte key1 = 2;
-    Node4.insert(node4, leafNode1, key1);
+    node4.insert(leafNode1, key1);
     Assertions.assertTrue(node4.getMaxPos() == 0);
     Assertions.assertTrue(node4.getMinPos() == 0);
     Assertions.assertTrue(node4.getChildPos(key1) == 0);
     Assertions.assertTrue(node4.getChildKey(0) == key1);
 
     byte key2 = 1;
-    node4 = (Node4) Node4.insert(node4, leafNode2, key2);
+    node4 = (Node4) node4.insert(leafNode2, key2);
     Assertions.assertTrue(node4.getChildPos(key2) == 0);
     Assertions.assertTrue(node4.getChildPos(key1) == 1);
     Assertions.assertTrue(node4.getChildKey(0) == key2);
 
     byte key3 = -1;
-    node4 = (Node4) Node4.insert(node4, leafNode3, key3);
+    node4 = (Node4) node4.insert(leafNode3, key3);
     Assertions.assertTrue(node4.getChildPos(key3) == 2);
     Assertions.assertTrue(node4.getChildKey(2) == key3);
     node4 = (Node4) node4.remove(1);
@@ -65,7 +65,7 @@ public class Node4Test {
 
     Node4 node = new Node4(0);
 
-    Node4.insert(node, ln1, key1);
+    node.insert(ln1, key1);
 
     // search for the key we just added returns the
     SearchResult sr = node.getNearestChildPos(key1);
@@ -108,8 +108,8 @@ public class Node4Test {
 
     Node4 node = new Node4(0);
 
-    Node4.insert(node, ln1, key1);
-    Node4.insert(node, ln2, key2);
+    node.insert(ln1, key1);
+    node.insert(ln2, key2);
 
     // value checks
     Assertions.assertTrue((key1 + 1) < (key2 - 1));
@@ -176,7 +176,7 @@ public class Node4Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) (i + keyOffset);
-      nodes = Node4.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node4);
@@ -219,7 +219,7 @@ public class Node4Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) ((i * step) + keyOffset);
-      nodes = Node4.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node4);
@@ -301,7 +301,7 @@ public class Node4Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node4.insert(nodes, leafNode, (byte) (offset + i));
+      nodes = nodes.insert(leafNode, (byte) (offset + i));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node4);
@@ -341,7 +341,7 @@ public class Node4Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node4.insert(nodes, leafNode, (byte) (offset + (i * step)));
+      nodes = nodes.insert(leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node4);

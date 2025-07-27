@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 
 public abstract class BranchNode extends Node {
 
-    // node type
-    protected NodeType nodeType;
     // length of compressed path(prefix)
     protected byte prefixLength;
     // the compressed path path (prefix)
@@ -20,16 +18,15 @@ public abstract class BranchNode extends Node {
     /**
      * constructor
      *
-     * @param nodeType             the node type
      * @param compressedPrefixSize the prefix byte array size,less than or equal to 6
      */
-    public BranchNode(NodeType nodeType, int compressedPrefixSize) {
+    public BranchNode(int compressedPrefixSize) {
         super();
-        this.nodeType = nodeType;
         this.prefixLength = (byte) compressedPrefixSize;
         prefix = new byte[prefixLength];
         count = 0;
     }
+    protected abstract NodeType nodeType();
 
     /**
      * search the position of the input byte key in the node's key byte array part
@@ -90,26 +87,11 @@ public abstract class BranchNode extends Node {
     /**
      * insert the LeafNode as a child of the current internal node
      *
-     * @param current   current internal node
      * @param childNode the leaf node
      * @param key       the key byte reference to the child leaf node
      * @return an adaptive changed node of the input 'current' node
      */
-    public static BranchNode insertLeaf(BranchNode current, Node childNode, byte key) {
-        switch (current.nodeType) {
-            case NODE4:
-                return Node4.insert(current, childNode, key);
-            case NODE16:
-                return Node16.insert(current, childNode, key);
-            case NODE48:
-                return Node48.insert(current, childNode, key);
-            case NODE256:
-                return Node256.insert(current, childNode, key);
-            default:
-                throw new IllegalArgumentException("Not supported node type!");
-        }
-    }
-
+    protected abstract BranchNode insert(Node childNode, byte key);
     /**
      * copy the prefix between two nodes
      *
@@ -213,7 +195,7 @@ public abstract class BranchNode extends Node {
     @Override
     protected void serializeHeader(DataOutput dataOutput) throws IOException {
         // first byte: node type
-        dataOutput.writeByte((byte) this.nodeType.ordinal());
+        dataOutput.writeByte((byte) this.nodeType().ordinal());
         // non null object count
         dataOutput.writeShort(Short.reverseBytes(this.count));
         dataOutput.writeByte(this.prefixLength);
@@ -224,7 +206,7 @@ public abstract class BranchNode extends Node {
 
     @Override
     protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
-        byteBuffer.put((byte) this.nodeType.ordinal());
+        byteBuffer.put((byte) this.nodeType().ordinal());
         byteBuffer.putShort(this.count);
         byteBuffer.put(this.prefixLength);
         if (prefixLength > 0) {

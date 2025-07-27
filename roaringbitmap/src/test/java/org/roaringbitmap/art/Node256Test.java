@@ -10,7 +10,7 @@ public class Node256Test {
     Node256 node256 = new Node256(0);
     LeafNode leafNode = new LeafNode(0, 0);
     for (int i = 0; i < 256; i++) {
-      node256 = Node256.insert(node256, leafNode, (byte) i);
+      node256 = node256.insert(leafNode, (byte) i);
     }
     int minPos = node256.getMinPos();
     Assertions.assertEquals(0, minPos);
@@ -43,7 +43,7 @@ public class Node256Test {
     Node256 node256 = new Node256(0);
     LeafNode leafNode = new LeafNode(0, 0);
     for (int i = 0; i < 37; i++) {
-      node256 = Node256.insert(node256, leafNode, (byte) i);
+      node256 = node256.insert(leafNode, (byte) i);
     }
     int maxPos = node256.getMaxPos();
     Node node = node256.remove(maxPos);
@@ -63,7 +63,7 @@ public class Node256Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node256.insert(nodes, leafNode, (byte) (offset + i));
+      nodes = nodes.insert(leafNode, (byte) (offset + i));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node256);
@@ -108,7 +108,7 @@ public class Node256Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node256.insert(nodes, leafNode, (byte) (offset + (i * step)));
+      nodes = nodes.insert(leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node256);
@@ -155,7 +155,7 @@ public class Node256Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) (i + keyOffset);
-      nodes = Node256.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node256);
@@ -195,7 +195,7 @@ public class Node256Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) ((i * step) + keyOffset);
-      nodes = Node256.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node256);

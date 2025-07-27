@@ -14,7 +14,12 @@ public class Node4 extends BranchNode {
   Node[] children = new Node[4];
 
   public Node4(int compressedPrefixSize) {
-    super(NodeType.NODE4, compressedPrefixSize);
+    super(compressedPrefixSize);
+  }
+
+  @Override
+  protected NodeType nodeType() {
+    return NodeType.NODE4;
   }
 
   @Override
@@ -81,30 +86,29 @@ public class Node4 extends BranchNode {
   }
 
   /**
-   * insert the child node into the node4 with the key byte
+   * insert the child node into this with the key byte
    *
-   * @param node the node4 to insert into
    * @param childNode the child node
    * @param key the key byte
    * @return the input node4 or an adaptive generated node16
    */
-  public static BranchNode insert(BranchNode node, Node childNode, byte key) {
-    Node4 current = (Node4) node;
-    if (current.count < 4) {
+  @Override
+  protected BranchNode insert(Node childNode, byte key) {
+    if (this.count < 4) {
       // insert leaf into current node
-      current.key = IntegerUtil.setByte(current.key, key, current.count);
-      current.children[current.count] = childNode;
-      current.count++;
-      insertionSort(current);
-      return current;
+      this.key = IntegerUtil.setByte(this.key, key, this.count);
+      this.children[this.count] = childNode;
+      this.count++;
+      insertionSort(this);
+      return this;
     } else {
       // grow to Node16
-      Node16 node16 = new Node16(current.prefixLength);
+      Node16 node16 = new Node16(this.prefixLength);
       node16.count = 4;
-      node16.firstV = LongUtils.initWithFirst4Byte(current.key);
-      System.arraycopy(current.children, 0, node16.children, 0, 4);
-      copyPrefix(current, node16);
-      BranchNode freshOne = Node16.insert(node16, childNode, key);
+      node16.firstV = LongUtils.initWithFirst4Byte(this.key);
+      System.arraycopy(children, 0, node16.children, 0, 4);
+      copyPrefix(this, node16);
+      BranchNode freshOne = node16.insert(childNode, key);
       return freshOne;
     }
   }
