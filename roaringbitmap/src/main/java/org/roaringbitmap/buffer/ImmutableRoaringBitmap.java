@@ -2042,6 +2042,18 @@ public class ImmutableRoaringBitmap
   }
 
   /**
+   * Creates a mutable bitmap using copy-on-write semantics.
+   * Containers from this bitmap will only be copied when they need to be modified.
+   * This provides better performance for memory-mapped bitmaps that are used mostly
+   * for read operations with occasional modifications.
+   *
+   * @return a mutable bitmap with copy-on-write semantics.
+   */
+  public CopyOnWriteRoaringBitmap toMutableRoaringBitmapCopyOnWrite() {
+    return CopyOnWriteRoaringBitmap.fromImmutable(this);
+  }
+
+  /**
    * Copies this bitmap to a mutable RoaringBitmap.
    *
    * @return a copy of this bitmap as a RoaringBitmap.

@@ -219,6 +219,40 @@ public final class MutableRoaringArray
     this.size++;
   }
 
+  /**
+   * Append a container with copy-on-write semantics.
+   * The container will only be copied when it needs to be modified.
+   *
+   * @param key the key
+   * @param value the container
+   */
+  protected void appendCopyOnWrite(char key, MappeableContainer value) {
+    extendArray(1);
+    this.keys[this.size] = key;
+    // Store the original container directly - we'll handle copy-on-write at the bitmap level
+    this.values[this.size] = value;
+    this.size++;
+  }
+
+  /**
+   * Append containers with copy-on-write semantics from a range of another array.
+   * The containers will only be copied when they need to be modified.
+   *
+   * @param highLowContainer the source array
+   * @param startingIndex the starting index (inclusive)
+   * @param end the ending index (exclusive)
+   */
+  protected void appendCopyOnWrite(
+      PointableRoaringArray highLowContainer, int startingIndex, int end) {
+    extendArray(end - startingIndex);
+    for (int i = startingIndex; i < end; ++i) {
+      this.keys[this.size] = highLowContainer.getKeyAtIndex(i);
+      // Store the original container directly - we'll handle copy-on-write at the bitmap level
+      this.values[this.size] = highLowContainer.getContainerAtIndex(i);
+      this.size++;
+    }
+  }
+
   private int binarySearch(int begin, int end, char key) {
     return Util.unsignedBinarySearch(keys, begin, end, key);
   }
