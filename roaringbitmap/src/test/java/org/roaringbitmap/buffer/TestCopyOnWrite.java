@@ -94,7 +94,6 @@ public class TestCopyOnWrite {
     long copyTime = System.nanoTime() - startTime;
 
     // Copy-on-write should be significantly faster (though small bitmaps may have overhead)
-    // Just verify both approaches work and produce the same result
     System.out.println("Copy-on-write time: " + cowTime + "ns, Full copy time: " + copyTime + "ns");
 
     // But both should be functionally equivalent
