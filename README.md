@@ -19,6 +19,7 @@ RoaringBitmap
 - [Kryo](#kryo)
 - [64-bit integers (long)](#64-bit-integers-long)
 - [Range Bitmaps](#range-bitmaps)
+- [COW Roaring Bitmaps](#copy-on-write-roaringbitmaps)
 - [Prerequisites](#prerequisites)
 - [Usage for RoaringBitmap Developers](#usage-for-roaringbitmap-developers)
 - [IntelliJ and Eclipse](#intellij-and-eclipse)
@@ -652,9 +653,21 @@ ByteBuffer buffer = mapBuffer(appender.serializedSizeInBytes());
 appender.serialize(buffer);
 RangeBitmap bitmap = RangeBitmap.map(buffer);
 ```
-
 The serialization format uses little endian byte order.
 
+
+## Copy-on-Write RoaringBitmaps
+
+Enable memory-efficient bitmap modifications with `toMutableRoaringBitmapCopyOnWrite()`. Only copies containers when actually modified, reducing memory usage compared to traditional approaches while maintaining full mutability.
+```java
+// Convert ImmutableRoaringBitmap to mutable with minimal copying
+ImmutableRoaringBitmap immutable = new ImmutableRoaringBitmap(byteBuffer);
+CopyOnWriteRoaringBitmap cowBitmap = immutable.toMutableRoaringBitmapCopyOnWrite();
+
+// Modifications only copy containers when needed
+cowBitmap.add(newValue);    // Only copies affected containers
+cowBitmap.remove(oldValue); // Shares unchanged containers
+```
 Prerequisites
 -------------
 
