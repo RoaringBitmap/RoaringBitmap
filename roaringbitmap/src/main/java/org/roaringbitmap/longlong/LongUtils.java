@@ -96,6 +96,21 @@ public class LongUtils {
         | (long) (work[6] & 0xff) << 8
         | (long) (work[7] & 0xff);
   }
+  /**
+   * get the long from the big endian representation bytes
+   *
+   * @param key the byte array. Always at least 6 bytes
+   * @return the long data
+   */
+  public static long fromKey(byte[] key) {
+    return (long) (key[0]) << 56
+            /* long cast needed or shift done modulo 32 */
+            | (long) (key[1] & 0xff) << 48
+            | (long) (key[2] & 0xff) << 40
+            | (long) (key[3] & 0xff) << 32
+            | (long) (key[4] & 0xff) << 24
+            | (long) (key[5] & 0xff) << 16;
+  }
 
   /**
    * initialize a long value with the given fist 32 bit
