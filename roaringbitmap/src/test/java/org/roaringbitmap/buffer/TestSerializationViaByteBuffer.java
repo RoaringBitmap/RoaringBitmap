@@ -109,10 +109,14 @@ public class TestSerializationViaByteBuffer {
   }
 
   @AfterEach
-  public void after() throws IOException {
+  public void after() throws Exception {
     if (null != file) {
-      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-        // nothing really works properly on Windows
+      try {
+        delete(file);
+      } catch (Exception e) {
+        System.gc();
+        System.runFinalization();
+        Thread.sleep(1);
         delete(file);
       }
     }
