@@ -15,6 +15,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class ArtTest {
 
@@ -28,12 +29,12 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
-    Assertions.assertTrue(leafNode.getContainerIdx() == 0);
+    Assertions.assertArrayEquals(key1, leafNode.getKeyBytes(), Arrays.toString(leafNode.getKeyBytes()));
+    Assertions.assertEquals(0, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
-    Assertions.assertTrue(!hasNext);
+    Assertions.assertFalse(hasNext);
     art.remove(key1);
-    Assertions.assertTrue(art.findByKey(key1) == Node.ILLEGAL_IDX);
+    Assertions.assertEquals(Node.ILLEGAL_IDX, art.findByKey(key1));
   }
 
   // one node4 with two leaf nodes
@@ -47,15 +48,15 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, leafNode.getKeyBytes(), Arrays.toString(leafNode.getKeyBytes()));
     Assertions.assertEquals(0, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, leafNode.getKeyBytes(), Arrays.toString(leafNode.getKeyBytes()));
     Assertions.assertEquals(1, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
-    Assertions.assertTrue(!hasNext);
+      Assertions.assertFalse(hasNext);
     art.remove(key1);
     // shrink to leaf node
     long containerIdx2 = art.findByKey(key2);
@@ -76,12 +77,12 @@ public class ArtTest {
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     LeafNode leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, leafNode.getKeyBytes(), Arrays.toString(leafNode.getKeyBytes()));
     Assertions.assertEquals(0, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
     leafNode = leafNodeIterator.next();
-    Assertions.assertTrue(BytesUtil.same(leafNode.getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, leafNode.getKeyBytes(), Arrays.toString(leafNode.getKeyBytes()));
     Assertions.assertEquals(1, leafNode.getContainerIdx());
     hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
@@ -121,13 +122,13 @@ public class ArtTest {
     insert5PrefixCommonBytesIntoArt(art, 17);
     byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     long containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 0);
+      Assertions.assertEquals(0, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 10};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 10);
+      Assertions.assertEquals(10, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 12};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 12);
+      Assertions.assertEquals(12, containerIdx);
     byte[] key13 = new byte[] {1, 2, 3, 4, 5, 12};
     // ser/deser
     int sizeInBytes = (int) art.serializeSizeInBytes();
@@ -165,19 +166,19 @@ public class ArtTest {
     insert5PrefixCommonBytesIntoArt(art, 50);
     byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     long containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 0);
+      Assertions.assertEquals(0, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 10};
     containerIdx = art.findByKey(key);
     Assertions.assertEquals(10, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 16};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 16);
+      Assertions.assertEquals(16, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 36};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == 36);
+      Assertions.assertEquals(36, containerIdx);
     key = new byte[] {1, 2, 3, 4, 5, 51};
     containerIdx = art.findByKey(key);
-    Assertions.assertTrue(containerIdx == Node.ILLEGAL_IDX);
+      Assertions.assertEquals(Node.ILLEGAL_IDX, containerIdx);
     long sizeInBytesL = art.serializeSizeInBytes();
     int sizeInBytesI = (int) sizeInBytesL;
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInBytesI);
@@ -204,7 +205,7 @@ public class ArtTest {
     deserArt.remove(key);
     key = new byte[] {1, 2, 3, 4, 5, 10};
     containerIdx = deserArt.findByKey(key);
-    Assertions.assertTrue(containerIdx == 10);
+      Assertions.assertEquals(10, containerIdx);
   }
 
   @Test
@@ -219,23 +220,23 @@ public class ArtTest {
 
     // brand new iterator is pointing at first key "0"
     Assertions.assertTrue(hasNext);
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the current spot is fine
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "1" is fine
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "2" is fine
     lnIt.seek(LongUtils.toLong(key2, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
-    Assertions.assertTrue(BytesUtil.same(lnIt.next().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
+    Assertions.assertArrayEquals(key2, lnIt.next().getKeyBytes(), Arrays.toString(lnIt.next().getKeyBytes()));
     Assertions.assertFalse(lnIt.hasNext());
 
     // seeking to the prior "1" takes you there.. so this needs to be guarded against, in higher
@@ -243,7 +244,7 @@ public class ArtTest {
     // (as it is)
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
   }
 
   @Test
@@ -258,23 +259,23 @@ public class ArtTest {
 
     // brand new iterator is pointing at first key "2"
     Assertions.assertTrue(hasNext);
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the current spot is fine
     lnIt.seek(LongUtils.toLong(key2, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "1" is fine
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "0" is fine
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
-    Assertions.assertTrue(BytesUtil.same(lnIt.next().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
+    Assertions.assertArrayEquals(key0, lnIt.next().getKeyBytes(), Arrays.toString(lnIt.next().getKeyBytes()));
     Assertions.assertFalse(lnIt.hasNext());
 
     // seeking to the prior "1" takes you there.. so this needs to be guarded against, in higher
@@ -282,7 +283,7 @@ public class ArtTest {
     // (as it is)
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
   }
 
   @Test
@@ -302,23 +303,23 @@ public class ArtTest {
 
     // brand new iterator is pointing at first key "0"
     Assertions.assertTrue(hasNext);
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the current spot is fine
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "1" is fine
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "2" is fine
     lnIt.seek(LongUtils.toLong(key2, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
-    Assertions.assertTrue(BytesUtil.same(lnIt.next().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
+    Assertions.assertArrayEquals(key2, lnIt.next().getKeyBytes(), Arrays.toString(lnIt.next().getKeyBytes()));
     Assertions.assertFalse(lnIt.hasNext());
 
     // seeking to the prior "1" takes you there.. so this needs to be guarded against, in higher
@@ -326,21 +327,21 @@ public class ArtTest {
     // (as it is)
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // NOW TO ENTER THE GAP ZONE... we should get "1" as it's after gap "1"
     lnIt.seek(LongUtils.toLong(gap1, (char) 0));
 
     Assertions.assertTrue(lnIt.hasNext());
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     lnIt.seek(LongUtils.toLong(gap2, (char) 0));
 
     Assertions.assertTrue(lnIt.hasNext());
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // going to past the last value should "work", there just should be nothing to get next...
     lnIt.seek(LongUtils.toLong(end1, (char) 0));
@@ -349,7 +350,7 @@ public class ArtTest {
     // going the before the first should "return" the first
     lnIt.seek(LongUtils.toLong(start0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
   }
 
   @Test
@@ -369,23 +370,23 @@ public class ArtTest {
 
     // brand new iterator is pointing at first key "0"
     Assertions.assertTrue(hasNext);
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the current spot is fine
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "1" is fine
     lnIt.seek(LongUtils.toLong(key1, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // seeking to the next spot "2" is fine
     lnIt.seek(LongUtils.toLong(key2, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
-    Assertions.assertTrue(BytesUtil.same(lnIt.next().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
+    Assertions.assertArrayEquals(key2, lnIt.next().getKeyBytes(), Arrays.toString(lnIt.next().getKeyBytes()));
     Assertions.assertFalse(lnIt.hasNext());
 
     // seeking to the prior "1" takes you there.. so this needs to be guarded against, in higher
@@ -393,21 +394,21 @@ public class ArtTest {
     // (as it is)
     lnIt.seek(LongUtils.toLong(key0, (char) 0));
     Assertions.assertTrue(lnIt.hasNext());
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
+    Assertions.assertArrayEquals(key0, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // NOW TO ENTER THE GAP ZONE... we should get "1" as it's after gap "1"
     lnIt.seek(LongUtils.toLong(gap1, (char) 0));
 
     Assertions.assertTrue(lnIt.hasNext());
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
+    Assertions.assertArrayEquals(key1, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     lnIt.seek(LongUtils.toLong(gap2, (char) 0));
 
     Assertions.assertTrue(lnIt.hasNext());
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
     Assertions.assertFalse(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key1));
-    Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key2));
+    Assertions.assertArrayEquals(key2, lnIt.peekNext().getKeyBytes(), Arrays.toString(lnIt.peekNext().getKeyBytes()));
 
     // going to past the last value should "work", there just should be nothing to get next...
     lnIt.seek(LongUtils.toLong(end1, (char) 0));
@@ -420,28 +421,20 @@ public class ArtTest {
   }
 
   private void insert5PrefixCommonBytesIntoArt(Art art, int keyNum) {
-    byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     byte b = 0;
     long containerIdx = 0;
-    for (int i = 0; i < keyNum; i++) {
-      key[5] = b;
+    for (int i = 0; i < keyNum; i++, b++, containerIdx++) {
+      byte[] key = new byte[] {1, 2, 3, 4, 5, b};
       art.insert(key, containerIdx);
-      key = new byte[] {1, 2, 3, 4, 5, 0};
-      b++;
-      containerIdx++;
     }
   }
 
   private void insert5PrefixCommonWithGapBytesIntoArt(Art art, int keyNum) {
-    byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     byte b = 0;
     long containerIdx = 0;
-    for (int i = 0; i < keyNum; i++) {
-      key[5] = b;
+    for (int i = 0; i < keyNum; i++, b+=2, containerIdx++) {
+      byte[] key = new byte[] {1, 2, 3, 4, 5, b};
       art.insert(key, containerIdx);
-      key = new byte[] {1, 2, 3, 4, 5, 0};
-      b += 2;
-      containerIdx++;
     }
   }
 }

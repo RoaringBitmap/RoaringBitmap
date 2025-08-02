@@ -17,3 +17,10 @@ jobs:
         run: ./gradlew assemble
       - name: Test with Gradle
         run: ./gradlew test
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Java 1 macos Test Report
+          path: 'test-results/**/*.xml'

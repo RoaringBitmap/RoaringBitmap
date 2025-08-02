@@ -21,9 +21,41 @@ jobs:
         run: ./gradlew assemble
       - name: Test with Java 8
         run: ./gradlew test -PtestOnJava=8 --stacktrace
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Java 8 Test Report
+          path: 'test-results/**/*.xml'
+
       - name: Test with Java 11
         run: ./gradlew test -PtestOnJava=11 --stacktrace
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Java 11 Test Report
+          path: 'test-results/**/*.xml'
+
       - name: Test with Java 17
         run: ./gradlew test -PtestOnJava=17 --stacktrace
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Java 17 Test Report
+          path: 'test-results/**/*.xml'
+
       - name: Test with Java 21
         run: ./gradlew test -PtestOnJava=21 --stacktrace
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Java 21 Test Report
+          path: 'test-results/**/*.xml'
+
