@@ -102,24 +102,9 @@ public class TestSerializationViaByteBuffer {
   private Path file;
 
   @BeforeEach
-  public void before(@TempDir Path tempDir) throws IOException {
-    this.file = tempDir;
-    file = tempDir.resolve(UUID.randomUUID().toString());
-    Files.createFile(file);
-  }
-
-  @AfterEach
-  public void after() throws Exception {
-    if (null != file) {
-      try {
-        delete(file);
-      } catch (Exception e) {
-        System.gc();
-        System.runFinalization();
-        Thread.sleep(1);
-        delete(file);
-      }
-    }
+  public void before() throws IOException {
+    file = Files.createTempFile(getClass().getSimpleName(), "testData");
+    file.toFile().deleteOnExit();
   }
 
   @ParameterizedTest
