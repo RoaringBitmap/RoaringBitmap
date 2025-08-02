@@ -28,6 +28,7 @@ jobs:
         with:
           name: Java 8 Test Report
           path: 'test-results/**/*.xml'
+          report-type: junit
 
       - name: Test with Java 11
         run: ./gradlew test -PtestOnJava=11 --stacktrace
