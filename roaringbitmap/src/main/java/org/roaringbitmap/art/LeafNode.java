@@ -145,9 +145,14 @@ public class LeafNode extends Node {
   }
 
   public byte[] getKeyBytes() {
-    return LongUtils.highPart(getKey() >> 16);
+    return LongUtils.highPart(getKey());
   }
 
+    /**
+     * Gets the key as a long value, only the high 48 bits are used.
+     *
+     * @return the long value representing the key
+     */
   public long getKey() {
     return ((long) keyHigh) << 32 | ((long)keyLow) << 16;
   }
