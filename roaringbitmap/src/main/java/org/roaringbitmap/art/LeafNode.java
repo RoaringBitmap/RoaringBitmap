@@ -87,6 +87,7 @@ public class LeafNode extends Node {
     return key >>> 16;
   }
 
+  @Override
   protected void serializeHeader(DataOutput dataOutput) throws IOException {
     // first byte: node type
     dataOutput.writeByte((byte) NodeType.LEAF_NODE.ordinal());
@@ -95,6 +96,7 @@ public class LeafNode extends Node {
     dataOutput.writeByte(0);
   }
 
+  @Override
   protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
     byteBuffer.put((byte) NodeType.LEAF_NODE.ordinal());
     byteBuffer.putShort((short)0);

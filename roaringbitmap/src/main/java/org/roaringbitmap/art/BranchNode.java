@@ -210,6 +210,7 @@ public abstract class BranchNode extends Node {
      */
     public abstract Node remove(int pos);
 
+    @Override
     protected void serializeHeader(DataOutput dataOutput) throws IOException {
         // first byte: node type
         dataOutput.writeByte((byte) this.nodeType.ordinal());
@@ -221,6 +222,7 @@ public abstract class BranchNode extends Node {
         }
     }
 
+    @Override
     protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
         byteBuffer.put((byte) this.nodeType.ordinal());
         byteBuffer.putShort(this.count);
@@ -230,6 +232,7 @@ public abstract class BranchNode extends Node {
         }
     }
 
+    @Override
     protected int serializeHeaderSizeInBytes() {
         return super.serializeHeaderSizeInBytes() + prefixLength;
     }
