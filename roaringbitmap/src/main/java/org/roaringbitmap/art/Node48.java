@@ -8,7 +8,7 @@ import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 
-public class Node48 extends Node {
+public class Node48 extends BranchNode {
 
   // the actual byte value of childIndex content won't be beyond 48
   // 256 bytes packed into longs
@@ -173,7 +173,7 @@ public class Node48 extends Node {
    * @param key the key byte
    * @return the node48 or an adaptive generated node256
    */
-  public static Node insert(Node currentNode, Node child, byte key) {
+  public static BranchNode insert(BranchNode currentNode, Node child, byte key) {
     Node48 node48 = (Node48) currentNode;
     if (node48.count < 48) {
       // insert leaf node into current node
@@ -200,7 +200,7 @@ public class Node48 extends Node {
       }
       node256.count = node48.count;
       copyPrefix(node48, node256);
-      Node freshOne = Node256.insert(node256, child, key);
+      BranchNode freshOne = Node256.insert(node256, child, key);
       return freshOne;
     }
   }

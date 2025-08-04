@@ -99,20 +99,9 @@ public class TestSerializationViaByteBuffer {
   private Path file;
 
   @BeforeEach
-  public void before(@TempDir Path tempDir) throws IOException {
-    this.file = tempDir;
-    file = tempDir.resolve(UUID.randomUUID().toString());
-    Files.createFile(file);
-  }
-
-  @AfterEach
-  public void after() throws IOException {
-    if (null != file) {
-      if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-        // nothing really works properly on Windows
-        delete(file);
-      }
-    }
+  public void before() throws IOException {
+    file = Files.createTempFile(getClass().getSimpleName(), "testData");
+    file.toFile().deleteOnExit();
   }
 
   @ParameterizedTest(name = "{1}/{0} keys/runOptimise={2}")

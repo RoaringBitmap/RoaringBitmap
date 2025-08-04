@@ -22,7 +22,7 @@ public class Node16Test {
     Assertions.assertTrue(degenerativeNode instanceof Node4);
     // recover to node16 by re-insert two nodes
     Node4 degenerativeNode4 = (Node4) degenerativeNode;
-    Node node = Node4.insert(degenerativeNode4, leafNode4, (byte) 4);
+    BranchNode node = Node4.insert(degenerativeNode4, leafNode4, (byte) 4);
     LeafNode leafNode3 = new LeafNode(3, 3);
     node16 = (Node16) Node4.insert(node, leafNode3, (byte) 3);
 
@@ -97,12 +97,12 @@ public class Node16Test {
       Assertions.assertEquals(i - 1, leafNode.getContainerIdx());
     }
     // there is no illegal_idx valid prior to the first
-    Assertions.assertEquals(Node.ILLEGAL_IDX, node16.getNextSmallerPos(0));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, node16.getNextSmallerPos(0));
   }
 
   @Test
   public void testDenseNonZeroBasedKeysSearch() {
-    Node nodes = new Node16(0);
+    BranchNode nodes = new Node16(0);
     final int insertCount = 15;
     final int lastValue = insertCount - 1;
     final int keyOffset = 0x20;
@@ -132,18 +132,18 @@ public class Node16Test {
     SearchResult sr = nodes.getNearestChildPos((byte) (keyOffset - 1));
     Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
     Assertions.assertFalse(sr.hasKeyPos());
-    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextSmallerPos());
 
     // search after the last value aka "insertCount", and surprise, nothing will be found
     sr = nodes.getNearestChildPos((byte) (keyOffset + insertCount));
     Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
     Assertions.assertFalse(sr.hasKeyPos());
-    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextLargerPos());
   }
 
   @Test
   public void testSparseNonZeroBasedKeysSearch() {
-    Node nodes = new Node16(0);
+    BranchNode nodes = new Node16(0);
     final int insertCount = 15;
     final int lastValue = insertCount - 1;
 
@@ -180,7 +180,7 @@ public class Node16Test {
 
         // the value smaller than the first should be INVALID, and the rest should be the prior key
         if (i == 0) {
-          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+          Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextSmallerPos());
         } else {
           int expect = Byte.toUnsignedInt(key) - step;
           int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextSmallerPos()));
@@ -205,7 +205,7 @@ public class Node16Test {
 
         // the value larger than the last should be INVALID and the rest should be the next key
         if (i == lastValue) {
-          Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+          Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextLargerPos());
         } else {
           int expect = Byte.toUnsignedInt(key) + step;
           int result = Byte.toUnsignedInt(nodes.getChildKey(sr.getNextLargerPos()));
@@ -218,18 +218,18 @@ public class Node16Test {
     SearchResult sr = nodes.getNearestChildPos((byte) (keyOffset - 1));
     Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
     Assertions.assertFalse(sr.hasKeyPos());
-    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextSmallerPos());
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextSmallerPos());
 
     // search after the last value aka "insertCount", and surprise, nothing will be found
     sr = nodes.getNearestChildPos((byte) (keyOffset + (insertCount * step)));
     Assertions.assertEquals(SearchResult.Outcome.NOT_FOUND, sr.outcome);
     Assertions.assertFalse(sr.hasKeyPos());
-    Assertions.assertEquals(Node.ILLEGAL_IDX, sr.getNextLargerPos());
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, sr.getNextLargerPos());
   }
 
   @Test
   public void testWithOffsetBeforeBytes() {
-    Node nodes = new Node16(0);
+    BranchNode nodes = new Node16(0);
     LeafNode leafNode = new LeafNode(0, 0);
     int insertCount = 16;
     int offset = 40;
@@ -242,10 +242,10 @@ public class Node16Test {
     Assertions.assertTrue(nodes instanceof Node16);
 
     // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
-    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
 
     // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
-    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
 
     // so for each value in the inserted range the next of the prior should be the same as
     // the location of found current.
@@ -268,7 +268,7 @@ public class Node16Test {
 
   @Test
   public void testWithOffsetAndGapsBytes() {
-    Node nodes = new Node16(0);
+    BranchNode nodes = new Node16(0);
     LeafNode leafNode = new LeafNode(0, 0);
     int insertCount = 16;
     int step = 2;
@@ -282,10 +282,10 @@ public class Node16Test {
     Assertions.assertTrue(nodes instanceof Node16);
 
     // The position of a value before the "first" value dose not exist thus ILLEGAL_IDX
-    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, nodes.getNextSmallerPos(nodes.getMinPos()));
 
     // The position of a value after the "last" value dose not exist thus ILLEGAL_IDX
-    Assertions.assertEquals(Node.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, nodes.getNextLargerPos(nodes.getMaxPos()));
 
     // so for each value in the inserted range the next of the prior should be the same as
     // the location of found current.

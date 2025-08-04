@@ -8,7 +8,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class Node4 extends Node {
+public class Node4 extends BranchNode {
 
   int key = 0;
   Node[] children = new Node[4];
@@ -32,7 +32,7 @@ public class Node4 extends Node {
   @Override
   public SearchResult getNearestChildPos(byte k) {
     byte[] firstBytes = IntegerUtil.toBDBytes(key);
-    return Node.binarySearchWithResult(firstBytes, 0, count, k);
+    return binarySearchWithResult(firstBytes, 0, count, k);
   }
 
   @Override
@@ -88,7 +88,7 @@ public class Node4 extends Node {
    * @param key the key byte
    * @return the input node4 or an adaptive generated node16
    */
-  public static Node insert(Node node, Node childNode, byte key) {
+  public static BranchNode insert(BranchNode node, Node childNode, byte key) {
     Node4 current = (Node4) node;
     if (current.count < 4) {
       // insert leaf into current node
@@ -104,7 +104,7 @@ public class Node4 extends Node {
       node16.firstV = LongUtils.initWithFirst4Byte(current.key);
       System.arraycopy(current.children, 0, node16.children, 0, 4);
       copyPrefix(current, node16);
-      Node freshOne = Node16.insert(node16, childNode, key);
+      BranchNode freshOne = Node16.insert(node16, childNode, key);
       return freshOne;
     }
   }
@@ -120,15 +120,18 @@ public class Node4 extends Node {
     }
     if (count == 1) {
       // shrink to the child node
-      Node child = children[0];
-      byte newLength = (byte) (child.prefixLength + this.prefixLength + 1);
-      byte[] newPrefix = new byte[newLength];
-      System.arraycopy(this.prefix, 0, newPrefix, 0, this.prefixLength);
-      newPrefix[this.prefixLength] = IntegerUtil.firstByte(key);
-      System.arraycopy(child.prefix, 0, newPrefix, this.prefixLength + 1, child.prefixLength);
-      child.prefixLength = newLength;
-      child.prefix = newPrefix;
-      return child;
+      Node childNode = children[0];
+      if (childNode instanceof BranchNode) {
+        BranchNode child = (BranchNode) childNode;
+        byte newLength = (byte) (child.prefixLength + this.prefixLength + 1);
+        byte[] newPrefix = new byte[newLength];
+        System.arraycopy(this.prefix, 0, newPrefix, 0, this.prefixLength);
+        newPrefix[this.prefixLength] = IntegerUtil.firstByte(key);
+        System.arraycopy(child.prefix, 0, newPrefix, this.prefixLength + 1, child.prefixLength);
+        child.prefixLength = newLength;
+        child.prefix = newPrefix;
+      }
+      return childNode;
     }
     return this;
   }
@@ -177,7 +180,7 @@ public class Node4 extends Node {
    */
   private static void insertionSort(Node4 node4) {
     byte[] key = IntegerUtil.toBDBytes(node4.key);
-    byte[] sortedKey = Node.sortSmallByteArray(key, node4.children, 0, node4.count - 1);
+    byte[] sortedKey = sortSmallByteArray(key, node4.children, 0, node4.count - 1);
     node4.key = IntegerUtil.fromBDBytes(sortedKey);
   }
 }

@@ -4,12 +4,12 @@ import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 import org.roaringbitmap.Container;
 import org.roaringbitmap.art.Art;
+import org.roaringbitmap.art.BranchNode;
 import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.Containers;
 import org.roaringbitmap.art.KeyIterator;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
-import org.roaringbitmap.art.Node;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -64,7 +64,7 @@ public class HighLowContainer {
    */
   public void remove(byte[] highPart) {
     long containerIdx = art.remove(highPart);
-    if (containerIdx != Node.ILLEGAL_IDX) {
+    if (containerIdx != BranchNode.ILLEGAL_IDX) {
       containers.remove(containerIdx);
     }
   }
