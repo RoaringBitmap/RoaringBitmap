@@ -1,0 +1,95 @@
+name: 'Test Report'
+on:
+  workflow_run:
+    workflows: ['Java 11 CI macOS (Apple)']  # runs after CI workflow
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check for test-results-j8 artifact
+        id: check_j8
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-j8
+          path: temp-j8
+        continue-on-error: true
+
+      - name: Check for test-results-j11 artifact
+        id: check_j11
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-j11
+          path: temp-j11
+        continue-on-error: true
+
+      - name: Check for test-results-j8 artifact
+        id: check_j17
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-j17
+          path: temp-j17
+        continue-on-error: true
+
+      - name: Check for test-results-j21 artifact
+        id: check_j21
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-j21
+          path: temp-j21
+        continue-on-error: true
+
+      - name: Check for test-results-j21 artifact
+        id: check__macos_j11
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-macos-j11
+          path: temp-macos-j11
+        continue-on-error: true
+
+      - uses: dorny/test-reporter@v1
+        if: ${{ steps.check_j8.outcome == 'success' }}
+        with:
+          artifact: test-results-j8         # artifact name
+          name: Java 8 Tests                # Name of the check run which will be created
+          path: '*.xml'                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
+
+      - uses: dorny/test-reporter@v1
+        if: ${{ steps.check_j11.outcome == 'success' }}
+        with:
+          artifact: test-results-j11        # artifact name
+          name: Java 11 tests               # Name of the check run which will be created
+          path: '*.xml'                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
+
+      - uses: dorny/test-reporter@v1
+        if: ${{ steps.check_j17.outcome == 'success' }}
+        with:
+          artifact: test-results-j17        # artifact name
+          name: Java 17 tests               # Name of the check run which will be created
+          path: '*.xml'                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
+
+      - uses: dorny/test-reporter@v1
+        if: ${{ steps.check_j21.outcome == 'success' }}
+        with:
+          artifact: test-results-j21        # artifact name
+          name: Java 21 tests               # Name of the check run which will be created
+          path: '*.xml'                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
+
+      - uses: dorny/test-reporter@v1
+        if: ${{ steps.check__macos_j11.outcome == 'success' }}
+        with:
+          artifact: test-results-macos-j11  # artifact name
+          name: Java 11 macos tests         # Name of the check run which will be created
+          path: '*.xml'                     # Path to test results (inside artifact .zip)
+          reporter: java-junit              # Format of test results
