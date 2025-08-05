@@ -13,7 +13,18 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 11
+
       - name: Build with Gradle
         run: ./gradlew assemble
+
       - name: Test with Gradle
+        id: test_macos_java11
         run: ./gradlew test
+
+      - uses: actions/upload-artifact@v4  # upload test results if the test was not skipped
+        if: ${{ !cancelled() && steps.test_macos_java11.outcome != 'skipped'}}
+        with:
+          name: test-results-macos-j11
+          path: '*/build/test-results/**/*.xml'
+          overwrite: 'true'
+
