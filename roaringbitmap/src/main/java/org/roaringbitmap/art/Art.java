@@ -76,14 +76,15 @@ public class Art {
         return leafNode;
       }
       BranchNode branchNode = (BranchNode) node;
-      if (branchNode.prefixLength > 0) {
+      byte branchNodePrefixLength = branchNode.prefixLength();
+      if (branchNodePrefixLength > 0) {
         int commonLength =
-            commonPrefixLength(key, depth, key.length, branchNode.prefix, 0, branchNode.prefixLength);
-        if (commonLength != branchNode.prefixLength) {
+            commonPrefixLength(key, depth, key.length, branchNode.prefix, 0, branchNodePrefixLength);
+        if (commonLength != branchNodePrefixLength) {
           return null;
         }
         // common prefix is the same ,then increase the depth
-        depth += branchNode.prefixLength;
+        depth += branchNodePrefixLength;
       }
       int pos = branchNode.getChildPos(key[depth]);
       if (pos == BranchNode.ILLEGAL_IDX) {
@@ -136,13 +137,14 @@ public class Art {
       }
     }
     BranchNode branchNode = (BranchNode) node;
-    if (branchNode.prefixLength > 0) {
+    byte branchNodePrefixLength = branchNode.prefixLength();
+    if (branchNodePrefixLength > 0) {
       int commonLength =
-          commonPrefixLength(key, dep, key.length, branchNode.prefix, 0, branchNode.prefixLength);
-      if (commonLength != branchNode.prefixLength) {
+          commonPrefixLength(key, dep, key.length, branchNode.prefix, 0, branchNodePrefixLength);
+      if (commonLength != branchNodePrefixLength) {
         return null;
       }
-      dep += branchNode.prefixLength;
+      dep += branchNodePrefixLength;
     }
     int pos = branchNode.getChildPos(key[dep]);
     if (pos != BranchNode.ILLEGAL_IDX) {
@@ -224,7 +226,6 @@ public class Art {
 
       Node4 node4 = new Node4(commonPrefix);
       // copy common prefix
-      node4.prefixLength = (byte) commonPrefix;
       System.arraycopy(key, depth, node4.prefix, 0, commonPrefix);
       // generate two leaf nodes as the children of the fresh node4
       node4.insert(leafNode, prefix[depth + commonPrefix]);
@@ -234,32 +235,31 @@ public class Art {
       return node4;
     }
     BranchNode branchNode = (BranchNode) node;
+    byte branchNodePrefixLength = branchNode.prefixLength();
     // to a inner node case
-    if (branchNode.prefixLength > 0) {
+    if (branchNodePrefixLength > 0) {
       // find the mismatch position
       int mismatchPos =
-          ArraysShim.mismatch(branchNode.prefix, 0, branchNode.prefixLength, key, depth, key.length);
-      if (mismatchPos != branchNode.prefixLength) {
+          ArraysShim.mismatch(branchNode.prefix, 0, branchNodePrefixLength, key, depth, key.length);
+      if (mismatchPos != branchNodePrefixLength) {
         Node4 node4 = new Node4(mismatchPos);
         // copy prefix
-        node4.prefixLength = (byte) mismatchPos;
         System.arraycopy(branchNode.prefix, 0, node4.prefix, 0, mismatchPos);
         // split the current internal node, spawn a fresh node4 and let the
         // current internal node as its children.
         node4.insert(branchNode, branchNode.prefix[mismatchPos]);
-        int nodeOriginalPrefixLength = branchNode.prefixLength;
-        branchNode.prefixLength = (byte) (nodeOriginalPrefixLength - (mismatchPos + (byte) 1));
+        int newPrefixLength = (int) branchNodePrefixLength - (mismatchPos + 1);
         // move the remained common prefix of the initial internal node
-        if (branchNode.prefixLength > 0) {
-          System.arraycopy(branchNode.prefix, mismatchPos + 1, branchNode.prefix, 0, branchNode.prefixLength);
-        } else {
-          branchNode.prefix = EMPTY_BYTES;
-        }
+        // as the new prefix is always > 0, we just allocate and fill the new prefix
+        byte[] branchNodeNewPrefix = new byte[newPrefixLength];
+        System.arraycopy(branchNode.prefix, mismatchPos + 1, branchNodeNewPrefix, 0, newPrefixLength);
+        branchNode.prefix = branchNodeNewPrefix;
+
         LeafNode leafNode = new LeafNode(key, containerIdx);
         node4.insert(leafNode, key[mismatchPos + depth]);
         return node4;
       }
-      depth += branchNode.prefixLength;
+      depth += branchNodePrefixLength;
     }
     int pos = branchNode.getChildPos(key[depth]);
     if (pos != BranchNode.ILLEGAL_IDX) {

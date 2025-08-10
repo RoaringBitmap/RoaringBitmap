@@ -187,10 +187,11 @@ public abstract class AbstractShuttle implements Shuttle {
 
     BranchNode branchNode = (BranchNode) node;
 
-    if (branchNode.prefixLength > 0) {
+    byte branchNodePrefixLength = branchNode.prefixLength();
+    if (branchNodePrefixLength > 0) {
       int commonLength =
-          Art.commonPrefixLength(high, keyDepth, high.length, branchNode.prefix, 0, branchNode.prefixLength);
-      if (commonLength != branchNode.prefixLength) {
+          Art.commonPrefixLength(high, keyDepth, high.length, branchNode.prefix, 0, branchNodePrefixLength);
+      if (commonLength != branchNodePrefixLength) {
         byte nodeValue = branchNode.prefix[commonLength];
         byte highValue = high[keyDepth + commonLength];
         boolean visitDirection = prefixMismatchIsInRunDirection(nodeValue, highValue);
@@ -199,7 +200,7 @@ public abstract class AbstractShuttle implements Shuttle {
         return;
       }
       // common prefix is the same ,then increase the depth
-      keyDepth += branchNode.prefixLength;
+      keyDepth += branchNode.prefixLength();
     }
     // find next child
     SearchResult result = branchNode.getNearestChildPos(high[keyDepth]);

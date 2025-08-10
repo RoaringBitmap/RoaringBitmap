@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 
 public abstract class BranchNode extends Node {
 
-    // length of compressed path(prefix)
-    protected byte prefixLength;
     // the compressed path path (prefix)
     protected byte[] prefix;
     // number of non-null children, the largest value will not beyond 255
@@ -22,11 +20,14 @@ public abstract class BranchNode extends Node {
      */
     public BranchNode(int compressedPrefixSize) {
         super();
-        this.prefixLength = (byte) compressedPrefixSize;
-        prefix = new byte[prefixLength];
+        prefix = new byte[compressedPrefixSize];
         count = 0;
     }
     protected abstract NodeType nodeType();
+    // length of compressed path(prefix)
+    protected byte prefixLength() {
+        return (byte) prefix.length;
+    }
 
     /**
      * search the position of the input byte key in the node's key byte array part
@@ -99,8 +100,7 @@ public abstract class BranchNode extends Node {
      * @param dst the destination node
      */
     public static void copyPrefix(BranchNode src, BranchNode dst) {
-        dst.prefixLength = src.prefixLength;
-        System.arraycopy(src.prefix, 0, dst.prefix, 0, src.prefixLength);
+        System.arraycopy(src.prefix, 0, dst.prefix, 0, src.prefixLength());
     }
 
     /**
@@ -198,9 +198,10 @@ public abstract class BranchNode extends Node {
         dataOutput.writeByte((byte) this.nodeType().ordinal());
         // non null object count
         dataOutput.writeShort(Short.reverseBytes(this.count));
-        dataOutput.writeByte(this.prefixLength);
+        byte prefixLength = this.prefixLength();
+        dataOutput.writeByte(prefixLength);
         if (prefixLength > 0) {
-            dataOutput.write(this.prefix, 0, this.prefixLength);
+            dataOutput.write(this.prefix, 0, prefixLength);
         }
     }
 
@@ -208,7 +209,8 @@ public abstract class BranchNode extends Node {
     protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
         byteBuffer.put((byte) this.nodeType().ordinal());
         byteBuffer.putShort(this.count);
-        byteBuffer.put(this.prefixLength);
+        byte prefixLength = this.prefixLength();
+        byteBuffer.put(prefixLength);
         if (prefixLength > 0) {
             byteBuffer.put(this.prefix, 0, prefixLength);
         }
@@ -216,7 +218,7 @@ public abstract class BranchNode extends Node {
 
     @Override
     protected int serializeHeaderSizeInBytes() {
-        return super.serializeHeaderSizeInBytes() + prefixLength;
+        return super.serializeHeaderSizeInBytes() + prefixLength();
     }
 
 

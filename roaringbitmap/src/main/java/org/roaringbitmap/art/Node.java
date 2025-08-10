@@ -153,28 +153,24 @@ public abstract class Node {
     }
     if (nodeTypeOrdinal == NodeType.NODE4.ordinal()) {
       Node4 node4 = new Node4(prefixLength);
-      node4.prefixLength = prefixLength;
       node4.prefix = prefix;
       node4.count = count;
       return node4;
     }
     if (nodeTypeOrdinal == NodeType.NODE16.ordinal()) {
       Node16 node16 = new Node16(prefixLength);
-      node16.prefixLength = prefixLength;
       node16.prefix = prefix;
       node16.count = count;
       return node16;
     }
     if (nodeTypeOrdinal == NodeType.NODE48.ordinal()) {
       Node48 node48 = new Node48(prefixLength);
-      node48.prefixLength = prefixLength;
       node48.prefix = prefix;
       node48.count = count;
       return node48;
     }
     if (nodeTypeOrdinal == NodeType.NODE256.ordinal()) {
       Node256 node256 = new Node256(prefixLength);
-      node256.prefixLength = prefixLength;
       node256.prefix = prefix;
       node256.count = count;
       return node256;
@@ -198,28 +194,24 @@ public abstract class Node {
     }
     if (nodeTypeOrdinal == NodeType.NODE4.ordinal()) {
       Node4 node4 = new Node4(prefixLength);
-      node4.prefixLength = prefixLength;
       node4.prefix = prefix;
       node4.count = count;
       return node4;
     }
     if (nodeTypeOrdinal == NodeType.NODE16.ordinal()) {
       Node16 node16 = new Node16(prefixLength);
-      node16.prefixLength = prefixLength;
       node16.prefix = prefix;
       node16.count = count;
       return node16;
     }
     if (nodeTypeOrdinal == NodeType.NODE48.ordinal()) {
       Node48 node48 = new Node48(prefixLength);
-      node48.prefixLength = prefixLength;
       node48.prefix = prefix;
       node48.count = count;
       return node48;
     }
     if (nodeTypeOrdinal == NodeType.NODE256.ordinal()) {
       Node256 node256 = new Node256(prefixLength);
-      node256.prefixLength = prefixLength;
       node256.prefix = prefix;
       node256.count = count;
       return node256;

@@ -159,7 +159,7 @@ public class Node256 extends BranchNode {
     bitmapMask[longPos] &= ~(1L << pos);
     this.count--;
     if (this.count <= 36) {
-      Node48 node48 = new Node48(this.prefixLength);
+      Node48 node48 = new Node48(this.prefixLength());
       int j = 0;
       int currentPos = ILLEGAL_IDX;
       while ((currentPos = getNextLargerPos(currentPos)) != ILLEGAL_IDX) {
