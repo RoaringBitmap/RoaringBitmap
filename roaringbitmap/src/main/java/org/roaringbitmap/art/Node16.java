@@ -15,7 +15,12 @@ public class Node16 extends BranchNode {
   Node[] children = new Node[16];
 
   public Node16(int compressionLength) {
-    super(NodeType.NODE16, compressionLength);
+    super(compressionLength);
+  }
+
+  @Override
+  protected NodeType nodeType() {
+    return NodeType.NODE16;
   }
 
   @Override
@@ -139,53 +144,52 @@ public class Node16 extends BranchNode {
   /**
    * insert a child into the node with the key byte
    *
-   * @param node the node16 to insert into
    * @param child the child node to be inserted
    * @param key the key byte
    * @return the adaptive changed node of the parent node16
    */
-  public static BranchNode insert(BranchNode node, Node child, byte key) {
-    Node16 currentNode16 = (Node16) node;
-    if (currentNode16.count < 8) {
+  @Override
+  protected BranchNode insert(Node child, byte key) {
+    if (this.count < 8) {
       // first
-      byte[] bytes = LongUtils.toBDBytes(currentNode16.firstV);
-      bytes[currentNode16.count] = key;
-      currentNode16.children[currentNode16.count] = child;
-      sortSmallByteArray(bytes, currentNode16.children, 0, currentNode16.count);
-      currentNode16.count++;
-      currentNode16.firstV = LongUtils.fromBDBytes(bytes);
-      return currentNode16;
-    } else if (currentNode16.count < 16) {
+      byte[] bytes = LongUtils.toBDBytes(this.firstV);
+      bytes[this.count] = key;
+      this.children[this.count] = child;
+      sortSmallByteArray(bytes, this.children, 0, this.count);
+      this.count++;
+      this.firstV = LongUtils.fromBDBytes(bytes);
+      return this;
+    } else if (this.count < 16) {
       // second
       ByteBuffer byteBuffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
-      byteBuffer.putLong(currentNode16.firstV);
-      byteBuffer.putLong(currentNode16.secondV);
-      byteBuffer.put(currentNode16.count, key);
-      currentNode16.children[currentNode16.count] = child;
-      sortSmallByteArray(byteBuffer.array(), currentNode16.children, 0, currentNode16.count);
-      currentNode16.count++;
-      currentNode16.firstV = byteBuffer.getLong(0);
-      currentNode16.secondV = byteBuffer.getLong(8);
-      return currentNode16;
+      byteBuffer.putLong(this.firstV);
+      byteBuffer.putLong(this.secondV);
+      byteBuffer.put(this.count, key);
+      this.children[this.count] = child;
+      sortSmallByteArray(byteBuffer.array(), this.children, 0, this.count);
+      this.count++;
+      this.firstV = byteBuffer.getLong(0);
+      this.secondV = byteBuffer.getLong(8);
+      return this;
     } else {
-      Node48 node48 = new Node48(currentNode16.prefixLength);
+      Node48 node48 = new Node48(this.prefixLength);
       for (int i = 0; i < 8; i++) {
-        int unsignedIdx = Byte.toUnsignedInt((byte) (currentNode16.firstV >>> ((7 - i) << 3)));
+        int unsignedIdx = Byte.toUnsignedInt((byte) (this.firstV >>> ((7 - i) << 3)));
         // i won't be beyond 48
         Node48.setOneByte(unsignedIdx, (byte) i, node48.childIndex);
-        node48.children[i] = currentNode16.children[i];
+        node48.children[i] = this.children[i];
       }
-      byte[] secondBytes = LongUtils.toBDBytes(currentNode16.secondV);
-      for (int i = 8; i < currentNode16.count; i++) {
+      byte[] secondBytes = LongUtils.toBDBytes(this.secondV);
+      for (int i = 8; i < this.count; i++) {
         byte v = secondBytes[i - 8];
         int unsignedIdx = Byte.toUnsignedInt(v);
         // i won't be beyond 48
         Node48.setOneByte(unsignedIdx, (byte) i, node48.childIndex);
-        node48.children[i] = currentNode16.children[i];
+        node48.children[i] = this.children[i];
       }
-      copyPrefix(currentNode16, node48);
-      node48.count = currentNode16.count;
-      BranchNode freshOne = Node48.insert(node48, child, key);
+      copyPrefix(this, node48);
+      node48.count = this.count;
+      BranchNode freshOne = node48.insert(child, key);
       return freshOne;
     }
   }

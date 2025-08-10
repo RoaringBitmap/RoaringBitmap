@@ -17,7 +17,7 @@ public class Node48Test {
     LeafNode leafNode;
     for (int i = 0; i < 48; i++) {
       leafNode = new LeafNode(i, i);
-      node48 = (Node48) Node48.insert(node48, leafNode, (byte) i);
+      node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int minPos = node48.getMinPos();
     Assertions.assertEquals(0, minPos);
@@ -72,7 +72,7 @@ public class Node48Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node48.insert(nodes, leafNode, (byte) (offset + i));
+      nodes = nodes.insert(leafNode, (byte) (offset + i));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node48);
@@ -117,7 +117,7 @@ public class Node48Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node48.insert(nodes, leafNode, (byte) (offset + (i * step)));
+      nodes = nodes.insert(leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node48);
@@ -160,11 +160,11 @@ public class Node48Test {
     LeafNode leafNode;
     for (int i = 0; i < 48; i++) {
       leafNode = new LeafNode(i, i);
-      node48 = (Node48) Node48.insert(node48, leafNode, (byte) i);
+      node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int key48 = 48;
     leafNode = new LeafNode(key48, key48);
-    Node node = Node48.insert(node48, leafNode, (byte) key48);
+    Node node = node48.insert(leafNode, (byte) key48);
     Assertions.assertTrue(node instanceof Node256);
     Node256 node256 = (Node256) node;
     int pos48 = node256.getChildPos((byte) key48);
@@ -179,7 +179,7 @@ public class Node48Test {
     LeafNode leafNode;
     for (int i = 0; i < 13; i++) {
       leafNode = new LeafNode(i, i);
-      node48 = (Node48) Node48.insert(node48, leafNode, (byte) i);
+      node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int maxPos = node48.getMaxPos();
     Assertions.assertEquals(12, maxPos);
@@ -202,7 +202,7 @@ public class Node48Test {
     for (int i = 0; i < 48; i++) {
       int byteKey = -128 + i;
       leafNode = new LeafNode(i, i);
-      node48 = (Node48) Node48.insert(node48, leafNode, (byte) byteKey);
+      node48 = (Node48) node48.insert(leafNode, (byte) byteKey);
     }
     int minPos = node48.getMinPos();
     Assertions.assertEquals(128, minPos);
@@ -242,7 +242,7 @@ public class Node48Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) (i + keyOffset);
-      nodes = Node48.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node48);
@@ -282,7 +282,7 @@ public class Node48Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) ((i * step) + keyOffset);
-      nodes = Node48.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node48);
@@ -358,7 +358,7 @@ public class Node48Test {
     BranchNode nodes = new Node48(0);
     LeafNode leafNode = new LeafNode(0, 0);
 
-    nodes = Node48.insert(nodes, leafNode, (byte) 67);
+    nodes = nodes.insert(leafNode, (byte) 67);
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node48);
 

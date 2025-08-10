@@ -11,38 +11,38 @@ public class Node16Test {
     // insert 4 nodes
     for (int i = 0; i < 4; i++) {
       LeafNode leafNode = new LeafNode(i, i);
-      node4 = (Node4) Node4.insert(node4, leafNode, (byte) i);
+      node4 = (Node4) node4.insert(leafNode, (byte) i);
     }
     // insert the fifth node
     LeafNode leafNode4 = new LeafNode(4, 4);
-    Node16 node16 = (Node16) Node4.insert(node4, leafNode4, (byte) 4);
+    Node16 node16 = (Node16) node4.insert(leafNode4, (byte) 4);
     // remove two nodes to shrink to node4
     node16 = (Node16) node16.remove(4);
     Node degenerativeNode = node16.remove(3);
     Assertions.assertTrue(degenerativeNode instanceof Node4);
     // recover to node16 by re-insert two nodes
     Node4 degenerativeNode4 = (Node4) degenerativeNode;
-    BranchNode node = Node4.insert(degenerativeNode4, leafNode4, (byte) 4);
+    BranchNode node = degenerativeNode4.insert(leafNode4, (byte) 4);
     LeafNode leafNode3 = new LeafNode(3, 3);
-    node16 = (Node16) Node4.insert(node, leafNode3, (byte) 3);
+    node16 = (Node16) node.insert(leafNode3, (byte) 3);
 
     byte key = 4;
-    Assertions.assertTrue(node16.getChildPos(key) == 4);
-    Assertions.assertTrue(node16.getChildKey(4) == key);
+    Assertions.assertEquals(4, node16.getChildPos(key));
+    Assertions.assertEquals(key, node16.getChildKey(4));
     for (int i = 5; i < 12; i++) {
       byte key1 = (byte) i;
       LeafNode leafNode = new LeafNode(i, i);
-      node16 = (Node16) Node16.insert(node16, leafNode, key1);
+      node16 = (Node16) node16.insert(leafNode, key1);
       Assertions.assertEquals(i, node16.getChildPos(key1));
     }
     LeafNode leafNode = new LeafNode(12, 12);
     key = (byte) -2;
-    node16 = (Node16) Node16.insert(node16, leafNode, key);
+    node16 = (Node16) node16.insert(leafNode, key);
     Assertions.assertEquals(12, node16.getChildPos(key));
     Assertions.assertEquals(key, node16.getChildKey(12));
     leafNode = new LeafNode(13, 13);
     byte key12 = (byte) 12;
-    node16 = (Node16) Node16.insert(node16, leafNode, key12);
+    node16 = (Node16) node16.insert(leafNode, key12);
     Assertions.assertEquals(12, node16.getChildPos(key12));
     Assertions.assertEquals(key12, node16.getChildKey(12));
     Assertions.assertEquals(13, node16.getChildPos(key));
@@ -55,10 +55,10 @@ public class Node16Test {
     LeafNode leafNode;
     for (int i = 0; i < 16; i++) {
       leafNode = new LeafNode(i, i);
-      node16 = (Node16) Node16.insert(node16, leafNode, (byte) i);
+      node16 = (Node16) node16.insert(leafNode, (byte) i);
     }
     leafNode = new LeafNode(16, 16);
-    Node node = Node16.insert(node16, leafNode, (byte) 16);
+    Node node = node16.insert(leafNode, (byte) 16);
     Assertions.assertTrue(node instanceof Node48);
     Node48 node48 = (Node48) node;
     int maxPos = node48.getMaxPos();
@@ -76,7 +76,7 @@ public class Node16Test {
     // create the data
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
-      node16 = (Node16) Node16.insert(node16, leafNode, (byte) i);
+      node16 = (Node16) node16.insert(leafNode, (byte) i);
     }
 
     // check the range is as expected
@@ -111,7 +111,7 @@ public class Node16Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) (i + keyOffset);
-      nodes = Node16.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node16);
@@ -154,7 +154,7 @@ public class Node16Test {
     for (int i = 0; i < insertCount; i++) {
       LeafNode leafNode = new LeafNode(i, i);
       byte key = (byte) ((i * step) + keyOffset);
-      nodes = Node16.insert(nodes, leafNode, key);
+      nodes = nodes.insert(leafNode, key);
     }
     // check we are testing the correct thing
     Assertions.assertTrue(nodes instanceof Node16);
@@ -236,7 +236,7 @@ public class Node16Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node16.insert(nodes, leafNode, (byte) (offset + i));
+      nodes = nodes.insert(leafNode, (byte) (offset + i));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node16);
@@ -276,7 +276,7 @@ public class Node16Test {
 
     // setup data
     for (int i = 0; i < insertCount; i++) {
-      nodes = Node16.insert(nodes, leafNode, (byte) (offset + (i * step)));
+      nodes = nodes.insert(leafNode, (byte) (offset + (i * step)));
     }
     // check we are testing the correct data structure
     Assertions.assertTrue(nodes instanceof Node16);
