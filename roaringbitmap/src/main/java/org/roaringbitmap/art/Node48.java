@@ -195,7 +195,7 @@ public class Node48 extends BranchNode {
       return this;
     } else {
       // grow to Node256
-      Node256 node256 = new Node256(this.prefixLength);
+      Node256 node256 = new Node256(this.prefixLength());
       int currentPos = ILLEGAL_IDX;
       while ((currentPos = this.getNextLargerPos(currentPos)) != ILLEGAL_IDX) {
         Node childNode = this.getChild(currentPos);
@@ -217,7 +217,7 @@ public class Node48 extends BranchNode {
     count--;
     if (count <= 12) {
       // shrink to node16
-      Node16 node16 = new Node16(this.prefixLength);
+      Node16 node16 = new Node16(this.prefixLength());
       int j = 0;
       ByteBuffer byteBuffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
       int currentPos = ILLEGAL_IDX;

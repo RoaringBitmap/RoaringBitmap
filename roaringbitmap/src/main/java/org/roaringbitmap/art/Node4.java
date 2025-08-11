@@ -103,7 +103,7 @@ public class Node4 extends BranchNode {
       return this;
     } else {
       // grow to Node16
-      Node16 node16 = new Node16(this.prefixLength);
+      Node16 node16 = new Node16(this.prefixLength());
       node16.count = 4;
       node16.firstV = LongUtils.initWithFirst4Byte(this.key);
       System.arraycopy(children, 0, node16.children, 0, 4);
@@ -127,12 +127,13 @@ public class Node4 extends BranchNode {
       Node childNode = children[0];
       if (childNode instanceof BranchNode) {
         BranchNode child = (BranchNode) childNode;
-        byte newLength = (byte) (child.prefixLength + this.prefixLength + 1);
+        byte childPrefixLength = child.prefixLength();
+        byte thisPrefixLength = this.prefixLength();
+        byte newLength = (byte) (childPrefixLength + thisPrefixLength + 1);
         byte[] newPrefix = new byte[newLength];
-        System.arraycopy(this.prefix, 0, newPrefix, 0, this.prefixLength);
-        newPrefix[this.prefixLength] = IntegerUtil.firstByte(key);
-        System.arraycopy(child.prefix, 0, newPrefix, this.prefixLength + 1, child.prefixLength);
-        child.prefixLength = newLength;
+        System.arraycopy(this.prefix, 0, newPrefix, 0,thisPrefixLength);
+        newPrefix[thisPrefixLength] = IntegerUtil.firstByte(key);
+        System.arraycopy(child.prefix, 0, newPrefix, thisPrefixLength + 1, childPrefixLength);
         child.prefix = newPrefix;
       }
       return childNode;

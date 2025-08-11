@@ -172,7 +172,7 @@ public class Node16 extends BranchNode {
       this.secondV = byteBuffer.getLong(8);
       return this;
     } else {
-      Node48 node48 = new Node48(this.prefixLength);
+      Node48 node48 = new Node48(this.prefixLength());
       for (int i = 0; i < 8; i++) {
         int unsignedIdx = Byte.toUnsignedInt((byte) (this.firstV >>> ((7 - i) << 3)));
         // i won't be beyond 48
@@ -206,7 +206,7 @@ public class Node16 extends BranchNode {
     count--;
     if (count <= 3) {
       // shrink to node4
-      Node4 node4 = new Node4(prefixLength);
+      Node4 node4 = new Node4(prefixLength());
       // copy the keys
       node4.key = (int) (firstV >> 32);
       System.arraycopy(children, 0, node4.children, 0, count);
