@@ -104,7 +104,6 @@ public class Node16Test {
   public void testDenseNonZeroBasedKeysSearch() {
     BranchNode nodes = new Node16(0);
     final int insertCount = 15;
-    final int lastValue = insertCount - 1;
     final int keyOffset = 0x20;
 
     // create the data

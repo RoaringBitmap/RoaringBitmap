@@ -19,26 +19,26 @@ public class Node4Test {
     Node4 node4 = new Node4(0);
     byte key1 = 2;
     node4.insert(leafNode1, key1);
-    Assertions.assertTrue(node4.getMaxPos() == 0);
-    Assertions.assertTrue(node4.getMinPos() == 0);
-    Assertions.assertTrue(node4.getChildPos(key1) == 0);
-    Assertions.assertTrue(node4.getChildKey(0) == key1);
+    Assertions.assertEquals(0, node4.getMaxPos());
+    Assertions.assertEquals(0, node4.getMinPos());
+    Assertions.assertEquals(0, node4.getChildPos(key1));
+    Assertions.assertEquals(key1, node4.getChildKey(0));
 
     byte key2 = 1;
     node4 = (Node4) node4.insert(leafNode2, key2);
-    Assertions.assertTrue(node4.getChildPos(key2) == 0);
-    Assertions.assertTrue(node4.getChildPos(key1) == 1);
-    Assertions.assertTrue(node4.getChildKey(0) == key2);
+    Assertions.assertEquals(0, node4.getChildPos(key2));
+    Assertions.assertEquals(1, node4.getChildPos(key1));
+    Assertions.assertEquals(key2, node4.getChildKey(0));
 
     byte key3 = -1;
     node4 = (Node4) node4.insert(leafNode3, key3);
-    Assertions.assertTrue(node4.getChildPos(key3) == 2);
-    Assertions.assertTrue(node4.getChildKey(2) == key3);
+    Assertions.assertEquals(2, node4.getChildPos(key3));
+    Assertions.assertEquals(key3, node4.getChildKey(2));
     node4 = (Node4) node4.remove(1);
-    Assertions.assertTrue(node4.getChildPos(key2) == 0);
-    Assertions.assertTrue(node4.getChildPos(key3) == 1);
-    Assertions.assertTrue(node4.getChildKey(1) == key3);
-    Assertions.assertTrue(node4.getChildPos(key1) == BranchNode.ILLEGAL_IDX);
+    Assertions.assertEquals(0, node4.getChildPos(key2));
+    Assertions.assertEquals(1, node4.getChildPos(key3));
+    Assertions.assertEquals(key3, node4.getChildKey(1));
+    Assertions.assertEquals(BranchNode.ILLEGAL_IDX, node4.getChildPos(key1));
 
     int bytesSize = node4.serializeSizeInBytes();
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
