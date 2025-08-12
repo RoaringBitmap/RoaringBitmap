@@ -116,12 +116,12 @@ public class Node4 extends BranchNode {
   @Override
   public Node remove(int pos) {
     assert pos < count;
-    children[pos] = null;
     count--;
     key = IntegerUtil.shiftLeftFromSpecifiedPosition(key, pos, (4 - pos - 1));
     for (; pos < count; pos++) {
       children[pos] = children[pos + 1];
     }
+    children[pos] = null;
     if (count == 1) {
       // shrink to the child node
       Node childNode = children[0];

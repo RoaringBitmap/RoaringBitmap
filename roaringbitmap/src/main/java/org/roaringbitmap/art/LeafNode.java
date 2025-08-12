@@ -123,4 +123,12 @@ public class LeafNode extends Node {
     byteBuffer.put((byte)0);
   }
 
+  @Override
+  public String toString() {
+    return "LeafNode{" +
+            "key=" + Long.toHexString(getKey()) +
+            ", containerIdx=" + containerIdx +
+            '}';
+  }
+
 }
