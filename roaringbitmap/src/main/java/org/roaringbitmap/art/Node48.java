@@ -64,6 +64,13 @@ public class Node48 extends BranchNode {
   }
 
   @Override
+  public Node getChildAtKey(byte key) {
+    int unsignedIdx = Byte.toUnsignedInt(key);
+    int childIdx = childrenIdx(unsignedIdx, childIndex);
+    return (childIdx != EMPTY_VALUE) ? children[childIdx] : null;
+  }
+
+  @Override
   public void replaceNode(int pos, Node freshOne) {
     byte idx = childrenIdx(pos, childIndex);
     children[(int) idx] = freshOne;

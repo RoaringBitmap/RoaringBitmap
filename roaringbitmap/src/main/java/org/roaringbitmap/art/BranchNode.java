@@ -145,6 +145,18 @@ public abstract class BranchNode extends Node {
      * @return a Node corresponding to the input position
      */
     public abstract Node getChild(int pos);
+    /**
+     * get the child at the specified key in the node.
+     * the behavior is equivalent to {@code
+     *     int pos = getChildPos(key);
+     *     return (pos != ILLEGAL_IDX) ? getChild(pos) : null;
+     * }
+     * but subclasses may be able to provide a more efficient implementation
+     *
+     * @param key the position
+     * @return a Node corresponding to the input position, or null if not found
+     */
+    public abstract Node getChildAtKey(byte key);
 
     /**
      * replace the position child to the fresh one

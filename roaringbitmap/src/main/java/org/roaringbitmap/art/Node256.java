@@ -34,6 +34,11 @@ public class Node256 extends BranchNode {
   }
 
   @Override
+  public Node getChildAtKey(byte key) {
+    return children[Byte.toUnsignedInt(key)];
+  }
+
+  @Override
   public SearchResult getNearestChildPos(byte k) {
     int pos = Byte.toUnsignedInt(k);
     if (children[pos] != null) {

@@ -128,12 +128,7 @@ public class Art {
           // common prefix is the same ,then increase the depth
           depth += branchNodePrefixLength;
         }
-        //TODO - expose an API that avoids this double dipping
-        int pos = branchNode.getChildPos(LongUtils.getByte(key, depth));
-        if (pos == BranchNode.ILLEGAL_IDX) {
-          return null;
-        }
-        node = branchNode.getChild(pos);
+        node = branchNode.getChildAtKey(LongUtils.getByte(key, depth));
         depth++;
       } else {
         LeafNode leafNode = (LeafNode) node;

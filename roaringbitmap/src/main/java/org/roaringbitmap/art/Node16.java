@@ -45,6 +45,12 @@ public class Node16 extends BranchNode {
   }
 
   @Override
+  public Node getChildAtKey(byte key) {
+    int pos = getChildPos(key);
+    return (pos != ILLEGAL_IDX) ? children[pos] : null;
+  }
+
+  @Override
   public SearchResult getNearestChildPos(byte k) {
     byte[] firstBytes = LongUtils.toBDBytes(firstV);
     if (count <= 8) {
