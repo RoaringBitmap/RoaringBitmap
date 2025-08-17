@@ -21,7 +21,7 @@ public class LongUtils {
     };
   }
   public static long highPartOnly(long num) {
-    return num & 0xFFffFFffFFff0000L;
+    return num & 0xFF_FF_FF_FF_FF_FF_00_00L;
   }
 
   /**
