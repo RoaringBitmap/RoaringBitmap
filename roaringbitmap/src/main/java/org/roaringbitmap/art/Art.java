@@ -7,6 +7,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.
@@ -18,7 +19,7 @@ public class Art {
   private Node root;
   private long keySize = 0;
 
-  static byte[] EMPTY_BYTES = new byte[0];
+  final static byte[] EMPTY_BYTES = new byte[0];
 
   public Art() {
     root = null;
@@ -299,9 +300,7 @@ public class Art {
         int newPrefixLength = (int) branchNodePrefixLength - (mismatchPos + 1);
         // move the remained common prefix of the initial internal node
         // as the new prefix is always > 0, we just allocate and fill the new prefix
-        byte[] branchNodeNewPrefix = new byte[newPrefixLength];
-        System.arraycopy(branchNode.prefix, mismatchPos + 1, branchNodeNewPrefix, 0, newPrefixLength);
-        branchNode.prefix = branchNodeNewPrefix;
+        branchNode.prefix = Arrays.copyOfRange(branchNode.prefix,mismatchPos + 1, branchNodePrefixLength);
 
         LeafNode leafNode = new LeafNode(key, containerIdx);
         node4.insert(leafNode, key[mismatchPos + depth]);
