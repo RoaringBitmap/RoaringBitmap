@@ -20,7 +20,7 @@ public abstract class BranchNode extends Node {
      */
     public BranchNode(int compressedPrefixSize) {
         super();
-        prefix = new byte[compressedPrefixSize];
+        prefix = compressedPrefixSize == 0 ? Art.EMPTY_BYTES : new byte[compressedPrefixSize];
         count = 0;
     }
     protected abstract NodeType nodeType();
