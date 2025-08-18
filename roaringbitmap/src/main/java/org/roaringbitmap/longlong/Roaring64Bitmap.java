@@ -783,7 +783,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
   @Override
   public boolean contains(long x) {
-    byte[] high = LongUtils.highPart(x);
+    long high = LongUtils.highPartOnly(x);
     ContainerWithIndex containerWithIdx = highLowContainer.searchContainer(high);
     if (containerWithIdx == null) {
       return false;

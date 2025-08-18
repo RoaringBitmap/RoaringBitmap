@@ -1,6 +1,7 @@
 package org.roaringbitmap.art;
 
 import org.roaringbitmap.ArraysShim;
+import org.roaringbitmap.longlong.LongUtils;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -54,6 +55,18 @@ public class Art {
     return BranchNode.ILLEGAL_IDX;
   }
 
+  /**
+   * @param key the high 48 bit of the long data
+   * @return the key's corresponding containerIdx
+   */
+  public long findByKey(long key) {
+    LeafNode node = findByKey(root, key);
+    if (node != null) {
+      return node.containerIdx;
+    }
+    return BranchNode.ILLEGAL_IDX;
+  }
+
   private Node findByKey(Node node, byte[] key, int depth) {
     while (node != null) {
       if (node instanceof LeafNode) {
@@ -92,6 +105,41 @@ public class Art {
       }
       node = branchNode.getChild(pos);
       depth++;
+    }
+    return null;
+  }
+  private LeafNode findByKey(Node node, long key) {
+    int depth = 0;
+    while (node != null) {
+      //compare branch node first, its most common case
+      if (node instanceof BranchNode) {
+        BranchNode branchNode = (BranchNode) node;
+        byte branchNodePrefixLength = branchNode.prefixLength();
+        if (branchNodePrefixLength > 0) {
+          //TODO - we should expose a prefix() that is a long. So much time spend looping here
+          // when this could be a O(1) long mask & compare
+          byte[] prefix = branchNode.prefix;
+          for (int i = 0; i < branchNodePrefixLength; i++) {
+            // compare the prefix byte with the key byte
+            if (prefix[i] != LongUtils.getByte(key, depth + i)) {
+              return null;
+            }
+          }
+          // common prefix is the same ,then increase the depth
+          depth += branchNodePrefixLength;
+        }
+        //TODO - expose an API that avoids this double dipping
+        int pos = branchNode.getChildPos(LongUtils.getByte(key, depth));
+        if (pos == BranchNode.ILLEGAL_IDX) {
+          return null;
+        }
+        node = branchNode.getChild(pos);
+        depth++;
+      } else {
+        LeafNode leafNode = (LeafNode) node;
+        long leafNodeKey = leafNode.getKey();
+        return leafNodeKey == LongUtils.rightShiftHighPart(key)? leafNode: null;
+      }
     }
     return null;
   }

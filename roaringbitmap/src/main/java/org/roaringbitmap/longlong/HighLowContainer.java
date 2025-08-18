@@ -47,6 +47,20 @@ public class HighLowContainer {
       return new ContainerWithIndex(container, containerIdx);
     }
   }
+  /**
+   * search the container by the given 48 bit high part key
+   * @param highPart the 48 bit key array
+   * @return the container with the container index
+   */
+  public ContainerWithIndex searchContainer(long highPart) {
+    long containerIdx = art.findByKey(highPart);
+    if (containerIdx < 0) {
+      return null;
+    } else {
+      Container container = containers.getContainer(containerIdx);
+      return new ContainerWithIndex(container, containerIdx);
+    }
+  }
 
   /**
    * put the 48 bit key and the corresponding container
