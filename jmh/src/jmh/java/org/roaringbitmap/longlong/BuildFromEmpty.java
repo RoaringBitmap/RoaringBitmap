@@ -47,5 +47,14 @@ public class BuildFromEmpty {
     }
     return bitmap;
   }
-
+  @Benchmark()
+  public Roaring64Bitmap bitmapOf(BenchmarkState state) {
+    return Roaring64Bitmap.bitmapOf(state.indexes);
+  }
+  @Benchmark()
+  public Roaring64Bitmap addArray(BenchmarkState state) {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.add(state.indexes);
+    return bitmap;
+  }
 }
