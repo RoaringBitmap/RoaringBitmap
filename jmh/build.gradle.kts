@@ -1,6 +1,6 @@
 plugins {
-    id("me.champeau.gradle.jmh") version "0.5.0"
-    id("com.github.johnrengelman.shadow") version "6.0.0"
+    id("me.champeau.jmh") version "0.7.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 val deps: Map<String, String> by extra
@@ -50,7 +50,7 @@ dependencies {
 jmh {
     jmhVersion = "1.23"
     // tests depend on jmh, not the other way around
-    isIncludeTests = false
+    includeTests.set(false)
     warmupIterations = 5
     iterations = 5
     fork = 1

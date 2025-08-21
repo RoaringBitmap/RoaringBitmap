@@ -11,8 +11,8 @@ tasks {
             .filter { it.endsWith(".zip") }
             .forEach { zipFile ->
                 val niceName = zipFile.replace(".zip", "")
-                val childTask = project.tasks.create("runBenchmark${niceName.capitalize()}", JavaExec::class) {
-                    main = "simplebenchmark"
+                val childTask = project.tasks.register("runBenchmark${niceName.replaceFirstChar { it.uppercase() }}", JavaExec::class) {
+                    mainClass.set("simplebenchmark")
                     classpath = sourceSets.main.get().runtimeClasspath
                     dependsOn(compileJava)
                     args = listOf(File(rootDir, zipFile).toString())
