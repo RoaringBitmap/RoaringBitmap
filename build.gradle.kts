@@ -155,7 +155,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             repositories {
                 maven {
                     name = "localDebug"
-                    url = project.buildDir.toPath().resolve("repos").resolve("localDebug").toUri()
+                    url = project.layout.buildDirectory.dir("repos/localDebug").get().asFile.toURI()
                 }
             }
 
