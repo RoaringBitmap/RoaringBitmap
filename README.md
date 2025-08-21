@@ -776,7 +776,8 @@ If you have a bash shell, you can also run our script which automatically builds
 Mailing list/discussion group
 -----------------------------
 
-https://groups.google.com/forum/#!forum/roaringbitmaps
+https://groups.google.com/g/roaring-bitmaps
+
 
 Funding
 ----------
