@@ -1182,21 +1182,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   // mainly used for benchmark
   @Override
   public Roaring64Bitmap clone() {
-    long sizeInBytesL = this.serializedSizeInBytes();
-    if (sizeInBytesL >= Integer.MAX_VALUE) {
-      throw new UnsupportedOperationException();
-    }
-    int sizeInBytesInt = (int) sizeInBytesL;
-    ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytesInt).order(ByteOrder.LITTLE_ENDIAN);
-    try {
-      this.serialize(byteBuffer);
-      byteBuffer.flip();
-      Roaring64Bitmap freshOne = new Roaring64Bitmap();
-      freshOne.deserialize(byteBuffer);
-      return freshOne;
-    } catch (Exception e) {
-      throw new RuntimeException("fail to clone thorough the ser/deser", e);
-    }
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    result.highLowContainer = this.highLowContainer.clone();
+    return result;
   }
 
   private abstract class PeekableIterator implements PeekableLongIterator {

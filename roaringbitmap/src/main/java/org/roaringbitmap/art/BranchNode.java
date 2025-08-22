@@ -3,6 +3,7 @@ package org.roaringbitmap.art;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public abstract class BranchNode extends Node {
 
@@ -22,6 +23,18 @@ public abstract class BranchNode extends Node {
         super();
         prefix = compressedPrefixSize == 0 ? Art.EMPTY_BYTES : new byte[compressedPrefixSize];
         count = 0;
+    }
+    public void postClone(BranchNode newlyCloned, Node[] oldChildren, Node[] newChildren) {
+        newlyCloned.count = this.count;
+        //we could potentially share the prefix, but it fragile and would safe so little
+        if (this.prefix.length > 0) {
+            newlyCloned.prefix = Arrays.copyOf(this.prefix, this.prefix.length);
+        }
+        for (int i = 0; i < oldChildren.length; i++) {
+            if (oldChildren[i] != null) {
+                newChildren[i] = oldChildren[i].clone();;
+            }
+        }
     }
     protected abstract NodeType nodeType();
     // length of compressed path(prefix)

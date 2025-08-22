@@ -28,6 +28,13 @@ public class HighLowContainer {
     art = new Art();
     containers = new Containers();
   }
+  @Override
+  public HighLowContainer clone() {
+    HighLowContainer cloned = new HighLowContainer();
+    cloned.art = this.art.clone();
+    cloned.containers = this.containers.clone();
+    return cloned;
+  }
 
   public Container getContainer(long containerIdx) {
     return containers.getContainer(containerIdx);
