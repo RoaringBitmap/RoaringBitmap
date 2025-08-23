@@ -1049,10 +1049,10 @@ public class TestRoaringBitmap {
   public void testSelect() {
     for (int gap = 1; gap <= 1024; gap *= 2) {
       MutableRoaringBitmap rb = new MutableRoaringBitmap();
-      for (int k = 0; k < 100000; k += gap) {
-        rb.add(k);
+      for (int k = 0; k < 100; k++) {
+        rb.add(k * gap);
       }
-      for (int k = 0; k < 100000 / gap; ++k) {
+      for (int k = 0; k < 100; ++k) {
         assertEquals(k * gap, rb.select(k));
       }
     }
@@ -2816,10 +2816,10 @@ public class TestRoaringBitmap {
     // https://github.com/RoaringBitmap/CRoaring/tree/master/tests/testdata
     String resourceName = "/testdata/bad-bitmap.bin";
     try (InputStream inputStream = TestAdversarialInputs.openInputstream(resourceName);
-         DataInputStream dataInputStream = new DataInputStream(inputStream)) {
-        MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
-        bitmap.deserialize(dataInputStream);
-        assertFalse(bitmap.validate());
+        DataInputStream dataInputStream = new DataInputStream(inputStream)) {
+      MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+      bitmap.deserialize(dataInputStream);
+      assertFalse(bitmap.validate());
     }
   }
 

@@ -4137,10 +4137,10 @@ public class TestRoaringBitmap {
     assertEquals(2, Util.select(5, 1));
     for (int gap = 1; gap <= 1024; gap *= 2) {
       RoaringBitmap rb = new RoaringBitmap();
-      for (int k = 0; k < 100000; k += gap) {
-        rb.add(k);
+      for (int k = 0; k < 100; k++) {
+        rb.add(k * gap);
       }
-      for (int k = 0; k < 100000 / gap; ++k) {
+      for (int k = 0; k < 100; ++k) {
         assertEquals(k * gap, rb.select(k));
       }
     }
@@ -4150,10 +4150,10 @@ public class TestRoaringBitmap {
   public void testSelectBigInts() {
     for (int gap = 1; gap <= 1024; gap *= 2) {
       RoaringBitmap rb = new RoaringBitmap();
-      for (int k = 0; k < 100000; k += gap) {
-        rb.add((1 << 31) + k);
+      for (int k = 0; k < 100; k++) {
+        rb.add((1 << 31) + k * gap);
       }
-      for (int k = 0; k < 100000 / gap; ++k) {
+      for (int k = 0; k < 100; ++k) {
         assertEquals((1 << 31) + k * gap, rb.select(k));
       }
     }

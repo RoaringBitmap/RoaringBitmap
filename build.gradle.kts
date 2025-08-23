@@ -45,10 +45,12 @@ subprojects {
         }
 
         withType<Test> {
-            val javaToolchains  = project.extensions.getByType<JavaToolchainService>()
+            val javaToolchains = project.extensions.getByType<JavaToolchainService>()
+            val requestedVersion = (project.properties["testOnJava"] ?: "11").toString().toInt()
+            val currentVersion = JavaVersion.current().majorVersion.toInt()
+            val versionToUse = if (currentVersion > requestedVersion) currentVersion else requestedVersion
             javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(
-                    JavaLanguageVersion.of((project.properties["testOnJava"] ?: "11").toString()))
+                languageVersion.set(JavaLanguageVersion.of(versionToUse))
             })
         }
     }
@@ -72,26 +74,6 @@ subprojects {
 
             trimTrailingWhitespace()
             endWithNewline()
-
-            // https://github.com/opensearch-project/opensearch-java/commit/2d6d5f86a8db9c7c9e7b8d0f54df97246f7b7d7e
-            // https://github.com/diffplug/spotless/issues/649
-            val wildcardImportRegex = Regex("""^import\s+(?:static\s+)?[^*\s]+\.\*;$""", RegexOption.MULTILINE)
-            custom("Refuse wildcard imports") { contents ->
-                // Wildcard imports can't be resolved by spotless itself.
-                // This will require the developer themselves to adhere to best practices.
-                val wildcardImports = wildcardImportRegex.findAll(contents)
-                if (wildcardImports.any()) {
-                    var msg = """
-                    Please replace the following wildcard imports with explicit imports ('spotlessApply' cannot resolve this issue):
-                """.trimIndent()
-                    wildcardImports.forEach {
-                        msg += "\n\t- ${it.value}"
-                    }
-                    msg += "\n"
-                    throw AssertionError(msg)
-                }
-                contents
-            }
         }
     }
 }

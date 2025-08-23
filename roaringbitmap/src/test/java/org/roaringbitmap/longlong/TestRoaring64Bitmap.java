@@ -1,24 +1,25 @@
 package org.roaringbitmap.longlong;
 
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
-import org.apache.commons.lang3.SerializationUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.roaringbitmap.Util.toUnsignedLong;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
+import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
+
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.ValidationRangeConsumer;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+import org.apache.commons.lang3.SerializationUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.roaringbitmap.Util.toUnsignedLong;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
-import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 
 public class TestRoaring64Bitmap {
 
@@ -48,6 +49,44 @@ public class TestRoaring64Bitmap {
     assertNotEquals(rb1, rb2);
     rb1.removeLong(1);
     assertEquals(rb1, rb2);
+  }
+
+  @Test
+  public void testClone() {
+    Roaring64Bitmap rb1 = new Roaring64Bitmap();
+    Roaring64Bitmap rbref = new Roaring64Bitmap();
+    Roaring64Bitmap rbrefc = rbref.clone();
+
+    assertEquals(rb1, rbref);
+    for (long x = 0; x < 100000; x++) {
+      rb1.addLong(x);
+      rbref.addLong(x);
+    }
+    assertEquals(rb1, rbref);
+
+    for (long x = 100000; x < 200000; x += 100) {
+      rb1.addLong(x);
+      rbref.addLong(x);
+    }
+    assertEquals(rb1, rbref);
+
+    for (long x = 200000; x < 300000; x += 2) {
+      rb1.addLong(x);
+      rbref.addLong(x);
+    }
+    assertEquals(rb1, rbref);
+    Roaring64Bitmap rb1c = rb1.clone();
+    assertTrue(rbrefc.isEmpty());
+    assertEquals(rb1, rb1c);
+    assertEquals(rbref, rb1c);
+    rb1c.addLong(400000);
+    assertNotEquals(rb1, rb1c);
+    assertNotEquals(rbrefc, rb1c);
+    rb1.clear();
+    rb1c.removeLong(400000);
+
+    assertEquals(rbref, rb1c);
+    assertTrue(rb1.isEmpty());
   }
 
   @Test
