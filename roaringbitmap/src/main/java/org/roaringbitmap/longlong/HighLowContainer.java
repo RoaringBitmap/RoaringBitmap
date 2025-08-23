@@ -3,13 +3,7 @@ package org.roaringbitmap.longlong;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 import org.roaringbitmap.Container;
-import org.roaringbitmap.art.Art;
-import org.roaringbitmap.art.BranchNode;
-import org.roaringbitmap.art.ContainerIterator;
-import org.roaringbitmap.art.Containers;
-import org.roaringbitmap.art.KeyIterator;
-import org.roaringbitmap.art.LeafNode;
-import org.roaringbitmap.art.LeafNodeIterator;
+import org.roaringbitmap.art.*;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -35,10 +29,11 @@ public class HighLowContainer {
 
   /**
    * search the container by the given 48 bit high part key
+   *
    * @param highPart the 48 bit key array
    * @return the container with the container index
    */
-  public ContainerWithIndex searchContainer(byte[] highPart) {
+  public ContainerHolder searchContainer(byte[] highPart) {
     long containerIdx = art.findByKey(highPart);
     if (containerIdx < 0) {
       return null;
@@ -52,7 +47,7 @@ public class HighLowContainer {
    * @param highPart the 48 bit key array
    * @return the container with the container index
    */
-  public ContainerWithIndex searchContainer(long highPart) {
+  public ContainerHolder searchContainer(long highPart) {
     long containerIdx = art.findByKey(highPart);
     if (containerIdx < 0) {
       return null;
@@ -312,7 +307,7 @@ public class HighLowContainer {
         byte[] thisHigh = thisKeyIte.next();
         long containerIdx = thisKeyIte.currentContainerIdx();
         Container thisContainer = this.getContainer(containerIdx);
-        ContainerWithIndex containerWithIndex = otherHighLowContainer.searchContainer(thisHigh);
+        ContainerHolder containerWithIndex = otherHighLowContainer.searchContainer(thisHigh);
         if (containerWithIndex == null) {
           return false;
         }

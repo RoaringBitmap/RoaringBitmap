@@ -7,6 +7,7 @@ import org.roaringbitmap.PeekableCharIterator;
 import org.roaringbitmap.RelativeRangeConsumer;
 import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.Util;
+import org.roaringbitmap.art.ContainerHolder;
 import org.roaringbitmap.art.ContainerIterator;
 import org.roaringbitmap.art.KeyIterator;
 import org.roaringbitmap.art.LeafNode;
@@ -56,7 +57,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   public void addLong(long x) {
     byte[] high = LongUtils.highPart(x);
     char low = LongUtils.lowPart(x);
-    ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(high);
+    ContainerHolder containerWithIndex = highLowContainer.searchContainer(high);
     if (containerWithIndex != null) {
       Container container = containerWithIndex.getContainer();
       Container freshOne = container.add(low);
@@ -285,7 +286,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     long high = LongUtils.rightShiftHighPart(id);
     byte[] highBytes = LongUtils.highPart(id);
     char low = LongUtils.lowPart(id);
-    ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(highBytes);
+    ContainerHolder containerWithIndex = highLowContainer.searchContainer(highBytes);
     KeyIterator keyIterator = highLowContainer.highKeyIterator();
     if (containerWithIndex == null) {
       while (keyIterator.hasNext()) {
@@ -328,7 +329,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       byte[] high = highIte2.next();
       long containerIdx = highIte2.currentContainerIdx();
       Container container2 = x2.highLowContainer.getContainer(containerIdx);
-      ContainerWithIndex containerWithIdx = this.highLowContainer.searchContainer(high);
+      ContainerHolder containerWithIdx = this.highLowContainer.searchContainer(high);
       if (containerWithIdx == null) {
         Container container2clone = container2.clone();
         this.highLowContainer.put(high, container2clone);
@@ -404,7 +405,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       byte[] high = keyIterator.next();
       long containerIdx = keyIterator.currentContainerIdx();
       Container container = x2.highLowContainer.getContainer(containerIdx);
-      ContainerWithIndex containerWithIndex = this.highLowContainer.searchContainer(high);
+      ContainerHolder containerWithIndex = this.highLowContainer.searchContainer(high);
       if (containerWithIndex == null) {
         Container containerClone2 = container.clone();
         this.highLowContainer.put(high, containerClone2);
@@ -478,7 +479,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     while (thisIterator.hasNext()) {
       byte[] highKey = thisIterator.next();
       long containerIdx = thisIterator.currentContainerIdx();
-      ContainerWithIndex containerWithIdx = x2.highLowContainer.searchContainer(highKey);
+      ContainerHolder containerWithIdx = x2.highLowContainer.searchContainer(highKey);
       if (containerWithIdx == null) {
         thisIterator.remove();
       } else {
@@ -507,7 +508,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     while (it1.hasNext()) {
       byte[] highKey = it1.next();
       long containerIdx1 = it1.currentContainerIdx();
-      ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
+      ContainerHolder containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
       if (containerWithIdx2 != null) {
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = containerWithIdx2.getContainer();
@@ -612,7 +613,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     while (thisKeyIterator.hasNext()) {
       byte[] high = thisKeyIterator.next();
       long containerIdx = thisKeyIterator.currentContainerIdx();
-      ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(high);
+      ContainerHolder containerWithIdx2 = x2.highLowContainer.searchContainer(high);
       if (containerWithIdx2 != null) {
         Container thisContainer = highLowContainer.getContainer(containerIdx);
         Container freshContainer = thisContainer.iandNot(containerWithIdx2.getContainer());
@@ -640,7 +641,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     while (it1.hasNext()) {
       byte[] highKey = it1.next();
       long containerIdx = it1.currentContainerIdx();
-      ContainerWithIndex containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
+      ContainerHolder containerWithIdx2 = x2.highLowContainer.searchContainer(highKey);
       Container container1 = x1.highLowContainer.getContainer(containerIdx);
       if (containerWithIdx2 != null) {
         Container andNotResult = container1.andNot(containerWithIdx2.getContainer());
@@ -689,7 +690,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       // last container may contain partial range
       final int containerLast = (hb == shEnd) ? lbLast : LongUtils.maxLowBitAsInteger();
 
-      ContainerWithIndex cwi =
+      ContainerHolder cwi =
           highLowContainer.searchContainer(
               LongUtils.highPartInPlace(LongUtils.leftShiftHighPart(hb), hbStart));
 
@@ -783,7 +784,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   @Override
   public boolean contains(long x) {
     long high = LongUtils.highPartOnly(x);
-    ContainerWithIndex containerWithIdx = highLowContainer.searchContainer(high);
+    ContainerHolder containerWithIdx = highLowContainer.searchContainer(high);
     if (containerWithIdx == null) {
       return false;
     }
@@ -1005,7 +1006,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   public void remove(final long x) {
     byte[] highKey = LongUtils.highPart(x);
-    ContainerWithIndex containerWithIdx = highLowContainer.searchContainer(highKey);
+    ContainerHolder containerWithIdx = highLowContainer.searchContainer(highKey);
     if (containerWithIdx != null) {
       char low = LongUtils.lowPart(x);
       containerWithIdx.getContainer().remove(low);
@@ -1063,7 +1064,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       final int containerStart = startHighKey == startHigh ? startLow : 0;
       // last container may contain partial range
       final int containerLast = startHighKey == endHigh ? endLow : Util.maxLowBitAsInteger();
-      ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKeyBytes);
+      ContainerHolder containerWithIndex = highLowContainer.searchContainer(startHighKeyBytes);
       if (containerWithIndex != null) {
         Container freshContainer =
             containerWithIndex.getContainer().iadd(containerStart, containerLast + 1);
@@ -1105,7 +1106,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   @Override
   public void removeLong(long x) {
     byte[] high = LongUtils.highPart(x);
-    ContainerWithIndex containerWithIdx = highLowContainer.searchContainer(high);
+    ContainerHolder containerWithIdx = highLowContainer.searchContainer(high);
     if (containerWithIdx != null) {
       char low = LongUtils.lowPart(x);
       Container container = containerWithIdx.getContainer();
@@ -1167,7 +1168,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   public void flip(final long x) {
     byte[] high = LongUtils.highPart(x);
-    ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(high);
+    ContainerHolder containerWithIndex = highLowContainer.searchContainer(high);
     if (containerWithIndex == null) {
       addLong(x);
     } else {
