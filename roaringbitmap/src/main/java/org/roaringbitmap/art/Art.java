@@ -24,6 +24,15 @@ public class Art {
   public Art() {
     root = null;
   }
+  @Override
+  public Art clone() {
+    Art art = new Art();
+    art.keySize = this.keySize;
+    if (this.root != null) {
+      art.root = this.root.clone();
+    }
+    return art;
+  }
 
   public boolean isEmpty() {
     return root == null;

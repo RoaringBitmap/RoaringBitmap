@@ -25,6 +25,14 @@ public class Node48 extends BranchNode {
     super(compressedPrefixSize);
     Arrays.fill(childIndex, INIT_LONG_VALUE);
   }
+  @Override
+  protected Node48 clone() {
+    Node48 clone = new Node48(this.prefixLength());
+    System.arraycopy(this.childIndex,0,clone.childIndex,0,LONGS_USED);
+    postClone(clone, this.children, clone.children);
+    return clone;
+  }
+
 
   @Override
   protected NodeType nodeType() {
