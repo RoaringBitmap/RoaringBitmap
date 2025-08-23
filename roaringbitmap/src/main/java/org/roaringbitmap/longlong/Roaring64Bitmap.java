@@ -60,7 +60,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     if (containerWithIndex != null) {
       Container container = containerWithIndex.getContainer();
       Container freshOne = container.add(low);
-      highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+      containerWithIndex.setContainer(freshOne);
     } else {
       ArrayContainer arrayContainer = new ArrayContainer();
       arrayContainer.add(low);
@@ -334,7 +334,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         this.highLowContainer.put(high, container2clone);
       } else {
         Container freshContainer = containerWithIdx.getContainer().ior(container2);
-        this.highLowContainer.replaceContainer(containerWithIdx.getContainerIdx(), freshContainer);
+        containerWithIdx.setContainer(freshContainer);
       }
     }
   }
@@ -410,7 +410,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         this.highLowContainer.put(high, containerClone2);
       } else {
         Container freshOne = containerWithIndex.getContainer().ixor(container);
-        this.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+        containerWithIndex.setContainer(freshOne);
       }
     }
   }
@@ -694,10 +694,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
               LongUtils.highPartInPlace(LongUtils.leftShiftHighPart(hb), hbStart));
 
       if (cwi != null) {
-        final long i = cwi.getContainerIdx();
         final Container c = cwi.getContainer().inot(containerStart, containerLast + 1);
         if (!c.isEmpty()) {
-          highLowContainer.replaceContainer(i, c);
+          cwi.setContainer(c);
         } else {
           highLowContainer.remove(hbStart);
         }
@@ -1066,10 +1065,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       final int containerLast = startHighKey == endHigh ? endLow : Util.maxLowBitAsInteger();
       ContainerWithIndex containerWithIndex = highLowContainer.searchContainer(startHighKeyBytes);
       if (containerWithIndex != null) {
-        long containerIdx = containerWithIndex.getContainerIdx();
         Container freshContainer =
-            highLowContainer.getContainer(containerIdx).iadd(containerStart, containerLast + 1);
-        highLowContainer.replaceContainer(containerIdx, freshContainer);
+            containerWithIndex.getContainer().iadd(containerStart, containerLast + 1);
+        containerWithIndex.setContainer(freshContainer);
       } else {
         Container freshContainer = Container.rangeOfOnes(containerStart, containerLast + 1);
         highLowContainer.put(startHighKeyBytes, freshContainer);
@@ -1116,7 +1114,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         // Attempt to remove empty container to save memory
         highLowContainer.remove(high);
       } else {
-        highLowContainer.replaceContainer(containerWithIdx.getContainerIdx(), freshContainer);
+        containerWithIdx.setContainer(freshContainer);
       }
     }
   }
@@ -1175,7 +1173,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     } else {
       char low = LongUtils.lowPart(x);
       Container freshOne = containerWithIndex.getContainer().flip(low);
-      highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+      containerWithIndex.setContainer(freshOne);
     }
   }
 

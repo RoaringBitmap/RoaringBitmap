@@ -1,13 +1,16 @@
 package org.roaringbitmap.longlong;
 
 import org.roaringbitmap.Container;
+import org.roaringbitmap.art.ContainerHolder;
 
-public class ContainerWithIndex {
+public class ContainerWithIndex implements ContainerHolder {
 
+  private final HighLowContainer containers;
   private Container container;
   private long containerIdx;
 
-  public ContainerWithIndex(Container container, long containerIdx) {
+  public ContainerWithIndex(HighLowContainer containers, Container container, long containerIdx) {
+    this.containers = containers;
     this.container = container;
     this.containerIdx = containerIdx;
   }
@@ -16,7 +19,9 @@ public class ContainerWithIndex {
     return container;
   }
 
-  public long getContainerIdx() {
-    return containerIdx;
+  @Override
+  public void setContainer(Container container) {
+    containers.replaceContainer(containerIdx, container);
+    this.container = container;
   }
 }

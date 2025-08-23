@@ -44,7 +44,7 @@ public class HighLowContainer {
       return null;
     } else {
       Container container = containers.getContainer(containerIdx);
-      return new ContainerWithIndex(container, containerIdx);
+      return new ContainerWithIndex(this, container, containerIdx);
     }
   }
   /**
@@ -58,7 +58,7 @@ public class HighLowContainer {
       return null;
     } else {
       Container container = containers.getContainer(containerIdx);
-      return new ContainerWithIndex(container, containerIdx);
+      return new ContainerWithIndex(this, container, containerIdx);
     }
   }
 
