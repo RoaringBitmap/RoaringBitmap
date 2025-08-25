@@ -358,7 +358,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
 
     while (highKey1 != null || highKey2 != null) {
-      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      int compare = Keys.compareUnsigned(highKey1, highKey2);
       if (compare == 0) {
         Container container1 = it1.currentContainer();
         Container container2 = it2.currentContainer();
@@ -429,7 +429,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
 
     while (highKey1 != null || highKey2 != null) {
-      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      int compare = Keys.compareUnsigned(highKey1, highKey2);
       if (compare == 0) {
         Container container1 = it1.currentContainer();
         Container container2 = it2.currentContainer();
@@ -523,7 +523,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     byte[] highKey2 = it2.hasNext() ? it2.next() : null;
 
     while (highKey1 != null && highKey2 != null) {
-      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      int compare = Keys.compareUnsigned(highKey1, highKey2);
       if (compare == 0) {
         Container container1 = it1.currentContainer();
         Container container2 = it2.currentContainer();
@@ -564,7 +564,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     }
 
     while (highKey1 != null && highKey2 != null) {
-      int compare = HighLowContainer.compareUnsigned(highKey1, highKey2);
+      int compare = Keys.compareUnsigned(highKey1, highKey2);
       if (compare == 0) {
         Container container1 = it1.currentContainer();
         Container container2 = it2.currentContainer();
