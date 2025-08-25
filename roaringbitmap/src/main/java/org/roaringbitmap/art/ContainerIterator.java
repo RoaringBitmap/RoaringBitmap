@@ -85,11 +85,6 @@ public class ContainerIterator implements Iterator<Container> {
     return currentContainer;
   }
 
-  public long getCurrentContainerIdx() {
-    int secondLevelArrIdx = currentSecondLevelArrIdx - 1;
-    return Containers.toContainerIdx(currentFistLevelArrIdx, secondLevelArrIdx);
-  }
-
   /**
    * replace current container
    * @param container the fresh container which is to replace the current old one

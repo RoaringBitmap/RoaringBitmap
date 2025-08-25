@@ -49,8 +49,6 @@ public class ContainersTest {
     while (containerIterator.hasNext()) {
       containerIterator.next();
       if (i == 0) {
-        long currentContainerIdx = containerIterator.getCurrentContainerIdx();
-        Assertions.assertEquals(cidx0, currentContainerIdx);
         RunContainer rc = new RunContainer(new char[] {23, 24}, 1);
         containerIterator.replace(rc);
       }
