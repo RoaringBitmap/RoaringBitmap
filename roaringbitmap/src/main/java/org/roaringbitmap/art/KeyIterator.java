@@ -1,13 +1,17 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.Container;
+
 import java.util.Iterator;
 
 public class KeyIterator implements Iterator<byte[]> {
 
   private LeafNode current;
   private LeafNodeIterator leafNodeIterator;
+  private final Containers containers;
 
   public KeyIterator(Art art, Containers containers) {
+    this.containers = containers;
     leafNodeIterator = new LeafNodeIterator(art, containers);
     current = null;
   }
@@ -34,8 +38,11 @@ public class KeyIterator implements Iterator<byte[]> {
     return current.getKey();
   }
 
-  public long currentContainerIdx() {
-    return current.getContainerIdx();
+  public Container currentContainer() {
+    return containers.getContainer(current.getContainerIdx());
+  }
+  public void replaceContainer(Container container) {
+    containers.replace(current.getContainerIdx(), container);
   }
 
   @Override

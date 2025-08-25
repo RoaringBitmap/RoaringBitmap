@@ -288,8 +288,7 @@ public class HighLowContainer {
       for (byte element : key) {
         result = 31 * result + element;
       }
-      long containerIdx = keyIterator.currentContainerIdx();
-      Container container = containers.getContainer(containerIdx);
+      Container container = keyIterator.currentContainer();
       hashCode = 31 * hashCode + result + container.hashCode();
     }
     return hashCode;
@@ -305,8 +304,7 @@ public class HighLowContainer {
       KeyIterator thisKeyIte = this.highKeyIterator();
       while (thisKeyIte.hasNext()) {
         byte[] thisHigh = thisKeyIte.next();
-        long containerIdx = thisKeyIte.currentContainerIdx();
-        Container thisContainer = this.getContainer(containerIdx);
+        Container thisContainer = thisKeyIte.currentContainer();
         ContainerHolder containerWithIndex = otherHighLowContainer.searchContainer(thisHigh);
         if (containerWithIndex == null) {
           return false;
