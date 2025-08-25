@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.roaringbitmap.art.NodeCommon.checkKeyAndPosAlign;
+
 
 public class Node4Test {
 
@@ -37,6 +39,7 @@ public class Node4Test {
     Node4 node4 = new Node4(0);
     assertKeys(node4);
     assertContent(node4);
+    checkKeyAndPosAlign(node4);
     byte key1 = 2;
     node4.insert(leafNode1, key1);
     Assertions.assertEquals(0, node4.getMaxPos());
@@ -45,16 +48,18 @@ public class Node4Test {
     Assertions.assertEquals(key1, node4.getChildKey(0));
     assertKeys(node4, key1);
     assertContent(node4, leafNode1);
+      checkKeyAndPosAlign(node4);
 
-    byte key2 = 1;
+      byte key2 = 1;
     node4 = (Node4) node4.insert(leafNode2, key2);
     Assertions.assertEquals(0, node4.getChildPos(key2));
     Assertions.assertEquals(1, node4.getChildPos(key1));
     Assertions.assertEquals(key2, node4.getChildKey(0));
     assertKeys(node4, key2, key1);
     assertContent(node4, leafNode2, leafNode1);
+      checkKeyAndPosAlign(node4);
 
-    byte key3 = -1;
+      byte key3 = -1;
     node4 = (Node4) node4.insert(leafNode3, key3);
     Assertions.assertEquals(2, node4.getChildPos(key3));
     Assertions.assertEquals(key3, node4.getChildKey(2));
@@ -65,6 +70,7 @@ public class Node4Test {
     Assertions.assertEquals(BranchNode.ILLEGAL_IDX, node4.getChildPos(key1));
     assertKeys(node4, key2, key3);
     assertContent(node4, leafNode2, leafNode3);
+    checkKeyAndPosAlign(node4);
 
     int bytesSize = node4.serializeSizeInBytes();
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -78,6 +84,7 @@ public class Node4Test {
     Assertions.assertEquals(0, deserializedNode4.getChildPos(key2));
     Assertions.assertEquals(1, deserializedNode4.getChildPos(key3));
     Assertions.assertEquals(BranchNode.ILLEGAL_IDX, deserializedNode4.getChildPos(key1));
+    checkKeyAndPosAlign(deserializedNode4);
 
     Node node = node4.remove(0);
     Assertions.assertTrue(node instanceof LeafNode);
@@ -105,7 +112,7 @@ public class Node4Test {
 
     assertKeys(node4, keys(1,2,3,4));
     assertContent(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4));
-
+    checkKeyAndPosAlign(node4);
   }
   @Test
   void testUnorderedInsert() {
@@ -119,7 +126,7 @@ public class Node4Test {
 
     assertKeys(node4, keys(1,2,3,4));
     assertContent(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4));
-
+    checkKeyAndPosAlign(node4);
   }
   @Test
   void testRemoveFullLast() {

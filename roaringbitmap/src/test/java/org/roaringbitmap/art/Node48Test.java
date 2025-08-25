@@ -8,6 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import static org.roaringbitmap.art.NodeCommon.checkKeyAndPosAlign;
+
 
 public class Node48Test {
 
@@ -34,6 +36,8 @@ public class Node48Test {
       Assertions.assertEquals(key, node48.getChildKey(childPos));
       currentPos = nextPos;
     }
+    checkKeyAndPosAlign(node48);
+
     int maxPos = node48.getMaxPos();
     Assertions.assertEquals(47, maxPos);
     currentPos = maxPos;
@@ -61,6 +65,7 @@ public class Node48Test {
     node48 = (Node48) node48.remove(minPos);
     int newMinPos = node48.getMinPos();
     Assertions.assertEquals(1, newMinPos);
+    checkKeyAndPosAlign(node48);
   }
 
   @Test
