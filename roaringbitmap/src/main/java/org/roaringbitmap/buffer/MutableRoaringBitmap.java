@@ -1139,13 +1139,13 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     }
     MappeableContainer C = highLowContainer.getContainerAtIndex(i);
     int oldcard = C.getCardinality();
-    C.remove(BufferUtil.lowbits(x));
-    int newcard = C.getCardinality();
+    MappeableContainer newC = C.remove(BufferUtil.lowbits(x));
+    int newcard = newC.getCardinality();
     if (newcard == oldcard) {
       return false;
     }
     if (newcard > 0) {
-      ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, C);
+      ((MutableRoaringArray) highLowContainer).setContainerAtIndex(i, newC);
     } else {
       ((MutableRoaringArray) highLowContainer).removeAtIndex(i);
     }
