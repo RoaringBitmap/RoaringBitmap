@@ -1673,13 +1673,13 @@ public class RoaringBitmap
     }
     Container C = highLowContainer.getContainerAtIndex(i);
     int oldcard = C.getCardinality();
-    C.remove(Util.lowbits(x));
-    int newcard = C.getCardinality();
+    Container newC = C.remove(Util.lowbits(x));
+    int newcard = newC.getCardinality();
     if (newcard == oldcard) {
       return false;
     }
     if (newcard > 0) {
-      highLowContainer.setContainerAtIndex(i, C);
+      highLowContainer.setContainerAtIndex(i, newC);
     } else {
       highLowContainer.removeAtIndex(i);
     }
