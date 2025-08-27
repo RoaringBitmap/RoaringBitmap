@@ -3,12 +3,14 @@ package org.roaringbitmap.art;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.roaringbitmap.art.SimpleContainers.makeContainer;
+
 public class Node256Test {
 
   @Test
   public void test() {
     Node256 node256 = new Node256(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     for (int i = 0; i < 256; i++) {
       node256 = node256.insert(leafNode, (byte) i);
     }
@@ -41,7 +43,7 @@ public class Node256Test {
   @Test
   public void testShrinkToNode48() {
     Node256 node256 = new Node256(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     for (int i = 0; i < 37; i++) {
       node256 = node256.insert(leafNode, (byte) i);
     }
@@ -57,7 +59,7 @@ public class Node256Test {
   @Test
   public void testWithOffsetBeforeBytes() {
     Node256 nodes = new Node256(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 75;
     int offset = 40;
 
@@ -101,7 +103,7 @@ public class Node256Test {
   @Test
   public void testWithOffsetAndGapsBytes() {
     Node256 nodes = new Node256(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 75;
     int step = 2;
     int offset = 40;
@@ -153,7 +155,7 @@ public class Node256Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) (i + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -193,7 +195,7 @@ public class Node256Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) ((i * step) + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }

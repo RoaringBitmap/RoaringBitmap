@@ -1,13 +1,5 @@
 package org.roaringbitmap.art;
 
-import static java.lang.Long.numberOfTrailingZeros;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-
 public class Node256 extends BranchNode {
 
   Node[] children = new Node[256];
@@ -17,11 +9,6 @@ public class Node256 extends BranchNode {
 
   public Node256(int compressedPrefixSize) {
     super(compressedPrefixSize);
-  }
-
-  @Override
-  protected NodeType nodeType() {
-    return NodeType.NODE256;
   }
 
   @Override
@@ -175,59 +162,4 @@ public class Node256 extends BranchNode {
     return this;
   }
 
-  @Override
-  public void replaceChildren(Node[] children) {
-    if (children.length == this.children.length) {
-      // short circuit path
-      this.children = children;
-      return;
-    }
-    int offset = 0;
-    int x = 0;
-    for (long longv : bitmapMask) {
-      int w = 0;
-      while (longv != 0) {
-        int pos = x * 64 + numberOfTrailingZeros(longv);
-        this.children[pos] = children[offset + w];
-        longv &= (longv - 1);
-        w++;
-      }
-      offset += w;
-      x++;
-    }
-  }
-
-  @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    for (long longv : bitmapMask) {
-      dataOutput.writeLong(Long.reverseBytes(longv));
-    }
-  }
-
-  @Override
-  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    LongBuffer longBuffer = byteBuffer.asLongBuffer();
-    longBuffer.put(bitmapMask);
-    byteBuffer.position(byteBuffer.position() + 4 * 8);
-  }
-
-  @Override
-  public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    for (int i = 0; i < 4; i++) {
-      long longv = Long.reverseBytes(dataInput.readLong());
-      bitmapMask[i] = longv;
-    }
-  }
-
-  @Override
-  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    LongBuffer longBuffer = byteBuffer.asLongBuffer();
-    longBuffer.get(bitmapMask);
-    byteBuffer.position(byteBuffer.position() + 4 * 8);
-  }
-
-  @Override
-  public int serializeNodeBodySizeInBytes() {
-    return 4 * 8;
-  }
 }

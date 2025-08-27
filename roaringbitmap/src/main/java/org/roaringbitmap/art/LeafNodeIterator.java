@@ -13,28 +13,28 @@ public class LeafNodeIterator implements Iterator<LeafNode> {
 
   /**
    * constructor
+   *
    * @param art the ART
-   * @param containers the containers
    */
-  public LeafNodeIterator(Art art, Containers containers) {
-    this(art, false, containers);
+  public LeafNodeIterator(Art art) {
+    this(art, false);
   }
 
   /**
    * constructor
-   * @param art the ART
+   *
+   * @param art     the ART
    * @param reverse false: ascending order,true: the descending order
-   * @param containers the containers
    */
-  public LeafNodeIterator(Art art, boolean reverse, Containers containers) {
+  public LeafNodeIterator(Art art, boolean reverse) {
     isEmpty = art.isEmpty();
     if (isEmpty) {
       return;
     }
     if (!reverse) {
-      shuttle = new ForwardShuttle(art, containers);
+      shuttle = new ForwardShuttle(art);
     } else {
-      shuttle = new BackwardShuttle(art, containers);
+      shuttle = new BackwardShuttle(art);
     }
     shuttle.initShuttle();
     calledHasNext = false;
@@ -42,20 +42,20 @@ public class LeafNodeIterator implements Iterator<LeafNode> {
 
   /**
    * constructor
-   * @param art the ART
+   *
+   * @param art     the ART
    * @param reverse false: ascending order,true: the descending order
-   * @param containers the containers
-   * @param from starting upper/lower bound
+   * @param from    starting upper/lower bound
    */
-  public LeafNodeIterator(Art art, boolean reverse, Containers containers, long from) {
+  public LeafNodeIterator(Art art, boolean reverse, long from) {
     isEmpty = art.isEmpty();
     if (isEmpty) {
       return;
     }
     if (!reverse) {
-      shuttle = new ForwardShuttle(art, containers);
+      shuttle = new ForwardShuttle(art);
     } else {
-      shuttle = new BackwardShuttle(art, containers);
+      shuttle = new BackwardShuttle(art);
     }
     shuttle.initShuttleFrom(from);
     calledHasNext = false;

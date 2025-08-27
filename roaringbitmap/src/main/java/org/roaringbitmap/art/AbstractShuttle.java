@@ -14,11 +14,9 @@ public abstract class AbstractShuttle implements Shuttle {
   protected int depth = -1;
   protected boolean hasRun = false;
   protected Art art;
-  protected Containers containers;
 
-  public AbstractShuttle(Art art, Containers containers) {
+  public AbstractShuttle(Art art) {
     this.art = art;
-    this.containers = containers;
   }
 
   @Override
@@ -113,9 +111,6 @@ public abstract class AbstractShuttle implements Shuttle {
     Toolkit toolkit = art.removeSpecifyKey(art.getRoot(), currentLeafKey, 0);
     if (toolkit == null) {
       return;
-    }
-    if (containers != null) {
-      containers.remove(toolkit.matchedContainerId);
     }
     Node node = toolkit.freshMatchedParentNode;
     if (depth - 1 >= 0) {

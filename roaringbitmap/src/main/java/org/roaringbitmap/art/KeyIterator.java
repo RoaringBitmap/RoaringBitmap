@@ -8,11 +8,9 @@ public class KeyIterator implements Iterator<byte[]> {
 
   private LeafNode current;
   private LeafNodeIterator leafNodeIterator;
-  private final Containers containers;
 
-  public KeyIterator(Art art, Containers containers) {
-    this.containers = containers;
-    leafNodeIterator = new LeafNodeIterator(art, containers);
+  public KeyIterator(Art art) {
+    leafNodeIterator = new LeafNodeIterator(art);
     current = null;
   }
 
@@ -39,10 +37,10 @@ public class KeyIterator implements Iterator<byte[]> {
   }
 
   public Container currentContainer() {
-    return containers.getContainer(current.getContainerIdx());
+    return current.getContainer();
   }
   public void replaceContainer(Container container) {
-    containers.replace(current.getContainerIdx(), container);
+    current.setContainer( container);
   }
 
   @Override

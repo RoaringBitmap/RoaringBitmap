@@ -5,8 +5,8 @@ package org.roaringbitmap.art;
  */
 public class BackwardShuttle extends AbstractShuttle {
 
-  BackwardShuttle(Art art, Containers containers) {
-    super(art, containers);
+  BackwardShuttle(Art art) {
+    super(art);
   }
 
   @Override

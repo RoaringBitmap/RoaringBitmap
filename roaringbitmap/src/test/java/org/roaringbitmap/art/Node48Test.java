@@ -9,6 +9,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import static org.roaringbitmap.art.SimpleContainers.makeContainer;
+
 public class Node48Test {
 
   @Test
@@ -16,18 +18,18 @@ public class Node48Test {
     Node48 node48 = new Node48(0);
     LeafNode leafNode;
     for (int i = 0; i < 48; i++) {
-      leafNode = new LeafNode(i, i);
+      leafNode = new LeafNode(i, makeContainer(i));
       node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int minPos = node48.getMinPos();
     Assertions.assertEquals(0, minPos);
-    Assertions.assertEquals(0, ((LeafNode) node48.getChild(minPos)).getContainerIdx());
+    Assertions.assertEquals(0, ((LeafNode) node48.getChild(minPos)).getContainer().first());
     int currentPos = minPos;
     for (int i = 1; i < 48; i++) {
       int nextPos = node48.getNextLargerPos(currentPos);
       Assertions.assertEquals(i, nextPos);
       LeafNode leafNode1 = (LeafNode) node48.getChild(nextPos);
-      Assertions.assertEquals(i, leafNode1.getContainerIdx());
+      Assertions.assertEquals(i, leafNode1.getContainer().first());
       byte key = (byte) i;
       int childPos = node48.getChildPos(key);
       Assertions.assertEquals(i, childPos);
@@ -42,7 +44,7 @@ public class Node48Test {
       Assertions.assertEquals(i, pos);
       currentPos = pos;
     }
-    int sizeInBytes = node48.serializeSizeInBytes();
+    long sizeInBytes = node48.serializeSizeInBytes();
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     node48.serialize(dataOutputStream);
@@ -66,7 +68,7 @@ public class Node48Test {
   @Test
   public void testWithOffsetBeforeBytes() {
     BranchNode nodes = new Node48(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 48;
     int offset = 40;
 
@@ -110,7 +112,7 @@ public class Node48Test {
   @Test
   public void testWithOffsetAndGapsBytes() {
     BranchNode nodes = new Node48(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 48;
     int step = 2;
     int offset = 40;
@@ -159,11 +161,11 @@ public class Node48Test {
     Node48 node48 = new Node48(0);
     LeafNode leafNode;
     for (int i = 0; i < 48; i++) {
-      leafNode = new LeafNode(i, i);
+      leafNode = new LeafNode(i, makeContainer(i));
       node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int key48 = 48;
-    leafNode = new LeafNode(key48, key48);
+    leafNode = new LeafNode(key48, makeContainer(key48));
     Node node = node48.insert(leafNode, (byte) key48);
     Assertions.assertTrue(node instanceof Node256);
     Node256 node256 = (Node256) node;
@@ -178,7 +180,7 @@ public class Node48Test {
     Node48 node48 = new Node48(0);
     LeafNode leafNode;
     for (int i = 0; i < 13; i++) {
-      leafNode = new LeafNode(i, i);
+      leafNode = new LeafNode(i, makeContainer(i));
       node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int maxPos = node48.getMaxPos();
@@ -201,18 +203,18 @@ public class Node48Test {
 
     for (int i = 0; i < 48; i++) {
       int byteKey = -128 + i;
-      leafNode = new LeafNode(i, i);
+      leafNode = new LeafNode(i, makeContainer(i));
       node48 = (Node48) node48.insert(leafNode, (byte) byteKey);
     }
     int minPos = node48.getMinPos();
     Assertions.assertEquals(128, minPos);
-    Assertions.assertEquals(0, ((LeafNode) node48.getChild(minPos)).getContainerIdx());
+    Assertions.assertEquals(0, ((LeafNode) node48.getChild(minPos)).getContainer().first());
     int currentPos = minPos;
     for (int i = 1; i < 48; i++) {
       int nextPos = node48.getNextLargerPos(currentPos);
       Assertions.assertEquals(128 + i, nextPos);
       LeafNode leafNode1 = (LeafNode) node48.getChild(nextPos);
-      Assertions.assertEquals(i, leafNode1.getContainerIdx());
+      Assertions.assertEquals(i, leafNode1.getContainer().first());
       int byteKey = -128 + i;
       int childPos = node48.getChildPos((byte) byteKey);
       Assertions.assertEquals(128 + i, childPos);
@@ -240,7 +242,7 @@ public class Node48Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) (i + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -280,7 +282,7 @@ public class Node48Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) ((i * step) + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -356,7 +358,7 @@ public class Node48Test {
   @Test
   public void testGetNextSmallerPosEdgeCase() {
     BranchNode nodes = new Node48(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
 
     nodes = nodes.insert(leafNode, (byte) 67);
     // check we are testing the correct thing

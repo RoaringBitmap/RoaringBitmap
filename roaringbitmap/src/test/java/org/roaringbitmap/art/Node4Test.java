@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.roaringbitmap.art.SimpleContainers.makeContainer;
 
 public class Node4Test {
 
@@ -31,9 +32,9 @@ public class Node4Test {
 
   @Test
   public void testTheBasics() throws IOException {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
     Node4 node4 = new Node4(0);
     assertKeys(node4);
     assertContent(node4);
@@ -66,7 +67,7 @@ public class Node4Test {
     assertKeys(node4, key2, key3);
     assertContent(node4, leafNode2, leafNode3);
 
-    int bytesSize = node4.serializeSizeInBytes();
+    long bytesSize = node4.serializeSizeInBytes();
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
     node4.serialize(dataOutputStream);
@@ -95,10 +96,10 @@ public class Node4Test {
 
   @Test
   void testOrderedInsert() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4), keys(1, 2, 3, 4));
@@ -109,10 +110,10 @@ public class Node4Test {
   }
   @Test
   void testUnorderedInsert() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode2, leafNode4, leafNode3, leafNode1), keys(2,4,3,1));
@@ -123,10 +124,10 @@ public class Node4Test {
   }
   @Test
   void testRemoveFullLast() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4), keys(1,2,3,4));
@@ -138,10 +139,10 @@ public class Node4Test {
   }
   @Test
   void testRemoveFullMiddle() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4), keys(1,2,3,4));
@@ -153,10 +154,10 @@ public class Node4Test {
   }
   @Test
   void testRemoveFullFirst() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3, leafNode4), keys(1,2,3,4));
@@ -168,9 +169,9 @@ public class Node4Test {
   }
   @Test
   void testRemoveNotFullLast() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3), keys(1,2,3));
@@ -182,9 +183,9 @@ public class Node4Test {
   }
   @Test
   void testRemoveNotFullMiddle() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3), keys(1,2,3));
@@ -196,9 +197,9 @@ public class Node4Test {
   }
   @Test
   void testRemoveNotFullFirst() {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    LeafNode leafNode1 = new LeafNode(1, makeContainer(1));
+    LeafNode leafNode2 = new LeafNode(2, makeContainer(2));
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
 
     Node4 node4 = new Node4(0);
     addEachNode(node4, nodes(leafNode1, leafNode2, leafNode3), keys(1,2,3));
@@ -222,7 +223,7 @@ public class Node4Test {
 
   @Test
   public void testGetNearestChildPosWithOneItem() {
-    LeafNode ln1 = new LeafNode(0x0100, 1);
+    LeafNode ln1 = new LeafNode(0x0100, makeContainer(1));
     byte key1 = 0x10;
     int key1Pos = 0;
 
@@ -262,8 +263,8 @@ public class Node4Test {
 
   @Test
   public void testGetNearestChildPosWithTwoItems() {
-    LeafNode ln1 = new LeafNode(0x0100, 1);
-    LeafNode ln2 = new LeafNode(0x0100, 2);
+    LeafNode ln1 = new LeafNode(0x0100, makeContainer(1));
+    LeafNode ln2 = new LeafNode(0x0100, makeContainer(2));
     byte key1 = 0x10;
     byte key2 = 0x20;
     int key1Pos = 0;
@@ -337,7 +338,7 @@ public class Node4Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) (i + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -380,7 +381,7 @@ public class Node4Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) ((i * step) + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -458,7 +459,7 @@ public class Node4Test {
   @Test
   public void testWithOffsetBeforeBytes() {
     BranchNode nodes = new Node4(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 4;
     int offset = 40;
 
@@ -497,7 +498,7 @@ public class Node4Test {
   @Test
   public void testWithOffsetAndGapsBytes() {
     BranchNode nodes = new Node4(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 4;
     int step = 2;
     int offset = 40;

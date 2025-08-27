@@ -1,8 +1,10 @@
 package org.roaringbitmap.art;
 
+import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public abstract class BranchNode extends Node {
 
@@ -23,7 +25,7 @@ public abstract class BranchNode extends Node {
         prefix = compressedPrefixSize == 0 ? Art.EMPTY_BYTES : new byte[compressedPrefixSize];
         count = 0;
     }
-    protected abstract NodeType nodeType();
+
     // length of compressed path(prefix)
     protected byte prefixLength() {
         return (byte) prefix.length;
@@ -102,14 +104,6 @@ public abstract class BranchNode extends Node {
     public static void copyPrefix(BranchNode src, BranchNode dst) {
         System.arraycopy(src.prefix, 0, dst.prefix, 0, src.prefixLength());
     }
-
-    /**
-     * replace the node's children according to the given children parameter while doing the
-     * deserialization phase.
-     *
-     * @param children all the not null children nodes in key byte ascending order,no null element
-     */
-    abstract void replaceChildren(Node[] children);
 
     /**
      * get the position of a child corresponding to the input key 'k'
@@ -193,33 +187,118 @@ public abstract class BranchNode extends Node {
     public abstract Node remove(int pos);
 
     @Override
-    protected void serializeHeader(DataOutput dataOutput) throws IOException {
-        // first byte: node type
-        dataOutput.writeByte((byte) this.nodeType().ordinal());
-        // non null object count
-        dataOutput.writeShort(Short.reverseBytes(this.count));
-        byte prefixLength = this.prefixLength();
-        dataOutput.writeByte(prefixLength);
-        if (prefixLength > 0) {
-            dataOutput.write(this.prefix, 0, prefixLength);
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
+        if (!(obj instanceof BranchNode)) {
+            return false;
+        }
+        BranchNode other = (BranchNode) obj;
+        if (this.count != other.count) {
+            return false;
+        }
+        if (!(Arrays.equals(this.prefix, other.prefix))) {
+            return false;
+        }
+        int pos = ILLEGAL_IDX;
+        while ((pos = this.getNextLargerPos(pos)) != ILLEGAL_IDX) {
+            byte key = this.getChildKey(pos);
+            int otherPos = other.getChildPos(key);
+            if (otherPos == ILLEGAL_IDX) {
+                return false;
+            }
+            Node child = this.getChild(pos);
+            Node otherChild = other.getChild(otherPos);
+            if (!child.equals(otherChild)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
-        byteBuffer.put((byte) this.nodeType().ordinal());
-        byteBuffer.putShort(this.count);
-        byte prefixLength = this.prefixLength();
-        byteBuffer.put(prefixLength);
-        if (prefixLength > 0) {
-            byteBuffer.put(this.prefix, 0, prefixLength);
-        }
+    long serializeSizeInBytes() {
+      // count, prefix length + prefix
+      long size = 1 + 1 +  prefixLength();
+      for (int pos = getNextLargerPos(-1);
+           pos != BranchNode.ILLEGAL_IDX;
+           pos = getNextLargerPos(pos)) {
+        //  key and node
+        size += 1 // key
+            + getChild(pos).serializeSizeInBytes(); // node
+      }
+      return size;
     }
 
     @Override
-    protected int serializeHeaderSizeInBytes() {
-        return super.serializeHeaderSizeInBytes() + prefixLength();
+    void serializeBody(DataOutput dataOutput) throws IOException {
+      // write the prefix length and prefix
+      dataOutput.writeByte(prefixLength());
+      dataOutput.write(prefix);
+      // serialise each child node and index
+      for (int pos =  getNextLargerPos(-1);
+           pos != BranchNode.ILLEGAL_IDX;
+           pos =  getNextLargerPos(pos)) {
+        // write the key and node
+        dataOutput.writeByte( getChildKey(pos));
+        getChild(pos).serialize(dataOutput);
+      }
+    }
+    @Override
+    void serializeBody(ByteBuffer byteBuffer) throws IOException {
+      // write the prefix length and prefix
+      byteBuffer.put(prefixLength());
+      byteBuffer.put(prefix);
+      // serialise each child node and index
+      for (int pos =  getNextLargerPos(-1);
+           pos != BranchNode.ILLEGAL_IDX;
+           pos =  getNextLargerPos(pos)) {
+        // write the key and node
+        byteBuffer.put( getChildKey(pos));
+        getChild(pos).serialize(byteBuffer);
+      }
+    }
+    public static BranchNode deserializeBody(DataInput dataInput, int size) throws IOException {
+      int prefixLength = dataInput.readByte() & 0xFF ;
+      BranchNode result;
+      if (size <= 4) {
+        result = new Node4(prefixLength);
+      } else if (size <= 16) {
+        result = new Node16(prefixLength);
+      } else if (size <= 48) {
+        result = new Node48(prefixLength);
+      } else {
+        result = new Node256(prefixLength);
+      }
+      dataInput.readFully(result.prefix);
+      for (int i = 0; i < size; i++) {
+        byte key = dataInput.readByte();
+        Node child = Node.deserialize(dataInput);
+        result.insert(child, key);
+      }
+      return result;
     }
 
+    public static BranchNode deserializeBody(ByteBuffer byteBuffer, int size) throws IOException {
+      int prefixLength = byteBuffer.get() & 0xFF;
+      BranchNode result;
+      if (size <= 4) {
+        result = new Node4(prefixLength);
+      } else if (size <= 16) {
+        result = new Node16(prefixLength);
+      } else if (size <= 48) {
+        result = new Node48(prefixLength);
+      } else {
+        result = new Node256(prefixLength);
+      }
+      byteBuffer.get(result.prefix);
+      for (int i = 0; i < size; i++) {
+        byte key = byteBuffer.get();
+        Node child = Node.deserialize(byteBuffer);
+        result.insert(child, key);
+      }
+      return result;
+    }
 
 }

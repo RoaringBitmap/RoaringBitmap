@@ -2,6 +2,9 @@ package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.ArrayContainer;
+
+import static org.roaringbitmap.art.SimpleContainers.makeContainer;
 
 public class Node16Test {
 
@@ -10,11 +13,11 @@ public class Node16Test {
     Node4 node4 = new Node4(0);
     // insert 4 nodes
     for (int i = 0; i < 4; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       node4 = (Node4) node4.insert(leafNode, (byte) i);
     }
     // insert the fifth node
-    LeafNode leafNode4 = new LeafNode(4, 4);
+    LeafNode leafNode4 = new LeafNode(4, makeContainer(4));
     Node16 node16 = (Node16) node4.insert(leafNode4, (byte) 4);
     // remove two nodes to shrink to node4
     node16 = (Node16) node16.remove(4);
@@ -23,7 +26,7 @@ public class Node16Test {
     // recover to node16 by re-insert two nodes
     Node4 degenerativeNode4 = (Node4) degenerativeNode;
     BranchNode node = degenerativeNode4.insert(leafNode4, (byte) 4);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    LeafNode leafNode3 = new LeafNode(3, makeContainer(3));
     node16 = (Node16) node.insert(leafNode3, (byte) 3);
 
     byte key = 4;
@@ -31,16 +34,16 @@ public class Node16Test {
     Assertions.assertEquals(key, node16.getChildKey(4));
     for (int i = 5; i < 12; i++) {
       byte key1 = (byte) i;
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       node16 = (Node16) node16.insert(leafNode, key1);
       Assertions.assertEquals(i, node16.getChildPos(key1));
     }
-    LeafNode leafNode = new LeafNode(12, 12);
+    LeafNode leafNode = new LeafNode(12, makeContainer(12));
     key = (byte) -2;
     node16 = (Node16) node16.insert(leafNode, key);
     Assertions.assertEquals(12, node16.getChildPos(key));
     Assertions.assertEquals(key, node16.getChildKey(12));
-    leafNode = new LeafNode(13, 13);
+    leafNode = new LeafNode(13, makeContainer(13));
     byte key12 = (byte) 12;
     node16 = (Node16) node16.insert(leafNode, key12);
     Assertions.assertEquals(12, node16.getChildPos(key12));
@@ -54,10 +57,10 @@ public class Node16Test {
     Node16 node16 = new Node16(0);
     LeafNode leafNode;
     for (int i = 0; i < 16; i++) {
-      leafNode = new LeafNode(i, i);
+      leafNode = new LeafNode(i, makeContainer(i));
       node16 = (Node16) node16.insert(leafNode, (byte) i);
     }
-    leafNode = new LeafNode(16, 16);
+    leafNode = new LeafNode(16, makeContainer(16));
     Node node = node16.insert(leafNode, (byte) 16);
     Assertions.assertTrue(node instanceof Node48);
     Node48 node48 = (Node48) node;
@@ -75,7 +78,7 @@ public class Node16Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       node16 = (Node16) node16.insert(leafNode, (byte) i);
     }
 
@@ -87,14 +90,14 @@ public class Node16Test {
     for (int i = 0; i < lastValue; i++) {
       int pos = node16.getNextLargerPos(i);
       LeafNode leafNode = (LeafNode) node16.getChild(pos);
-      Assertions.assertEquals(i + 1, leafNode.getContainerIdx());
+      Assertions.assertEquals(i + 1, leafNode.getContainer().first());
     }
 
     // the next smaller position of each value is the -1
     for (int i = lastValue; i >= 1; i--) {
       int pos = node16.getNextSmallerPos(i);
       LeafNode leafNode = (LeafNode) node16.getChild(pos);
-      Assertions.assertEquals(i - 1, leafNode.getContainerIdx());
+      Assertions.assertEquals(i - 1, leafNode.getContainer().first());
     }
     // there is no illegal_idx valid prior to the first
     Assertions.assertEquals(BranchNode.ILLEGAL_IDX, node16.getNextSmallerPos(0));
@@ -108,7 +111,7 @@ public class Node16Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) (i + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -151,7 +154,7 @@ public class Node16Test {
 
     // create the data
     for (int i = 0; i < insertCount; i++) {
-      LeafNode leafNode = new LeafNode(i, i);
+      LeafNode leafNode = new LeafNode(i, makeContainer(i));
       byte key = (byte) ((i * step) + keyOffset);
       nodes = nodes.insert(leafNode, key);
     }
@@ -229,7 +232,7 @@ public class Node16Test {
   @Test
   public void testWithOffsetBeforeBytes() {
     BranchNode nodes = new Node16(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 16;
     int offset = 40;
 
@@ -268,7 +271,7 @@ public class Node16Test {
   @Test
   public void testWithOffsetAndGapsBytes() {
     BranchNode nodes = new Node16(0);
-    LeafNode leafNode = new LeafNode(0, 0);
+    LeafNode leafNode = new LeafNode(0, makeContainer(0));
     int insertCount = 16;
     int step = 2;
     int offset = 40;

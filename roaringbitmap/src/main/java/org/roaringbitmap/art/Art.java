@@ -1,13 +1,17 @@
 package org.roaringbitmap.art;
 
 import org.roaringbitmap.ArraysShim;
+import org.roaringbitmap.Container;
 import org.roaringbitmap.longlong.LongUtils;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
+
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 /**
  * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.
@@ -33,10 +37,10 @@ public class Art {
    * insert the 48 bit key and the corresponding containerIdx
    *
    * @param key the high 48 bit of the long data
-   * @param containerIdx the container index
+   * @param container the container index
    */
-  public void insert(byte[] key, long containerIdx) {
-    Node freshRoot = insert(root, key, 0, containerIdx);
+  public void insert(byte[] key, Container container) {
+    Node freshRoot = insert(root, key, 0, container);
     if (freshRoot != root) {
       this.root = freshRoot;
     }
@@ -45,30 +49,21 @@ public class Art {
 
   /**
    * @param key the high 48 bit of the long data
-   * @return the key's corresponding containerIdx
+   * @return the key's corresponding LeafNode
    */
-  public long findByKey(byte[] key) {
-    Node node = findByKey(root, key, 0);
-    if (node != null) {
-      LeafNode leafNode = (LeafNode) node;
-      return leafNode.containerIdx;
-    }
-    return BranchNode.ILLEGAL_IDX;
+  public ContainerHolder findByKey(byte[] key) {
+    return findByKey(root, key, 0);
   }
 
   /**
    * @param key the high 48 bit of the long data
-   * @return the key's corresponding containerIdx
+   * @return the key's corresponding LeafNode
    */
-  public long findByKey(long key) {
-    LeafNode node = findByKey(root, key);
-    if (node != null) {
-      return node.containerIdx;
-    }
-    return BranchNode.ILLEGAL_IDX;
+  public ContainerHolder findByKey(long key) {
+   return findByKey(root, key);
   }
 
-  private Node findByKey(Node node, byte[] key, int depth) {
+  private LeafNode findByKey(Node node, byte[] key, int depth) {
     while (node != null) {
       if (node instanceof LeafNode) {
         LeafNode leafNode = (LeafNode) node;
@@ -147,24 +142,18 @@ public class Art {
 
   /**
    * a convenient method to traverse the key space in ascending order.
-   * @param containers input containers
    * @return the key iterator
    */
-  public KeyIterator iterator(Containers containers) {
-    return new KeyIterator(this, containers);
+  public KeyIterator iterator() {
+    return new KeyIterator(this);
   }
 
   /**
    * remove the key from the art if it's there.
    * @param key the high 48 bit key
-   * @return the corresponding containerIdx or -1 indicating not exist
    */
-  public long remove(byte[] key) {
-    Toolkit toolkit = removeSpecifyKey(root, key, 0);
-    if (toolkit != null) {
-      return toolkit.matchedContainerId;
-    }
-    return BranchNode.ILLEGAL_IDX;
+  public void remove(byte[] key) {
+    removeSpecifyKey(root, key, 0);
   }
 
   protected Toolkit removeSpecifyKey(Node node, byte[] key, int dep) {
@@ -180,7 +169,7 @@ public class Art {
           this.root = null;
         }
         keySize--;
-        return new Toolkit(null, leafNode.getContainerIdx(), null);
+        return new Toolkit(null, leafNode, null);
       } else {
         return null;
       }
@@ -205,8 +194,8 @@ public class Art {
         if (branchNode == this.root && freshNode != branchNode) {
           this.root = freshNode;
         }
-        long matchedContainerIdx = ((LeafNode) child).getContainerIdx();
-        Toolkit toolkit = new Toolkit(freshNode, matchedContainerIdx, branchNode);
+        LeafNode leafNode = ((LeafNode) child);
+        Toolkit toolkit = new Toolkit(freshNode, leafNode, branchNode);
         toolkit.needToVerifyReplacing = true;
         return toolkit;
       } else {
@@ -232,16 +221,16 @@ public class Art {
 
     Node freshMatchedParentNode; // indicating a fresh parent node while the original
     // parent node shrunk and changed
-    long matchedContainerId; // holding the matched key's corresponding container index id
+    LeafNode matchedLeafNode; // holding the matched key's corresponding LeafNode
     Node
         originalMatchedParentNode; // holding the matched key's leaf node's original old parent node
     boolean needToVerifyReplacing = false; // indicate whether the shrinking node's parent
 
     // node has replaced its corresponding child node
 
-    Toolkit(Node freshMatchedParentNode, long matchedContainerId, Node originalMatchedParentNode) {
+    Toolkit(Node freshMatchedParentNode, LeafNode matchedLeafNode, Node originalMatchedParentNode) {
       this.freshMatchedParentNode = freshMatchedParentNode;
-      this.matchedContainerId = matchedContainerId;
+      this.matchedLeafNode = matchedLeafNode;
       this.originalMatchedParentNode = originalMatchedParentNode;
     }
   }
@@ -263,9 +252,9 @@ public class Art {
     }
   }
 
-  private Node insert(Node node, byte[] key, int depth, long containerIdx) {
+  private Node insert(Node node, byte[] key, int depth, Container container) {
     if (node == null) {
-      LeafNode leafNode = new LeafNode(key, containerIdx);
+      LeafNode leafNode = new LeafNode(key, container);
       return leafNode;
     }
     if (node instanceof LeafNode) {
@@ -278,7 +267,7 @@ public class Art {
       System.arraycopy(key, depth, node4.prefix, 0, commonPrefix);
       // generate two leaf nodes as the children of the fresh node4
       node4.insert(leafNode, prefix[depth + commonPrefix]);
-      LeafNode anotherLeaf = new LeafNode(key, containerIdx);
+      LeafNode anotherLeaf = new LeafNode(key, container);
       node4.insert(anotherLeaf, key[depth + commonPrefix]);
       // replace the current node with this internal node4
       return node4;
@@ -302,7 +291,7 @@ public class Art {
         // as the new prefix is always > 0, we just allocate and fill the new prefix
         branchNode.prefix = Arrays.copyOfRange(branchNode.prefix,mismatchPos + 1, branchNodePrefixLength);
 
-        LeafNode leafNode = new LeafNode(key, containerIdx);
+        LeafNode leafNode = new LeafNode(key, container);
         node4.insert(leafNode, key[mismatchPos + depth]);
         return node4;
       }
@@ -312,14 +301,14 @@ public class Art {
     if (pos != BranchNode.ILLEGAL_IDX) {
       // insert the key as current internal node's children's child node.
       Node child = branchNode.getChild(pos);
-      Node freshOne = insert(child, key, depth + 1, containerIdx);
+      Node freshOne = insert(child, key, depth + 1, container);
       if (freshOne != child) {
         branchNode.replaceNode(pos, freshOne);
       }
       return branchNode;
     }
     // insert the key as a child leaf node of the current internal node
-    LeafNode leafNode = new LeafNode(key, containerIdx);
+    LeafNode leafNode = new LeafNode(key, container);
     return branchNode.insert(leafNode, key[depth]);
   }
 
@@ -361,144 +350,63 @@ public class Art {
     return getExtremeLeaf(true);
   }
 
-  public void serializeArt(DataOutput dataOutput) throws IOException {
-    dataOutput.writeLong(Long.reverseBytes(keySize));
-    serialize(root, dataOutput);
-  }
-
-  public void deserializeArt(DataInput dataInput) throws IOException {
-    keySize = Long.reverseBytes(dataInput.readLong());
-    root = deserialize(dataInput);
-  }
-
-  public void serializeArt(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.putLong(keySize);
-    serialize(root, byteBuffer);
-  }
-
-  public void deserializeArt(ByteBuffer byteBuffer) throws IOException {
-    keySize = byteBuffer.getLong();
-    root = deserialize(byteBuffer);
-  }
-
-  public LeafNodeIterator leafNodeIterator(boolean reverse, Containers containers) {
-    return new LeafNodeIterator(this, reverse, containers);
-  }
-
-  public LeafNodeIterator leafNodeIteratorFrom(long bound, boolean reverse, Containers containers) {
-    return new LeafNodeIterator(this, reverse, containers, bound);
-  }
-
-  private void serialize(Node node, DataOutput dataOutput) throws IOException {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode)node;
-      // serialize the internal node itself first
-      branchNode.serialize(dataOutput);
-      // then all the internal node's children
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        serialize(child, dataOutput);
-        nexPos = branchNode.getNextLargerPos(nexPos);
-      }
-    } else {
-      // serialize the leaf node
-      node.serialize(dataOutput);
-    }
-  }
-
-  private void serialize(Node node, ByteBuffer byteBuffer) throws IOException {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode)node;
-      // serialize the internal node itself first
-      branchNode.serialize(byteBuffer);
-      // then all the internal node's children
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        serialize(child, byteBuffer);
-        nexPos = branchNode.getNextLargerPos(nexPos);
-      }
-    } else {
-      // serialize the leaf node
-      node.serialize(byteBuffer);
-    }
-  }
-
-  private Node deserialize(DataInput dataInput) throws IOException {
-    Node oneNode = Node.deserialize(dataInput);
-    if (oneNode == null) {
-      return null;
-    }
-    if (oneNode instanceof LeafNode) {
-      return oneNode;
-    } else {
-      BranchNode branch = (BranchNode) oneNode;
-      // internal node
-      int count = branch.count;
-      // all the not null child nodes
-      Node[] children = new Node[count];
-      for (int i = 0; i < count; i++) {
-        Node child = deserialize(dataInput);
-        children[i] = child;
-      }
-      branch.replaceChildren(children);
-      return branch;
-    }
-  }
-
-  private Node deserialize(ByteBuffer byteBuffer) throws IOException {
-    Node oneNode = Node.deserialize(byteBuffer);
-    if (oneNode == null) {
-      return null;
-    }
-    if (oneNode instanceof LeafNode) {
-      return oneNode;
-    } else {
-      BranchNode branchNode = (BranchNode) oneNode;
-      // internal node
-      int count = branchNode.count;
-      // all the not null child nodes
-      Node[] children = new Node[count];
-      for (int i = 0; i < count; i++) {
-        Node child = deserialize(byteBuffer);
-        children[i] = child;
-      }
-      branchNode.replaceChildren(children);
-      return branchNode;
-    }
-  }
-
-  public long serializeSizeInBytes() {
-    return serializeSizeInBytes(this.root) + 8;
-  }
-
   public long getKeySize() {
     return keySize;
   }
 
-  private long serializeSizeInBytes(Node node) {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode) node;
-      // serialize the internal node itself first
-      int currentNodeSize = branchNode.serializeSizeInBytes();
-      // then all the internal node's children
-      long childrenTotalSize = 0L;
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        long childSize = serializeSizeInBytes(child);
-        nexPos = branchNode.getNextLargerPos(nexPos);
-        childrenTotalSize += childSize;
-      }
-      return currentNodeSize + childrenTotalSize;
-    } else {
-      // serialize the leaf node
-      int nodeSize = node.serializeSizeInBytes();
-      return nodeSize;
+  public LeafNodeIterator leafNodeIterator(boolean reverse) {
+    return new LeafNodeIterator(this, reverse);
+  }
+
+  public LeafNodeIterator leafNodeIteratorFrom(long bound, boolean reverse) {
+    return new LeafNodeIterator(this, reverse, bound);
+  }
+
+  public void serializeArt(DataOutput dataOutput) throws IOException {
+    dataOutput.writeLong(Long.reverseBytes(keySize));
+    if (keySize != 0L) {
+      root.serialize(dataOutput);
     }
   }
+  public void serializeArt(ByteBuffer buffer) throws IOException {
+    ByteOrder originalOrder = buffer.order();
+    buffer.order(LITTLE_ENDIAN);
+    try {
+      buffer.putLong(keySize);
+      if (keySize != 0L) {
+        root.serialize(buffer);
+      }
+    } finally {
+      buffer.order(originalOrder);
+    }
+  }
+
+  public void deserializeArt(DataInput dataInput) throws IOException {
+    keySize = Long.reverseBytes(dataInput.readLong());
+    if (keySize != 0L) {
+      root = Node.deserialize(dataInput);
+    }
+  }
+
+  public void deserializeArt(ByteBuffer buffer) throws IOException {
+    ByteOrder originalOrder = buffer.order();
+    buffer.order(LITTLE_ENDIAN);
+    try {
+      keySize = buffer.getLong();
+      if (keySize != 0L) {
+        root = Node.deserialize(buffer);
+      }
+    } finally {
+      buffer.order(originalOrder);
+    }
+  }
+
+  public long serializeSizeInBytes() {
+    long size = 8; // 8 bytes for the keySize
+    if (!isEmpty()) {
+      size += root.serializeSizeInBytes();
+    }
+    return size;
+  }
+
 }
