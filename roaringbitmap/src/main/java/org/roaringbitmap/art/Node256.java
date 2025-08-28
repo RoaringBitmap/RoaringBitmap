@@ -20,6 +20,14 @@ public class Node256 extends BranchNode {
   }
 
   @Override
+  protected Node256 clone() {
+    Node256 clone = new Node256(this.prefixLength());
+    System.arraycopy(this.bitmapMask,0,clone.bitmapMask,0,bitmapMask.length);
+    postClone(clone, this.children, clone.children);
+    return clone;
+  }
+
+  @Override
   protected NodeType nodeType() {
     return NodeType.NODE256;
   }

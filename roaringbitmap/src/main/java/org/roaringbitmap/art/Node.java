@@ -10,6 +10,9 @@ public abstract class Node {
   public Node() {
   }
 
+  @Override
+  protected abstract Node clone();
+
   /**
    * sort the small arrays through the insertion sort alg.
    */

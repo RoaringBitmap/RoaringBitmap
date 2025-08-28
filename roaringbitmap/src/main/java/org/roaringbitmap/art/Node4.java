@@ -18,6 +18,14 @@ public class Node4 extends BranchNode {
   }
 
   @Override
+  protected Node4 clone() {
+    Node4 clone = new Node4(this.prefixLength());
+    clone.key = this.key;
+    postClone(clone, this.children, clone.children);
+    return clone;
+  }
+
+  @Override
   protected NodeType nodeType() {
     return NodeType.NODE4;
   }
