@@ -2,6 +2,8 @@ package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.roaringbitmap.art.NodeCommon.checkKeyAndPosAlign;
+
 
 public class Node256Test {
 
@@ -12,6 +14,7 @@ public class Node256Test {
     for (int i = 0; i < 256; i++) {
       node256 = node256.insert(leafNode, (byte) i);
     }
+    checkKeyAndPosAlign(node256);
     int minPos = node256.getMinPos();
     Assertions.assertEquals(0, minPos);
     int currentPos = minPos;
@@ -20,6 +23,7 @@ public class Node256Test {
       Assertions.assertEquals(i, nextLargerPos);
       currentPos = nextLargerPos;
     }
+    checkKeyAndPosAlign(node256);
     int maxPos = node256.getMaxPos();
     Assertions.assertEquals(255, maxPos);
     currentPos = maxPos;
@@ -36,6 +40,7 @@ public class Node256Test {
     Assertions.assertEquals(121, pos121);
     int nextPos119 = node256.getNextSmallerPos(pos121);
     Assertions.assertEquals(119, nextPos119);
+    checkKeyAndPosAlign(node256);
   }
 
   @Test
