@@ -43,6 +43,11 @@ public class LeafNode extends Node {
   }
 
   @Override
+  protected LeafNode clone() {
+    return new LeafNode(getKey(), containerIdx);
+  }
+
+  @Override
   public void serializeNodeBody(DataOutput dataOutput) throws IOException {
     dataOutput.writeInt(keyHigh);
     dataOutput.writeShort(keyLow);

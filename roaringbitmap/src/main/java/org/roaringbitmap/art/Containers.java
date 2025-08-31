@@ -37,6 +37,25 @@ public class Containers {
     reset();
   }
 
+  @Override
+  public Containers clone() {
+    Containers containers = new Containers();
+    containers.containerArrays = new ArrayList<>(this.containerArrays.size());
+    for (Container[] array : this.containerArrays) {
+      Container[] values = Arrays.copyOf(array, array.length);
+      containers.containerArrays.add(values);
+      for (int i = 0; i < values.length; i++) {
+        if (values[i] != null) {
+          values[i] = values[i].clone();
+        }
+      }
+    }
+    containers.containerSize = this.containerSize;
+    containers.firstLevelIdx = this.firstLevelIdx;
+    containers.secondLevelIdx = this.secondLevelIdx;
+    return containers;
+  }
+
   private void reset() {
     containerSize = 0;
     firstLevelIdx = -1;

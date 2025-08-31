@@ -17,6 +17,14 @@ public class Node16 extends BranchNode {
   public Node16(int compressionLength) {
     super(compressionLength);
   }
+  @Override
+  protected Node16 clone() {
+    Node16 clone = new Node16(this.prefixLength());
+    clone.firstV = this.firstV;
+    clone.secondV = this.secondV;
+    postClone(clone, this.children, clone.children);
+    return clone;
+  }
 
   @Override
   protected NodeType nodeType() {
