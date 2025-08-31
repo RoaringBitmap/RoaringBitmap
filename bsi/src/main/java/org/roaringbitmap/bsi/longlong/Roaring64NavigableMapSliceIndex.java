@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -351,12 +352,12 @@ public class Roaring64NavigableMapSliceIndex {
     if (ebM.isEmpty()) {
       this.minValue = minValue;
       this.maxValue = maxValue;
-      grow(Long.toBinaryString(maxValue).length());
+      grow(64 - Long.numberOfLeadingZeros(maxValue));
     } else if (this.minValue > minValue) {
       this.minValue = minValue;
     } else if (this.maxValue < maxValue) {
       this.maxValue = maxValue;
-      grow(Long.toBinaryString(maxValue).length());
+      grow(64 - Long.numberOfLeadingZeros(maxValue));
     }
   }
 
@@ -367,16 +368,11 @@ public class Roaring64NavigableMapSliceIndex {
       return;
     }
 
-    Roaring64NavigableMap[] newBA = new Roaring64NavigableMap[newBitDepth];
-    if (oldBitDepth != 0) {
-      System.arraycopy(this.bA, 0, newBA, 0, oldBitDepth);
-    }
+    Roaring64NavigableMap[] newBA = Arrays.copyOf(this.bA, newBitDepth);
 
     for (int i = newBitDepth - 1; i >= oldBitDepth; i--) {
       newBA[i] = new Roaring64NavigableMap();
-      if (this.runOptimized) {
-        newBA[i].runOptimize();
-      }
+      //no need to runOptimize for new created empty bitmap
     }
     this.bA = newBA;
   }
