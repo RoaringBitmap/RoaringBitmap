@@ -2,6 +2,7 @@ package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import static org.roaringbitmap.art.NodeCommon.checkKeyAndPosAlign;
 
 public class Node16Test {
 
@@ -13,9 +14,12 @@ public class Node16Test {
       LeafNode leafNode = new LeafNode(i, i);
       node4 = (Node4) node4.insert(leafNode, (byte) i);
     }
+    checkKeyAndPosAlign(node4);
+
     // insert the fifth node
     LeafNode leafNode4 = new LeafNode(4, 4);
     Node16 node16 = (Node16) node4.insert(leafNode4, (byte) 4);
+    checkKeyAndPosAlign(node16);
     // remove two nodes to shrink to node4
     node16 = (Node16) node16.remove(4);
     Node degenerativeNode = node16.remove(3);
@@ -35,6 +39,8 @@ public class Node16Test {
       node16 = (Node16) node16.insert(leafNode, key1);
       Assertions.assertEquals(i, node16.getChildPos(key1));
     }
+
+    checkKeyAndPosAlign(node16);
     LeafNode leafNode = new LeafNode(12, 12);
     key = (byte) -2;
     node16 = (Node16) node16.insert(leafNode, key);
@@ -57,6 +63,7 @@ public class Node16Test {
       leafNode = new LeafNode(i, i);
       node16 = (Node16) node16.insert(leafNode, (byte) i);
     }
+    checkKeyAndPosAlign(node16);
     leafNode = new LeafNode(16, 16);
     Node node = node16.insert(leafNode, (byte) 16);
     Assertions.assertTrue(node instanceof Node48);
@@ -65,6 +72,7 @@ public class Node16Test {
     Assertions.assertEquals(16, maxPos);
     int pos = node48.getChildPos((byte) 16);
     Assertions.assertEquals(maxPos, pos);
+    checkKeyAndPosAlign(node48);
   }
 
   @Test

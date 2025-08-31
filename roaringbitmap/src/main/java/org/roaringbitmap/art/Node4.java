@@ -53,6 +53,12 @@ public class Node4 extends BranchNode {
   }
 
   @Override
+  public Node getChildAtKey(byte key) {
+    int pos = getChildPos(key);
+    return (pos != ILLEGAL_IDX) ? children[pos] : null;
+  }
+
+  @Override
   public void replaceNode(int pos, Node freshOne) {
     children[pos] = freshOne;
   }
