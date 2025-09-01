@@ -9,6 +9,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -303,12 +304,12 @@ public class Roaring64BitmapSliceIndex {
     if (ebM.isEmpty()) {
       this.minValue = minValue;
       this.maxValue = maxValue;
-      grow(Long.toBinaryString(maxValue).length());
+      grow(64 - Long.numberOfLeadingZeros(maxValue));
     } else if (this.minValue > minValue) {
       this.minValue = minValue;
     } else if (this.maxValue < maxValue) {
       this.maxValue = maxValue;
-      grow(Long.toBinaryString(maxValue).length());
+      grow(64 - Long.numberOfLeadingZeros(maxValue));
     }
   }
 
@@ -319,16 +320,12 @@ public class Roaring64BitmapSliceIndex {
       return;
     }
 
-    Roaring64Bitmap[] newBA = new Roaring64Bitmap[newBitDepth];
-    if (oldBitDepth != 0) {
-      System.arraycopy(this.bA, 0, newBA, 0, oldBitDepth);
-    }
+
+    Roaring64Bitmap[] newBA = Arrays.copyOf(this.bA, newBitDepth);
 
     for (int i = newBitDepth - 1; i >= oldBitDepth; i--) {
       newBA[i] = new Roaring64Bitmap();
-      if (this.runOptimized) {
-        newBA[i].runOptimize();
-      }
+      // no need to run optimize here, since it's empty
     }
     this.bA = newBA;
   }
