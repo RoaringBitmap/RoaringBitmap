@@ -254,24 +254,31 @@ public class Roaring64BitmapSliceIndex {
     ebm.deserialize(buffer);
     this.ebM = ebm;
     // read back
-    buffer.position(buffer.position() + ebm.getSizeInBytes());
     int bitDepth = buffer.getInt();
     Roaring64Bitmap[] ba = new Roaring64Bitmap[bitDepth];
     for (int i = 0; i < bitDepth; i++) {
       Roaring64Bitmap rb = new Roaring64Bitmap();
       rb.deserialize(buffer);
       ba[i] = rb;
-      buffer.position(buffer.position() + rb.getSizeInBytes());
     }
     this.bA = ba;
   }
 
   public int serializedSizeInBytes() {
-    int size = 0;
+    long size = 0;
     for (Roaring64Bitmap rb : this.bA) {
-      size += rb.getSizeInBytes();
+      size += rb.serializedSizeInBytes();
     }
-    return 8 + 8 + 1 + 4 + this.ebM.getSizeInBytes() + size;
+    size += 8 + //minValue
+            8 + //maxValue
+            1 + //runOptimized
+            4 + //bitDepth
+            this.ebM.serializedSizeInBytes();
+    if (size <= Integer.MAX_VALUE) {
+      return (int) size;
+    } else {
+      throw new IllegalStateException("the serialized size is larger than Integer.MAX_VALUE");
+    }
   }
 
   /**

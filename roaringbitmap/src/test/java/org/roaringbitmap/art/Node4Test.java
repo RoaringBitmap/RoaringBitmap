@@ -2,6 +2,8 @@ package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.longlong.HighLowContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,9 +35,10 @@ public class Node4Test {
 
   @Test
   public void testTheBasics() throws IOException {
-    LeafNode leafNode1 = new LeafNode(1, 1);
-    LeafNode leafNode2 = new LeafNode(2, 2);
-    LeafNode leafNode3 = new LeafNode(3, 3);
+    HighLowContainer highLow = new HighLowContainer();
+    LeafNode leafNode1 = new LeafNode(1, highLow.addContainer(new ArrayContainer()));
+    LeafNode leafNode2 = new LeafNode(2, highLow.addContainer(new ArrayContainer()));
+    LeafNode leafNode3 = new LeafNode(3, highLow.addContainer(new ArrayContainer()));
     Node4 node4 = new Node4(0);
     assertKeys(node4);
     assertContent(node4);
@@ -72,15 +75,15 @@ public class Node4Test {
     assertContent(node4, leafNode2, leafNode3);
     checkKeyAndPosAlign(node4);
 
-    int bytesSize = node4.serializeSizeInBytes();
+    int bytesSize = (int)node4.serializeSizeInBytes(highLow);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-    node4.serialize(dataOutputStream);
+    node4.serialize(dataOutputStream, highLow);
     Assertions.assertEquals(bytesSize, byteArrayOutputStream.toByteArray().length);
     ByteArrayInputStream byteArrayInputStream =
         new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
-    Node4 deserializedNode4 = (Node4) Node.deserialize(dataInputStream);
+    Node4 deserializedNode4 = (Node4) Node.deserialize(dataInputStream, new HighLowContainer());
     Assertions.assertEquals(0, deserializedNode4.getChildPos(key2));
     Assertions.assertEquals(1, deserializedNode4.getChildPos(key3));
     Assertions.assertEquals(BranchNode.ILLEGAL_IDX, deserializedNode4.getChildPos(key1));

@@ -155,43 +155,6 @@ public class Node4 extends BranchNode {
     return this;
   }
 
-  @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    dataOutput.writeInt(Integer.reverseBytes(key));
-  }
-
-  /**
-   * serialize the node's body content
-   */
-  @Override
-  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.putInt(key);
-  }
-
-  @Override
-  public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    int v = dataInput.readInt();
-    key = Integer.reverseBytes(v);
-  }
-
-  /**
-   * deserialize the node's body content
-   */
-  @Override
-  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    key = byteBuffer.getInt();
-  }
-
-  @Override
-  public int serializeNodeBodySizeInBytes() {
-    return 4;
-  }
-
-  @Override
-  public void replaceChildren(Node[] children) {
-    System.arraycopy(children, 0, this.children, 0, count);
-  }
-
   /**
    * sort the key byte array of node4 type by the insertion sort algorithm.
    *
