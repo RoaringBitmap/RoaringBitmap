@@ -1,6 +1,6 @@
 plugins {
     id("me.champeau.jmh") version "0.7.2"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.1.0"
 }
 
 val deps: Map<String, String> by extra
