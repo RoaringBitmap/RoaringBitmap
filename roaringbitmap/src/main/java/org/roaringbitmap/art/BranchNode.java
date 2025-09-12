@@ -213,37 +213,6 @@ public abstract class BranchNode extends Node {
     public abstract Node remove(int pos);
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof BranchNode)) {
-            return false;
-        }
-        BranchNode other = (BranchNode) obj;
-        if (this.count != other.count) {
-            return false;
-        }
-        if (!(Arrays.equals(this.prefix, other.prefix))) {
-            return false;
-        }
-        int pos = ILLEGAL_IDX;
-        while ((pos = this.getNextLargerPos(pos)) != ILLEGAL_IDX) {
-            byte key = this.getChildKey(pos);
-            int otherPos = other.getChildPos(key);
-            if (otherPos == ILLEGAL_IDX) {
-                return false;
-            }
-            Node child = this.getChild(pos);
-            Node otherChild = other.getChild(otherPos);
-            if (!child.equals(otherChild)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
     long serializeSizeInBytes(HighLowContainer highLow) {
       // count, prefix length + prefix
       long size = 1 + 1 +  prefixLength();
