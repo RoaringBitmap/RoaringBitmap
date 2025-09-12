@@ -33,6 +33,9 @@ import java.util.Objects;
  */
 public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
 
+  public static final byte EMPTY_TAG = 0;
+  public static final byte CURRENT_SERIALISED_FORM = 2;
+
   private HighLowContainer highLowContainer;
 
   public Roaring64Bitmap() {

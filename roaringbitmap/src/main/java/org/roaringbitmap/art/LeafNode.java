@@ -1,5 +1,10 @@
 package org.roaringbitmap.art;
 
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.BitmapContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.RunContainer;
+import org.roaringbitmap.longlong.HighLowContainer;
 import org.roaringbitmap.longlong.LongUtils;
 
 import java.io.DataInput;
@@ -47,49 +52,6 @@ public class LeafNode extends Node {
     return new LeafNode(getKey(), containerIdx);
   }
 
-  @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    dataOutput.writeInt(keyHigh);
-    dataOutput.writeShort(keyLow);
-    dataOutput.writeLong(Long.reverseBytes(containerIdx));
-  }
-
-  @Override
-  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    if (byteBuffer.order() == ByteOrder.BIG_ENDIAN) {
-      byteBuffer.putInt(keyHigh);
-      byteBuffer.putChar(keyLow);
-    } else {
-      byteBuffer.putInt(Integer.reverseBytes(keyHigh));
-      byteBuffer.putChar(Character.reverseBytes(keyLow));
-    }
-    byteBuffer.putLong(containerIdx);
-  }
-
-  @Override
-  public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    keyHigh = dataInput.readInt();
-    keyLow = dataInput.readChar();
-    this.containerIdx = Long.reverseBytes(dataInput.readLong());
-  }
-
-  @Override
-  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    if (byteBuffer.order() == ByteOrder.BIG_ENDIAN) {
-      keyHigh = byteBuffer.getInt();
-      keyLow = byteBuffer.getChar();
-    } else {
-      keyHigh = Integer.reverseBytes(byteBuffer.getInt());
-      keyLow = Character.reverseBytes(byteBuffer.getChar());
-    }
-    this.containerIdx = byteBuffer.getLong();
-  }
-
-  @Override
-  public int serializeNodeBodySizeInBytes() {
-    return LEAF_NODE_KEY_LENGTH_IN_BYTES + 8;
-  }
-
   public long getContainerIdx() {
     return containerIdx;
   }
@@ -112,21 +74,6 @@ public class LeafNode extends Node {
     this.keyLow = (char) (key >> 16);
   }
 
-  @Override
-  protected void serializeHeader(DataOutput dataOutput) throws IOException {
-    // first byte: node type
-    dataOutput.writeByte((byte) NodeType.LEAF_NODE.ordinal());
-    // non null object count
-    dataOutput.writeShort(0);
-    dataOutput.writeByte(0);
-  }
-
-  @Override
-  protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.put((byte) NodeType.LEAF_NODE.ordinal());
-    byteBuffer.putShort((short)0);
-    byteBuffer.put((byte)0);
-  }
 
   @Override
   public String toString() {
@@ -136,4 +83,187 @@ public class LeafNode extends Node {
             '}';
   }
 
+  @Override
+  long serializeSizeInBytes(HighLowContainer highLow) {
+    Container container = highLow.getContainer(containerIdx);
+    return 1 + // node type
+            4 + 2 + // key
+            1 + // container type;
+            // container size adjustment as we are adjusting the body only (e.g. optional cardinality)
+            containerType(container).sizeAdjustment +
+            container.serializedSizeInBytes();
+  }
+
+  public static LeafNode deserializeBody(DataInput dataInput, HighLowContainer highLow) throws IOException {
+    int keyHigh = Integer.reverseBytes(dataInput.readInt());
+    char keyLow = Character.reverseBytes(dataInput.readChar());
+
+    ContainerType containerType = ContainerType.fromOrdinal(dataInput.readByte());
+    Container container;
+    switch (containerType) {
+      case RUN_CONTAINER:
+        container = readRunContainer(dataInput);
+        break;
+      case BITMAP_CONTAINER:
+        container = readBitmapContainer(dataInput);
+        break;
+      case ARRAY_CONTAINER:
+        container = readArrayContainer(dataInput);
+        break;
+      default:
+        // should not reach here
+        throw new IllegalStateException("Unexpected containerType: " + containerType);
+    }
+    long key = (((long) keyHigh) & 0xFFFFFFFFL) << 32 | (((long) keyLow) & 0xFFFFL) << 16;
+    return new LeafNode(key, highLow.addContainer(container));
+  }
+
+  public static LeafNode deserializeBody(ByteBuffer byteBuffer, HighLowContainer highLow) throws IOException {
+    assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+
+    int keyHigh = byteBuffer.getInt();
+    char keyLow = byteBuffer.getChar();
+
+    ContainerType containerType = ContainerType.fromOrdinal(byteBuffer.get());
+    Container container;
+    switch (containerType) {
+      case RUN_CONTAINER:
+        container = readRunContainer(byteBuffer);
+        break;
+      case BITMAP_CONTAINER:
+        container = readBitmapContainer(byteBuffer);
+        break;
+      case ARRAY_CONTAINER:
+        container = readArrayContainer(byteBuffer);
+        break;
+      default:
+        // should not reach here
+        throw new IllegalStateException("Unexpected containerType: " + containerType);
+    }
+    long key = (((long) keyHigh) & 0xFFFFFFFFL) << 32 | (((long) keyLow) & 0xFFFFL) << 16;
+    return new LeafNode(key, highLow.addContainer(container));
+  }
+
+  @Override
+  void serializeBody(DataOutput dataOutput, HighLowContainer highLow) throws IOException {
+    dataOutput.writeInt(Integer.reverseBytes(keyHigh));
+    dataOutput.writeChar(Character.reverseBytes(keyLow));
+    Container container = highLow.getContainer(containerIdx);
+
+    ContainerType containerType = containerType(container);
+    dataOutput.writeByte(containerType.ordinal());
+    switch (containerType) {
+      case RUN_CONTAINER:
+        break;
+      case BITMAP_CONTAINER:
+      case ARRAY_CONTAINER:
+        dataOutput.writeInt(Integer.reverseBytes( container.getCardinality()));
+        break;
+      default:
+        // should not reach here
+        throw new IllegalStateException("Unexpected containerType: " + containerType);
+    }
+    container.writeArray(dataOutput);
+  }
+
+  @Override
+  void serializeBody(ByteBuffer byteBuffer, HighLowContainer highLow) throws IOException {
+    assert byteBuffer.order() == ByteOrder.LITTLE_ENDIAN;
+    Container container = highLow.getContainer(containerIdx);
+
+    byteBuffer.putInt(keyHigh);
+    byteBuffer.putChar(keyLow);
+
+    ContainerType containerType = containerType(container);
+    byteBuffer.put((byte) containerType.ordinal());
+    switch (containerType) {
+      case RUN_CONTAINER:
+        break;
+      case BITMAP_CONTAINER:
+      case ARRAY_CONTAINER:
+        byteBuffer.putInt(container.getCardinality());
+        break;
+      default:
+        // should not reach here
+        throw new IllegalStateException("Unexpected containerType: " + containerType);
+    }
+    container.writeArray(byteBuffer);
+  }
+
+  private static ContainerType containerType(Container container) {
+    if (container instanceof RunContainer) {
+      return ContainerType.RUN_CONTAINER;
+    } else if (container instanceof BitmapContainer) {
+      return ContainerType.BITMAP_CONTAINER;
+    } else if (container instanceof ArrayContainer) {
+      return ContainerType.ARRAY_CONTAINER;
+    } else {
+      throw new UnsupportedOperationException("Not supported container type");
+    }
+  }
+
+  private static RunContainer readRunContainer( DataInput dataInput) throws IOException {
+    int nbrruns = (Character.reverseBytes(dataInput.readChar()));
+    final char[] lengthsAndValues = new char[2 * nbrruns];
+
+    for (int j = 0; j < 2 * nbrruns; ++j) {
+      lengthsAndValues[j] = Character.reverseBytes(dataInput.readChar());
+    }
+    return new RunContainer(lengthsAndValues, nbrruns);
+  }
+  private static RunContainer readRunContainer( ByteBuffer byteBuffer) throws IOException {
+    int nbrruns = byteBuffer.getChar();
+    final char[] lengthsAndValues = new char[2 * nbrruns];
+    byteBuffer.asCharBuffer().get(lengthsAndValues);
+    byteBuffer.position(byteBuffer.position() + lengthsAndValues.length * 2);
+    return new RunContainer(lengthsAndValues, nbrruns);
+  }
+
+  private static BitmapContainer readBitmapContainer( DataInput dataInput) throws IOException {
+    int cardinality = Integer.reverseBytes(dataInput.readInt());
+    final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+    // little endian
+    for (int l = 0; l < bitmapArray.length; ++l) {
+      bitmapArray[l] = Long.reverseBytes(dataInput.readLong());
+    }
+    return new BitmapContainer(bitmapArray, cardinality);
+  }
+  private static BitmapContainer readBitmapContainer( ByteBuffer byteBuffer) throws IOException {
+    int cardinality = byteBuffer.getInt();
+    final long[] bitmapArray = new long[BitmapContainer.MAX_CAPACITY / 64];
+    byteBuffer.asLongBuffer().get(bitmapArray);
+    byteBuffer.position(byteBuffer.position() + bitmapArray.length * 8);
+    return new BitmapContainer(bitmapArray, cardinality);
+  }
+  private static ArrayContainer readArrayContainer( DataInput dataInput) throws IOException {
+    int cardinality = Integer.reverseBytes(dataInput.readInt());
+    final char[] charArray = new char[cardinality];
+    for (int l = 0; l < charArray.length; ++l) {
+      charArray[l] = Character.reverseBytes(dataInput.readChar());
+    }
+    return new ArrayContainer(charArray);
+  }
+  private static ArrayContainer readArrayContainer( ByteBuffer byteBuffer) throws IOException {
+    int cardinality = byteBuffer.getInt();
+    final char[] charArray = new char[cardinality];
+    byteBuffer.asCharBuffer().get(charArray);
+    byteBuffer.position(byteBuffer.position() + charArray.length * 2);
+    return new ArrayContainer(charArray);
+  }
+
+  private enum ContainerType {
+    RUN_CONTAINER(0),
+    BITMAP_CONTAINER(4),
+    //ArrayContainer serialization includes a 2-byte cardinality, but we use 4
+    ARRAY_CONTAINER(2);
+    final int sizeAdjustment;
+    ContainerType(int sizeAdjustment) {
+      this.sizeAdjustment = sizeAdjustment;
+    }
+
+    private static final ContainerType[] VALUES = values();
+    public static ContainerType fromOrdinal(byte b) {
+      return VALUES[b];
+    }
+  }
 }
