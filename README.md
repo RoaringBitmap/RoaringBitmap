@@ -778,6 +778,12 @@ Mailing list/discussion group
 
 https://groups.google.com/g/roaring-bitmaps
 
+Stars
+------
+
+
+[![Star History Chart](https://api.star-history.com/svg?repos=RoaringBitmap/RoaringBitmap&type=Date)](https://www.star-history.com/#RoaringBitmap/RoaringBitmap&Date)
+
 
 Funding
 ----------
