@@ -3,6 +3,8 @@
  */
 package org.roaringbitmap;
 
+import static org.roaringbitmap.Util.setBitmapRange;
+
 import org.roaringbitmap.buffer.MappeableContainer;
 import org.roaringbitmap.buffer.MappeableRunContainer;
 
@@ -1673,6 +1675,15 @@ public final class RunContainer extends Container implements Cloneable {
   @Override
   public boolean isFull() {
     return (this.nbrruns == 1) && (this.getValue(0) == 0) && (this.getLength(0) == 0xFFFF);
+  }
+
+  @Override
+  public void orInto(long[] bits) {
+    for (int r = 0; r < numberOfRuns(); ++r) {
+      int start = this.valueslength[r << 1];
+      int length = this.valueslength[(r << 1) + 1];
+      setBitmapRange(bits, start, start + length + 1);
+    }
   }
 
   public static RunContainer full() {

@@ -278,4 +278,21 @@ public class TestFastAggregation {
       assertEquals(or.getCardinality(), orCardinality);
     }
   }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest()
+  public void testOrWithContext(List<RoaringBitmap> list) {
+    RoaringBitmap[] toUnite = new RoaringBitmap[list.size() - 1];
+    for (int i = 0; i < list.size(); i++) {
+      RoaringBitmap toIntersect = list.get(i);
+      for (int j = 0, k = 0; j < list.size(); j++) {
+        if (j != i) {
+          toUnite[k++] = list.get(j);
+        }
+      }
+      RoaringBitmap candidate = FastAggregation.orWithContext(toIntersect, toUnite);
+      RoaringBitmap baseline = RoaringBitmap.and(toIntersect, FastAggregation.or(toUnite));
+      assertEquals(baseline.getCardinality(), candidate.getCardinality());
+    }
+  }
 }
