@@ -2618,6 +2618,8 @@ public class RoaringBitmap
         size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
       } else if (key == xhigh) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits(x));
+      } else {
+        break;
       }
     }
     return size;
@@ -2649,6 +2651,8 @@ public class RoaringBitmap
       } else if (key == xhigh) {
         return size
             + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits((int) (end - 1)));
+      } else {
+        break;
       }
     }
     return size;
