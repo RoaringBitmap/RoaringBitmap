@@ -2,6 +2,8 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
+    id("signing")
+    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
     id("com.diffplug.spotless") version "6.25.0"
 }
 
@@ -136,7 +138,6 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
             repositories {
                 maven {
-                    name = "localDebug"
                     url = project.layout.buildDirectory.dir("repos/localDebug").get().asFile.toURI()
                 }
             }
@@ -153,8 +154,18 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
-        }
+            // ./gradlew publishSonatypePublicationToSonatypeRepository
+            repositories {
+                maven {
+                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    credentials {
+                        username = System.getenv("SONATYPE_USERNAME")
+                        password = System.getenv("SONATYPE_PASSWORD")
+                    }
+                }
+            }
 
+        }
 
     }
 }
@@ -164,4 +175,24 @@ release {
     // instead of just 0.1.0 or v0.1.0.
     tagTemplate = "\$version"
 }
-	
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+
+// Root-level signing configuration: use in-memory PGP key from CI to sign subproject publications
+configure<org.gradle.plugins.signing.SigningExtension> {
+    val signingKey = System.getenv("GPG_PRIVATE_KEY")
+    val signingPassphrase = System.getenv("GPG_PASSPHRASE")
+    if (!signingKey.isNullOrBlank()) {
+        useInMemoryPgpKeys(signingKey, signingPassphrase)
+        subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { proj ->
+            val pub = proj.extensions.findByType(PublishingExtension::class)?.publications?.findByName("sonatype")
+            if (pub != null) {
+                sign(pub)
+            }
+        }
+    }
+}

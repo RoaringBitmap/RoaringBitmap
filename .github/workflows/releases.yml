@@ -1,30 +1,57 @@
-name: Publish package to GitHub Packages
+name: Release and Publish to GitHub Packages and Maven Central
+
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: "Release version, e.g. 0.3.6 (optional — auto-detected from Gradle properties)"
+        required: false
+
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: write  # to create tags and releases
+      packages: write  # to publish to GitHub Packages
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Validate release version
+        if: ${{ github.event.inputs.releaseVersion != '' }}
+        run: |
+          RELEASE=${{ github.event.inputs.releaseVersion }}
+          if [[ ! $RELEASE =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
+            echo "Error: releaseVersion '$RELEASE' is not in the correct format x.y.z or x.y.z-SNAPSHOT"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+          ref: master
           path: roaring
-      - uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v5
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
       - name: Build with Gradle
         run: ./gradlew build -x test -i
         working-directory: ./roaring
-      - name: Publish package
+      - name: Publish package to GitHub Packages
         run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
         working-directory: ./roaring
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Publish package to Maven Central
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -i
+        working-directory: ./roaring
+        env:
+          SONATYPE_USERNAME: ${{ secrets.MAVEN_USER }}
+          SONATYPE_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     
