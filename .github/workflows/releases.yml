@@ -60,7 +60,7 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Release with JReleaser
-        run: ./gradlew jreleaserFullRelease
+        run: ./gradlew jreleaserFullRelease --info -Prelease -Pversion=${{github.event.inputs.releaseVersion}}
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
