@@ -38,6 +38,20 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test -i
         working-directory: ./roaring
+      - name: Validate publishing secrets
+        run: |
+          if [ -z "${{ secrets.MAVEN_USER }}" ]; then
+            echo "Missing Sonatype username secret: set MAVEN_USER" >&2
+            exit 1
+          fi
+          if [ -z "${{ secrets.MAVEN_PASSWORD }}" ]; then
+            echo "Missing Sonatype password secret: set MAVEN_PASSWORD" >&2
+            exit 1
+          fi
+          if [ -z "${{ secrets.GPG_PRIVATE_KEY }}" ] || [ -z "${{ secrets.GPG_PASSPHRASE }}" ]; then
+            echo "Missing GPG secrets: set GPG_PRIVATE_KEY and GPG_PASSPHRASE" >&2
+            exit 1
+          fi
       - name: Publish package to GitHub Packages
         run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
         working-directory: ./roaring
@@ -50,8 +64,8 @@ jobs:
         run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -i
         working-directory: ./roaring
         env:
-          SONATYPE_USERNAME: ${{ secrets.MAVEN_USER }}
-          SONATYPE_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     

@@ -159,8 +159,8 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 maven {
                     url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                     credentials {
-                        username = System.getenv("SONATYPE_USERNAME")
-                        password = System.getenv("SONATYPE_PASSWORD")
+                        username = System.getenv("MAVEN_USER")
+                        password = System.getenv("MAVEN_PASSWORD")
                     }
                 }
             }
@@ -179,6 +179,25 @@ release {
 nexusPublishing {
     repositories {
         sonatype()
+    }
+}
+
+// Validate Sonatype and GPG secrets if a Sonatype publish/close/release is requested.
+run {
+    val publishRequested = gradle.startParameter.taskNames.any { t ->
+        listOf("publishToSonatype", "publishToSonatypeRepository", "closeAndReleaseSonatypeStagingRepository", "closeSonatypeStagingRepository", "releaseSonatypeStagingRepository").any { it in t }
+    }
+    if (publishRequested) {
+        val user = System.getenv("MAVEN_USER")
+        val pass = System.getenv("MAVEN_PASSWORD")
+        if (user.isNullOrBlank() || pass.isNullOrBlank()) {
+            throw org.gradle.api.GradleException("Missing Sonatype credentials. Set secrets MAVEN_USER/MAVEN_PASSWORD.")
+        }
+        val gpgKey = System.getenv("GPG_PRIVATE_KEY")
+        val gpgPass = System.getenv("GPG_PASSPHRASE")
+        if (gpgKey.isNullOrBlank() || gpgPass.isNullOrBlank()) {
+            throw org.gradle.api.GradleException("Missing GPG_PRIVATE_KEY or GPG_PASSPHRASE. These are required to sign artifacts before publishing to Sonatype.")
+        }
     }
 }
 
