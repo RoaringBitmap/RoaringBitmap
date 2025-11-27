@@ -2,7 +2,8 @@ project:
   name: RoaringBitmap
   version: "{{projectVersion}}"
   description: Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.
-  website: https://github.com/RoaringBitmap/RoaringBitmap
+  links:
+    homepage: https://github.com/RoaringBitmap/RoaringBitmap
   authors:
     - Daniel Lemire
   license: Apache-2.0
