@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":roaringbitmap"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("com.google.guava:guava:${deps["guava"]}")
     testImplementation("com.fasterxml.jackson.core", "jackson-databind", "2.10.3")
 }

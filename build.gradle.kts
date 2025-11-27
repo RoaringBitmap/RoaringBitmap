@@ -16,7 +16,7 @@ subprojects {
     // used in per-subproject dependencies
     @Suppress("UNUSED_VARIABLE") val deps by extra {
         mapOf(
-                "jupiter" to "5.6.1",
+                "jupiter" to "5.10.2",
                 "guava" to "20.0",
                 "commons-lang" to "3.4"
         )
