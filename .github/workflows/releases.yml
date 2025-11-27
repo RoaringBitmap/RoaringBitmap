@@ -59,12 +59,26 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
+      - name: Determine release version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.releaseVersion }}" ]; then
+            VERSION="${{ github.event.inputs.releaseVersion }}"
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            echo "Unable to determine version" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Release with JReleaser
-        run: ./gradlew jreleaserFullRelease --info -Prelease -Pversion=${{github.event.inputs.releaseVersion}}
+        run: ./gradlew jreleaserFullRelease --info -Prelease -Pjreleaser.project.version=${{ steps.version.outputs.version }}
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
           JRELEASER_NEXUS2_USERNAME: ${{ secrets.MAVEN_USER }}
           JRELEASER_NEXUS2_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.version }}
     
