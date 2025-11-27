@@ -1,0 +1,56 @@
+project:
+  name: RoaringBitmap
+  version: "{{projectVersion}}"
+  description: Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.
+  website: https://github.com/RoaringBitmap/RoaringBitmap
+  authors:
+    - Daniel Lemire
+  license: Apache-2.0
+  inceptionYear: 2016
+  stereotype: CLI
+
+release:
+  github:
+    owner: RoaringBitmap
+    name: RoaringBitmap
+    tagName: "{{projectVersion}}"
+    releaseName: "{{projectVersion}}"
+    draft: false
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        enabled: true
+
+deploy:
+  maven:
+    mavenCentral:
+      nexus2:
+        url: https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/
+        snapshotUrl: https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/
+        active: ALWAYS
+        applyMavenCentralRules: true
+        verify: true
+        stagingRepositories:
+          - target/staging-deploy
+        signing:
+          active: ALWAYS
+          armored: true
+        checksums: true
+        sources: true
+        javadoc: true
+        gpg:
+          passphrase: "{{env:GPG_PASSPHRASE}}"
+          keyName: "{{env:GPG_KEY_NAME}}"
+    github:
+      active: ALWAYS
+      url: https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap
+
+distributions:
+  roaringbitmap:
+    artifacts:
+      - path: "roaringbitmap/build/libs/{{distributionName}}-{{projectVersion}}.jar"
+  bsi:
+    artifacts:
+      - path: "bsi/build/libs/{{distributionName}}-{{projectVersion}}.jar"
