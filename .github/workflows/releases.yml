@@ -1,6 +1,9 @@
-name: Release and Publish to GitHub Packages and Maven Central
+name: Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       releaseVersion:
@@ -11,61 +14,57 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # to create tags and releases
-      packages: write  # to publish to GitHub Packages
+      contents: write  # For creating releases
+      issues: write    # Optional, for changelogs
 
     steps:
-      - name: Validate release version
-        if: ${{ github.event.inputs.releaseVersion != '' }}
-        run: |
-          RELEASE=${{ github.event.inputs.releaseVersion }}
-          if [[ ! $RELEASE =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
-            echo "Error: releaseVersion '$RELEASE' is not in the correct format x.y.z or x.y.z-SNAPSHOT"
-            exit 1
-          fi
-
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: master
-          path: roaring
-      - name: Set up Java
-        uses: actions/setup-java@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          java-version: '25'
+          java-version: '21'
           distribution: 'temurin'
-      - name: Build with Gradle
-        run: ./gradlew build -x test -i
-        working-directory: ./roaring
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Validate publishing secrets
         run: |
           if [ -z "${{ secrets.MAVEN_USER }}" ]; then
-            echo "Missing Sonatype username secret: set MAVEN_USER" >&2
+            echo "Missing Maven username secret: set MAVEN_USER" >&2
             exit 1
           fi
           if [ -z "${{ secrets.MAVEN_PASSWORD }}" ]; then
-            echo "Missing Sonatype password secret: set MAVEN_PASSWORD" >&2
+            echo "Missing Maven password secret: set MAVEN_PASSWORD" >&2
             exit 1
           fi
-          if [ -z "${{ secrets.GPG_PRIVATE_KEY }}" ] || [ -z "${{ secrets.GPG_PASSPHRASE }}" ]; then
-            echo "Missing GPG secrets: set GPG_PRIVATE_KEY and GPG_PASSPHRASE" >&2
+          if [ -z "${{ secrets.GPG_PRIVATE_KEY }}" ] || [ -z "${{ secrets.GPG_PASSPHRASE }}" ] || [ -z "${{ secrets.GPG_KEY_NAME }}" ]; then
+            echo "Missing GPG secrets: set GPG_PRIVATE_KEY, GPG_PASSPHRASE, and GPG_KEY_NAME" >&2
             exit 1
           fi
-      - name: Publish package to GitHub Packages
-        run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
-        working-directory: ./roaring
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
         env:
-          GITHUB_USER: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-      - name: Publish package to Maven Central
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -i
-        working-directory: ./roaring
+
+      - name: Release with JReleaser
+        run: ./gradlew jreleaserFullRelease
         env:
-          MAVEN_USER: ${{ secrets.MAVEN_USER }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_KEY_NAME: ${{ secrets.GPG_KEY_NAME }}
+          JRELEASER_NEXUS2_USERNAME: ${{ secrets.MAVEN_USER }}
+          JRELEASER_NEXUS2_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
     

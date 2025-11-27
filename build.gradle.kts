@@ -3,7 +3,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
     id("signing")
-    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
+    id("org.jreleaser") version "1.15.0"
     id("com.diffplug.spotless") version "6.25.0"
 }
 
@@ -90,7 +90,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
 
         configure<PublishingExtension> {
             publications {
-                register<MavenPublication>("sonatype") {
+                register<MavenPublication>("mavenJava") {
                     groupId = project.group.toString()
                     artifactId = project.name
                     version = project.version.toString()
@@ -135,14 +135,14 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             }
 
              // A safe throw-away place to publish to:
-            // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
+            // ./gradlew publishMavenJavaPublicationToLocalDebugRepository -Pversion=foo
             repositories {
                 maven {
                     url = project.layout.buildDirectory.dir("repos/localDebug").get().asFile.toURI()
                 }
             }
 
-            // ./gradlew publishSonatypePublicationToGitHubPackagesRepository
+            // ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
             repositories {
                 maven {
                     name = "GitHubPackages"
@@ -150,17 +150,6 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                     credentials {
                         username = System.getenv("GITHUB_ACTOR")
                         password = System.getenv("GITHUB_TOKEN")
-                    }
-                }
-            }
-
-            // ./gradlew publishSonatypePublicationToSonatypeRepository
-            repositories {
-                maven {
-                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                    credentials {
-                        username = System.getenv("MAVEN_USER")
-                        password = System.getenv("MAVEN_PASSWORD")
                     }
                 }
             }
@@ -176,42 +165,6 @@ release {
     tagTemplate = "\$version"
 }
 
-nexusPublishing {
-    repositories {
-        sonatype()
-    }
-}
-
-// Validate Sonatype and GPG secrets if a Sonatype publish/close/release is requested.
-run {
-    val publishRequested = gradle.startParameter.taskNames.any { t ->
-        listOf("publishToSonatype", "publishToSonatypeRepository", "closeAndReleaseSonatypeStagingRepository", "closeSonatypeStagingRepository", "releaseSonatypeStagingRepository").any { it in t }
-    }
-    if (publishRequested) {
-        val user = System.getenv("MAVEN_USER")
-        val pass = System.getenv("MAVEN_PASSWORD")
-        if (user.isNullOrBlank() || pass.isNullOrBlank()) {
-            throw org.gradle.api.GradleException("Missing Sonatype credentials. Set secrets MAVEN_USER/MAVEN_PASSWORD.")
-        }
-        val gpgKey = System.getenv("GPG_PRIVATE_KEY")
-        val gpgPass = System.getenv("GPG_PASSPHRASE")
-        if (gpgKey.isNullOrBlank() || gpgPass.isNullOrBlank()) {
-            throw org.gradle.api.GradleException("Missing GPG_PRIVATE_KEY or GPG_PASSPHRASE. These are required to sign artifacts before publishing to Sonatype.")
-        }
-    }
-}
-
-// Root-level signing configuration: use in-memory PGP key from CI to sign subproject publications
-configure<org.gradle.plugins.signing.SigningExtension> {
-    val signingKey = System.getenv("GPG_PRIVATE_KEY")
-    val signingPassphrase = System.getenv("GPG_PASSPHRASE")
-    if (!signingKey.isNullOrBlank()) {
-        useInMemoryPgpKeys(signingKey, signingPassphrase)
-        subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { proj ->
-            val pub = proj.extensions.findByType(PublishingExtension::class)?.publications?.findByName("sonatype")
-            if (pub != null) {
-                sign(pub)
-            }
-        }
-    }
+jreleaser {
+    // Configuration in jreleaser.yml
 }
