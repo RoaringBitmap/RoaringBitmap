@@ -1736,6 +1736,8 @@ public class ImmutableRoaringBitmap
         size += this.highLowContainer.getCardinality(i);
       } else if (key == xhigh) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(lowbits(x));
+      } else {
+        break;
       }
     }
     return size;
@@ -1766,6 +1768,8 @@ public class ImmutableRoaringBitmap
         size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
       } else if (key == xhigh) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(lowbits((int) (end - 1)));
+      } else {
+        break;
       }
     }
     return size;
