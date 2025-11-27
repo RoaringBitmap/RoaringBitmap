@@ -77,14 +77,14 @@ jobs:
           else
             echo "Unable to determine version" >&2
           fi
-      - name: Release with JReleaser
+      - name: Release with JReleaser # See https://github.com/LanternPowered/Lmbda/ or https://github.com/SpiralMoon/maplestory.openapi
         run: |
           if [ -n "${{ steps.version.outputs.version }}" ]; then
             PROP="-Pjreleaser.project.version=${{ steps.version.outputs.version }}"
           else
             PROP=""
           fi
-          ./gradlew jreleaserFullRelease --info -Prelease $PROP
+          ./gradlew publish jreleaserFullRelease --info $PROP
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
