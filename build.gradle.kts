@@ -166,5 +166,5 @@ release {
 }
 
 jreleaser {
-    // Configuration in jreleaser.yml
+    configFile.set(rootProject.file("jreleaser.yml"))
 }
