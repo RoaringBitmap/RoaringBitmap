@@ -25,7 +25,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // tests and benchmarks both need dependencies: javaEWAH, extendedset, etc.
     listOf(

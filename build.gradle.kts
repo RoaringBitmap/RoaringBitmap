@@ -2,8 +2,6 @@ plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
-    id("signing")
-    id("org.jreleaser") version "1.15.0"
     id("com.diffplug.spotless") version "6.25.0"
 }
 
@@ -16,7 +14,7 @@ subprojects {
     // used in per-subproject dependencies
     @Suppress("UNUSED_VARIABLE") val deps by extra {
         mapOf(
-                "jupiter" to "5.10.2",
+                "jupiter" to "5.6.1",
                 "guava" to "20.0",
                 "commons-lang" to "3.4"
         )
@@ -90,7 +88,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
 
         configure<PublishingExtension> {
             publications {
-                register<MavenPublication>("mavenJava") {
+                register<MavenPublication>("sonatype") {
                     groupId = project.group.toString()
                     artifactId = project.name
                     version = project.version.toString()
@@ -135,14 +133,15 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             }
 
              // A safe throw-away place to publish to:
-            // ./gradlew publishMavenJavaPublicationToLocalDebugRepository -Pversion=foo
+            // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
             repositories {
                 maven {
+                    name = "localDebug"
                     url = project.layout.buildDirectory.dir("repos/localDebug").get().asFile.toURI()
                 }
             }
 
-            // ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
+            // ./gradlew publishSonatypePublicationToGitHubPackagesRepository
             repositories {
                 maven {
                     name = "GitHubPackages"
@@ -156,6 +155,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
 
         }
 
+
     }
 }
 
@@ -164,7 +164,4 @@ release {
     // instead of just 0.1.0 or v0.1.0.
     tagTemplate = "\$version"
 }
-
-jreleaser {
-    configFile.set(rootProject.file("jreleaser.yml"))
-}
+	

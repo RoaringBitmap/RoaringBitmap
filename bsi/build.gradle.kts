@@ -1,7 +1,3 @@
-plugins {
-    id("java-library")
-}
-
 val deps: Map<String, String> by extra
 
 dependencies {
@@ -10,7 +6,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${deps["jupiter"]}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${deps["jupiter"]}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${deps["jupiter"]}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 
