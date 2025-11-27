@@ -1,4 +1,4 @@
-name: Java 8, 11, 17, 21 CI
+name: Java 21, 25 CI
 
 on: [ push,pull_request ]
 
@@ -8,51 +8,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDKs 8, 11, 17, 21
-        uses: actions/setup-java@v4
+      - name: Set up JDKs 21, 25
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: |
-            8
-            11
-            17
             21
+            25
 
       - name: Build with Gradle
         run: ./gradlew assemble
-
-      - name: Test with Java 8
-        id: test_java8
-        run: ./gradlew test -PtestOnJava=8 --stacktrace
-
-      - uses: actions/upload-artifact@v4  # upload test results if the test was not skipped
-        if: ${{ !cancelled() && steps.test_java8.outcome != 'skipped'}}
-        with:
-          name: test-results-j8
-          path: '*/build/test-results/**/*.xml'
-          overwrite: 'true'
-
-      - name: Test with Java 11
-        id: test_java11
-        run: ./gradlew test -PtestOnJava=11 --stacktrace
-
-      - uses: actions/upload-artifact@v4  # upload test results if the test was not skipped
-        if: ${{ !cancelled() && steps.test_java11.outcome != 'skipped'}}
-        with:
-          name: test-results-j11
-          path: '*/build/test-results/**/*.xml'
-          overwrite: 'true'
-
-      - name: Test with Java 17
-        id: test_java17
-        run: ./gradlew test -PtestOnJava=17 --stacktrace
-
-      - uses: actions/upload-artifact@v4  # upload test results if the test was not skipped
-        if: ${{ !cancelled() && steps.test_java17.outcome != 'skipped'}}
-        with:
-          name: test-results-j17
-          path: '*/build/test-results/**/*.xml'
-          overwrite: 'true'
 
       - name: Test with Java 21
         id: test_java21
@@ -62,6 +27,17 @@ jobs:
         if: ${{ !cancelled() && steps.test_java21.outcome != 'skipped'}}
         with:
           name: test-results-j21
+          path: '*/build/test-results/**/*.xml'
+          overwrite: 'true'
+
+      - name: Test with Java 25
+        id: test_java25
+        run: ./gradlew test -PtestOnJava=25 --stacktrace
+
+      - uses: actions/upload-artifact@v4  # upload test results if the test was not skipped
+        if: ${{ !cancelled() && steps.test_java25.outcome != 'skipped'}}
+        with:
+          name: test-results-j25
           path: '*/build/test-results/**/*.xml'
           overwrite: 'true'
 
