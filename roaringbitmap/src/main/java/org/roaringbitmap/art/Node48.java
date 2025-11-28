@@ -1,11 +1,7 @@
 package org.roaringbitmap.art;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.LongBuffer;
 import java.util.Arrays;
 
 public class Node48 extends BranchNode {
@@ -249,58 +245,6 @@ public class Node48 extends BranchNode {
       return node16;
     }
     return this;
-  }
-
-  @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    for (int i = 0; i < LONGS_USED; i++) {
-      long longv = childIndex[i];
-      dataOutput.writeLong(Long.reverseBytes(longv));
-    }
-  }
-
-  @Override
-  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    LongBuffer longBuffer = byteBuffer.asLongBuffer();
-    longBuffer.put(childIndex);
-    byteBuffer.position(byteBuffer.position() + LONGS_USED * BYTES_PER_LONG);
-  }
-
-  @Override
-  public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    for (int i = 0; i < LONGS_USED; i++) {
-      childIndex[i] = Long.reverseBytes(dataInput.readLong());
-    }
-  }
-
-  @Override
-  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    LongBuffer longBuffer = byteBuffer.asLongBuffer();
-    longBuffer.get(childIndex);
-    byteBuffer.position(byteBuffer.position() + LONGS_USED * BYTES_PER_LONG);
-  }
-
-  @Override
-  public int serializeNodeBodySizeInBytes() {
-    return LONGS_USED * BYTES_PER_LONG;
-  }
-
-  @Override
-  void replaceChildren(Node[] children) {
-    int step = 0;
-    for (int i = 0; i < LONGS_USED; i++) {
-      long longv = Long.reverseBytes(childIndex[i]);
-      if (longv != INIT_LONG_VALUE) {
-        for (int j = 0; j < BYTES_PER_LONG; j++) {
-          long currentByte = longv & 0xFF;
-          if (currentByte != 0xFF) {
-            this.children[(int) currentByte] = children[step];
-            step++;
-          }
-          longv >>>= 8;
-        }
-      }
-    }
   }
 
   private static byte childrenIdx(int pos, long[] childIndex) {

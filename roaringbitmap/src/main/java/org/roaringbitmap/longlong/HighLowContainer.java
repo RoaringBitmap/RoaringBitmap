@@ -1,6 +1,8 @@
 package org.roaringbitmap.longlong;
 
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
+import static org.roaringbitmap.longlong.Roaring64Bitmap.CURRENT_SERIALISED_FORM;
+import static org.roaringbitmap.longlong.Roaring64Bitmap.EMPTY_TAG;
 
 import org.roaringbitmap.Container;
 import org.roaringbitmap.art.Art;
@@ -15,14 +17,13 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.NoSuchElementException;
 
 public class HighLowContainer {
 
   private Art art;
   private Containers containers;
-  private static final byte EMPTY_TAG = 0;
-  private static final byte NOT_EMPTY_TAG = 1;
 
   public HighLowContainer() {
     art = new Art();
@@ -75,8 +76,16 @@ public class HighLowContainer {
    * @param container the container
    */
   public void put(byte[] highPart, Container container) {
-    long containerIdx = containers.addContainer(container);
+    long containerIdx = addContainer(container);
     art.insert(highPart, containerIdx);
+  }
+  /**
+   * add a fresh container, return the position index
+   * @param container the fresh container
+   * @return the position index of the added container
+   */
+  public long addContainer(Container container) {
+    return containers.addContainer(container);
   }
 
   /**
@@ -202,21 +211,17 @@ public class HighLowContainer {
    * @throws IOException indicate exception happened
    */
   public void serialize(ByteBuffer buffer) throws IOException {
-    ByteBuffer byteBuffer =
-        buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
+    ByteOrder originalOrder = buffer.order();
+    buffer.order(LITTLE_ENDIAN);
+    try {
     if (art.isEmpty()) {
-      byteBuffer.put(EMPTY_TAG);
-      if (byteBuffer != buffer) {
-        buffer.position(buffer.position() + byteBuffer.position());
-      }
-      return;
+      buffer.put(EMPTY_TAG);
     } else {
-      byteBuffer.put(NOT_EMPTY_TAG);
+      buffer.put(CURRENT_SERIALISED_FORM);
+      art.serializeArt(buffer, this);
     }
-    art.serializeArt(byteBuffer);
-    containers.serialize(byteBuffer);
-    if (byteBuffer != buffer) {
-      buffer.position(buffer.position() + byteBuffer.position());
+    } finally {
+      buffer.order(originalOrder);
     }
   }
 
@@ -226,15 +231,22 @@ public class HighLowContainer {
    * @throws IOException indicate exception happened
    */
   public void deserialize(ByteBuffer buffer) throws IOException {
-    ByteBuffer byteBuffer =
-        buffer.order() == LITTLE_ENDIAN ? buffer : buffer.slice().order(LITTLE_ENDIAN);
+    ByteOrder originalOrder = buffer.order();
     clear();
-    byte emptyTag = byteBuffer.get();
-    if (emptyTag == EMPTY_TAG) {
+    byte format = buffer.get();
+    if (format == EMPTY_TAG) {
       return;
     }
-    art.deserializeArt(byteBuffer);
-    containers.deserialize(byteBuffer);
+    buffer.order(LITTLE_ENDIAN);
+    try {
+      if (format != CURRENT_SERIALISED_FORM) {
+        throw new IOException("Format mismatch expected Empty:" + EMPTY_TAG +
+            " or current:" + CURRENT_SERIALISED_FORM + " but got " + format);
+      }
+      art.deserializeArt(buffer, this);
+    } finally {
+      buffer.order(originalOrder);
+    }
   }
 
   /**
@@ -242,13 +254,7 @@ public class HighLowContainer {
    * @return the size in bytes
    */
   public long serializedSizeInBytes() {
-    long totalSize = 1L;
-    if (art.isEmpty()) {
-      return totalSize;
-    }
-    totalSize += art.serializeSizeInBytes();
-    totalSize += containers.serializedSizeInBytes();
-    return totalSize;
+    return 1 + (art.isEmpty() ? 0 : art.serializeSizeInBytes(this));
   }
 
   /**
@@ -261,10 +267,9 @@ public class HighLowContainer {
       dataOutput.writeByte(EMPTY_TAG);
       return;
     } else {
-      dataOutput.writeByte(NOT_EMPTY_TAG);
+      dataOutput.writeByte(CURRENT_SERIALISED_FORM);
     }
-    art.serializeArt(dataOutput);
-    containers.serialize(dataOutput);
+    art.serializeArt(dataOutput, this);
   }
 
   /**
@@ -274,12 +279,15 @@ public class HighLowContainer {
    */
   public void deserialize(DataInput dataInput) throws IOException {
     clear();
-    byte emptyTag = dataInput.readByte();
-    if (emptyTag == EMPTY_TAG) {
+    byte format = dataInput.readByte();
+    if (format == EMPTY_TAG) {
       return;
     }
-    art.deserializeArt(dataInput);
-    containers.deserialize(dataInput);
+    if (format != CURRENT_SERIALISED_FORM) {
+      throw new IOException("Format mismatch expected Empty:" + EMPTY_TAG +
+          " or current:" + CURRENT_SERIALISED_FORM + " but got " + format);
+    }
+    art.deserializeArt(dataInput, this);
   }
 
   /**

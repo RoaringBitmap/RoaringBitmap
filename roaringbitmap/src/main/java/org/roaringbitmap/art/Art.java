@@ -1,13 +1,17 @@
 package org.roaringbitmap.art;
 
 import org.roaringbitmap.ArraysShim;
+import org.roaringbitmap.longlong.HighLowContainer;
 import org.roaringbitmap.longlong.LongUtils;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
+
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 /**
  * See: https://db.in.tum.de/~leis/papers/ART.pdf a cpu cache friendly main memory data structure.
@@ -365,24 +369,8 @@ public class Art {
     return getExtremeLeaf(true);
   }
 
-  public void serializeArt(DataOutput dataOutput) throws IOException {
-    dataOutput.writeLong(Long.reverseBytes(keySize));
-    serialize(root, dataOutput);
-  }
-
-  public void deserializeArt(DataInput dataInput) throws IOException {
-    keySize = Long.reverseBytes(dataInput.readLong());
-    root = deserialize(dataInput);
-  }
-
-  public void serializeArt(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.putLong(keySize);
-    serialize(root, byteBuffer);
-  }
-
-  public void deserializeArt(ByteBuffer byteBuffer) throws IOException {
-    keySize = byteBuffer.getLong();
-    root = deserialize(byteBuffer);
+  public long getKeySize() {
+    return keySize;
   }
 
   public LeafNodeIterator leafNodeIterator(boolean reverse, Containers containers) {
@@ -393,116 +381,51 @@ public class Art {
     return new LeafNodeIterator(this, reverse, containers, bound);
   }
 
-  private void serialize(Node node, DataOutput dataOutput) throws IOException {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode)node;
-      // serialize the internal node itself first
-      branchNode.serialize(dataOutput);
-      // then all the internal node's children
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        serialize(child, dataOutput);
-        nexPos = branchNode.getNextLargerPos(nexPos);
+  public void serializeArt(DataOutput dataOutput, HighLowContainer highLow) throws IOException {
+    dataOutput.writeLong(Long.reverseBytes(keySize));
+    if (keySize != 0L) {
+      root.serialize(dataOutput, highLow);
+    }
+  }
+  public void serializeArt(ByteBuffer buffer, HighLowContainer highLow) throws IOException {
+    ByteOrder originalOrder = buffer.order();
+    buffer.order(LITTLE_ENDIAN);
+    try {
+      buffer.putLong(keySize);
+      if (keySize != 0L) {
+        root.serialize(buffer, highLow);
       }
-    } else {
-      // serialize the leaf node
-      node.serialize(dataOutput);
+    } finally {
+      buffer.order(originalOrder);
     }
   }
 
-  private void serialize(Node node, ByteBuffer byteBuffer) throws IOException {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode)node;
-      // serialize the internal node itself first
-      branchNode.serialize(byteBuffer);
-      // then all the internal node's children
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        serialize(child, byteBuffer);
-        nexPos = branchNode.getNextLargerPos(nexPos);
+  public void deserializeArt(DataInput dataInput, HighLowContainer highLow) throws IOException {
+    keySize = Long.reverseBytes(dataInput.readLong());
+    if (keySize != 0L) {
+      root = Node.deserialize(dataInput, highLow);
+    }
+  }
+
+  public void deserializeArt(ByteBuffer buffer, HighLowContainer highLow) throws IOException {
+    ByteOrder originalOrder = buffer.order();
+    buffer.order(LITTLE_ENDIAN);
+    try {
+      keySize = buffer.getLong();
+      if (keySize != 0L) {
+        root = Node.deserialize(buffer, highLow);
       }
-    } else {
-      // serialize the leaf node
-      node.serialize(byteBuffer);
+    } finally {
+      buffer.order(originalOrder);
     }
   }
 
-  private Node deserialize(DataInput dataInput) throws IOException {
-    Node oneNode = Node.deserialize(dataInput);
-    if (oneNode == null) {
-      return null;
+  public long serializeSizeInBytes(HighLowContainer highLow) {
+    long size = 8; // 8 bytes for the keySize
+    if (!isEmpty()) {
+      size += root.serializeSizeInBytes(highLow);
     }
-    if (oneNode instanceof LeafNode) {
-      return oneNode;
-    } else {
-      BranchNode branch = (BranchNode) oneNode;
-      // internal node
-      int count = branch.count;
-      // all the not null child nodes
-      Node[] children = new Node[count];
-      for (int i = 0; i < count; i++) {
-        Node child = deserialize(dataInput);
-        children[i] = child;
-      }
-      branch.replaceChildren(children);
-      return branch;
-    }
+    return size;
   }
 
-  private Node deserialize(ByteBuffer byteBuffer) throws IOException {
-    Node oneNode = Node.deserialize(byteBuffer);
-    if (oneNode == null) {
-      return null;
-    }
-    if (oneNode instanceof LeafNode) {
-      return oneNode;
-    } else {
-      BranchNode branchNode = (BranchNode) oneNode;
-      // internal node
-      int count = branchNode.count;
-      // all the not null child nodes
-      Node[] children = new Node[count];
-      for (int i = 0; i < count; i++) {
-        Node child = deserialize(byteBuffer);
-        children[i] = child;
-      }
-      branchNode.replaceChildren(children);
-      return branchNode;
-    }
-  }
-
-  public long serializeSizeInBytes() {
-    return serializeSizeInBytes(this.root) + 8;
-  }
-
-  public long getKeySize() {
-    return keySize;
-  }
-
-  private long serializeSizeInBytes(Node node) {
-    if (node instanceof BranchNode) {
-      BranchNode branchNode = (BranchNode) node;
-      // serialize the internal node itself first
-      int currentNodeSize = branchNode.serializeSizeInBytes();
-      // then all the internal node's children
-      long childrenTotalSize = 0L;
-      int nexPos = branchNode.getNextLargerPos(BranchNode.ILLEGAL_IDX);
-      while (nexPos != BranchNode.ILLEGAL_IDX) {
-        // serialize all the not null child node
-        Node child = branchNode.getChild(nexPos);
-        long childSize = serializeSizeInBytes(child);
-        nexPos = branchNode.getNextLargerPos(nexPos);
-        childrenTotalSize += childSize;
-      }
-      return currentNodeSize + childrenTotalSize;
-    } else {
-      // serialize the leaf node
-      int nodeSize = node.serializeSizeInBytes();
-      return nodeSize;
-    }
-  }
 }

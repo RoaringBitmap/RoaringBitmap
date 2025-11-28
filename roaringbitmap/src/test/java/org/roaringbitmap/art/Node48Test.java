@@ -2,6 +2,9 @@ package org.roaringbitmap.art;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
+import org.roaringbitmap.longlong.HighLowContainer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -17,8 +20,12 @@ public class Node48Test {
   public void test() throws IOException {
     Node48 node48 = new Node48(0);
     LeafNode leafNode;
+    HighLowContainer highLow = new HighLowContainer();
     for (int i = 0; i < 48; i++) {
-      leafNode = new LeafNode(i, i);
+      Container container = new ArrayContainer();
+      container.add((char) i);
+      long index = highLow.addContainer(container);
+      leafNode = new LeafNode(i, index);
       node48 = (Node48) node48.insert(leafNode, (byte) i);
     }
     int minPos = node48.getMinPos();
@@ -46,15 +53,16 @@ public class Node48Test {
       Assertions.assertEquals(i, pos);
       currentPos = pos;
     }
-    int sizeInBytes = node48.serializeSizeInBytes();
+    int sizeInBytes = (int)node48.serializeSizeInBytes(highLow);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-    node48.serialize(dataOutputStream);
+    node48.serialize(dataOutputStream, highLow);
     Assertions.assertEquals(sizeInBytes, byteArrayOutputStream.toByteArray().length);
     ByteArrayInputStream byteArrayInputStream =
         new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
-    Node48 deserNode48 = (Node48) Node.deserialize(dataInputStream);
+    HighLowContainer deserHighLow = new HighLowContainer();
+    Node48 deserNode48 = (Node48) Node.deserialize(dataInputStream, deserHighLow);
     currentPos = maxPos;
     for (int i = 46; i >= 0; i--) {
       int pos = deserNode48.getNextSmallerPos(currentPos);

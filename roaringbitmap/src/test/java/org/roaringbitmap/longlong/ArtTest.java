@@ -1,5 +1,6 @@
 package org.roaringbitmap.longlong;
 
+import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.art.*;
 
 import org.junit.jupiter.api.Assertions;
@@ -21,7 +22,8 @@ public class ArtTest {
   public void testLeafNode() {
     byte[] key1 = new byte[] {1, 2, 3, 4, 5, 0};
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 1);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 1, highLow);
     LeafNodeIterator leafNodeIterator = art.leafNodeIterator(false, null);
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
@@ -44,7 +46,8 @@ public class ArtTest {
     byte[] key1 = new byte[] {1, 2, 3, 4, 5, 0};
     byte[] key2 = new byte[] {1, 2, 3, 4, 5, 1};
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 2);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 2, highLow);
     LeafNodeIterator leafNodeIterator = art.leafNodeIterator(false, null);
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
@@ -73,7 +76,8 @@ public class ArtTest {
     byte[] key4 = new byte[] {1, 2, 3, 4, 5, 3};
     byte[] key5 = new byte[] {1, 2, 3, 4, 5, 4};
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 5);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 5, highLow);
     LeafNodeIterator leafNodeIterator = art.leafNodeIterator(false, null);
     boolean hasNext = leafNodeIterator.hasNext();
     Assertions.assertTrue(hasNext);
@@ -92,21 +96,21 @@ public class ArtTest {
     containerIdx = art.findByKey(key5);
     Assertions.assertEquals(4, containerIdx);
     // ser/deser
-    int sizeInBytes = (int) art.serializeSizeInBytes();
+    int sizeInBytes = (int) art.serializeSizeInBytes(highLow);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-    art.serializeArt(dataOutputStream);
+    art.serializeArt(dataOutputStream, highLow);
     ByteArrayInputStream byteArrayInputStream =
         new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Art deserArt = new Art();
-    deserArt.deserializeArt(dataInputStream);
+    deserArt.deserializeArt(dataInputStream, new HighLowContainer());
     Assertions.assertEquals(art.findByKey(key5), deserArt.findByKey(key5));
 
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytes).order(ByteOrder.LITTLE_ENDIAN);
-    art.serializeArt(byteBuffer);
+    art.serializeArt(byteBuffer, highLow);
     byteBuffer.flip();
-    deserArt.deserializeArt(byteBuffer);
+    deserArt.deserializeArt(byteBuffer, new HighLowContainer());
     Assertions.assertEquals(art.findByKey(key5), deserArt.findByKey(key5));
 
     art.remove(key5);
@@ -120,7 +124,8 @@ public class ArtTest {
   @Test
   public void testNode48() throws Exception {
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 17);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 17, highLow);
     byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     long containerIdx = art.findByKey(key);
     Assertions.assertEquals(0, containerIdx);
@@ -132,21 +137,21 @@ public class ArtTest {
     Assertions.assertEquals(12, containerIdx);
     byte[] key13 = new byte[] {1, 2, 3, 4, 5, 12};
     // ser/deser
-    int sizeInBytes = (int) art.serializeSizeInBytes();
+    int sizeInBytes = (int) art.serializeSizeInBytes(highLow);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInBytes);
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-    art.serializeArt(dataOutputStream);
+    art.serializeArt(dataOutputStream, highLow);
     ByteArrayInputStream byteArrayInputStream =
         new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
     Art deserArt = new Art();
-    deserArt.deserializeArt(dataInputStream);
+    deserArt.deserializeArt(dataInputStream, new HighLowContainer());
     Assertions.assertEquals(art.findByKey(key13), deserArt.findByKey(key13));
 
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytes).order(ByteOrder.LITTLE_ENDIAN);
-    art.serializeArt(byteBuffer);
+    art.serializeArt(byteBuffer, highLow);
     byteBuffer.flip();
-    deserArt.deserializeArt(byteBuffer);
+    deserArt.deserializeArt(byteBuffer, new HighLowContainer());
     Assertions.assertEquals(art.findByKey(key13), deserArt.findByKey(key13));
     Assertions.assertEquals(art.getKeySize(), deserArt.getKeySize());
 
@@ -164,7 +169,8 @@ public class ArtTest {
   @Test
   public void testNode256() throws IOException {
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 50);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 50, highLow);
     byte[] key = new byte[] {1, 2, 3, 4, 5, 0};
     long containerIdx = art.findByKey(key);
     Assertions.assertEquals(0, containerIdx);
@@ -180,25 +186,25 @@ public class ArtTest {
     key = new byte[] {1, 2, 3, 4, 5, 51};
     containerIdx = art.findByKey(key);
     Assertions.assertEquals(BranchNode.ILLEGAL_IDX, containerIdx);
-    long sizeInBytesL = art.serializeSizeInBytes();
+    long sizeInBytesL = art.serializeSizeInBytes(highLow);
     int sizeInBytesI = (int) sizeInBytesL;
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(sizeInBytesI);
     DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-    art.serializeArt(dataOutputStream);
+    art.serializeArt(dataOutputStream, highLow);
     Assertions.assertEquals(sizeInBytesI, byteArrayOutputStream.toByteArray().length);
     Art deserArt = new Art();
     DataInputStream dataInputStream =
         new DataInputStream(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
-    deserArt.deserializeArt(dataInputStream);
+    deserArt.deserializeArt(dataInputStream, new HighLowContainer());
     key = new byte[] {1, 2, 3, 4, 5, 36};
     containerIdx = deserArt.findByKey(key);
     Assertions.assertEquals(36, containerIdx);
 
     ByteBuffer byteBuffer = ByteBuffer.allocate(sizeInBytesI).order(ByteOrder.LITTLE_ENDIAN);
-    art.serializeArt(byteBuffer);
+    art.serializeArt(byteBuffer, highLow);
     byteBuffer.flip();
     Art deserBBOne = new Art();
-    deserBBOne.deserializeArt(byteBuffer);
+    deserBBOne.deserializeArt(byteBuffer, new HighLowContainer());
     containerIdx = deserBBOne.findByKey(key);
     Assertions.assertEquals(36, containerIdx);
 
@@ -215,7 +221,8 @@ public class ArtTest {
     byte[] key1 = new byte[] {1, 2, 3, 4, 5, 1};
     byte[] key2 = new byte[] {1, 2, 3, 4, 5, 2};
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 3);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 3, highLow);
     LeafNodeIterator lnIt = art.leafNodeIterator(false, null);
     boolean hasNext = lnIt.hasNext();
 
@@ -254,7 +261,8 @@ public class ArtTest {
     byte[] key1 = new byte[] {1, 2, 3, 4, 5, 1};
     byte[] key2 = new byte[] {1, 2, 3, 4, 5, 2};
     Art art = new Art();
-    insert5PrefixCommonBytesIntoArt(art, 3);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonBytesIntoArt(art, 3,highLow);
     LeafNodeIterator lnIt = art.leafNodeIterator(true, null);
     boolean hasNext = lnIt.hasNext();
 
@@ -298,7 +306,8 @@ public class ArtTest {
     byte[] end1 = new byte[] {2, 2, 3, 4, 5, 4};
 
     Art art = new Art();
-    insert5PrefixCommonWithGapBytesIntoArt(art, 3);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonWithGapBytesIntoArt(art, 3, highLow);
     LeafNodeIterator lnIt = art.leafNodeIterator(false, null);
     boolean hasNext = lnIt.hasNext();
 
@@ -365,7 +374,8 @@ public class ArtTest {
     byte[] end1 = new byte[] {0, 2, 3, 4, 5, 0};
 
     Art art = new Art();
-    insert5PrefixCommonWithGapBytesIntoArt(art, 3);
+    HighLowContainer highLow = new HighLowContainer();
+    insert5PrefixCommonWithGapBytesIntoArt(art, 3, highLow);
     LeafNodeIterator lnIt = art.leafNodeIterator(true, null);
     boolean hasNext = lnIt.hasNext();
 
@@ -421,21 +431,20 @@ public class ArtTest {
     Assertions.assertTrue(BytesUtil.same(lnIt.peekNext().getKeyBytes(), key0));
   }
 
-  private void insert5PrefixCommonBytesIntoArt(Art art, int keyNum) {
+  private void insert5PrefixCommonBytesIntoArt(Art art, int keyNum, HighLowContainer highLow) {
     byte b = 0;
-    long containerIdx = 0;
-    for (int i = 0; i < keyNum; i++, b++, containerIdx++) {
+
+    for (int i = 0; i < keyNum; i++, b++) {
       byte[] key = new byte[]{1, 2, 3, 4, 5, b};
-      art.insert(key, containerIdx);
+      art.insert(key, highLow.addContainer(new ArrayContainer()));
     }
   }
 
-  private void insert5PrefixCommonWithGapBytesIntoArt(Art art, int keyNum) {
+  private void insert5PrefixCommonWithGapBytesIntoArt(Art art, int keyNum, HighLowContainer highLow) {
     byte b = 0;
-    long containerIdx = 0;
-    for (int i = 0; i < keyNum; i++, b += (byte) 2, containerIdx++) {
+    for (int i = 0; i < keyNum; i++, b += (byte) 2) {
       byte[] key = new byte[]{1, 2, 3, 4, 5, b};
-      art.insert(key, containerIdx);
+      art.insert(key, highLow.addContainer(new ArrayContainer()));
     }
   }
 }
