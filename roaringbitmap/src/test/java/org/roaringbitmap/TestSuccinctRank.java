@@ -203,14 +203,14 @@ class TestSuccinctRank {
   }
 
   @Test
-  void snapshotReturnsCorrectBitmap() {
+  void getUnderlyingBitmapReturnsCorrectBitmap() {
     final RoaringBitmap rb = new RoaringBitmap();
     rb.add(1);
     rb.add(100);
     rb.add(1000);
 
     final SuccinctRank rank = SuccinctRank.build(rb);
-    final RoaringBitmap snapshot = rank.snapshot();
+    final RoaringBitmap snapshot = rank.getUnderlyingBitmap();
 
     assertNotNull(snapshot);
     assertEquals(3, snapshot.getCardinality());
@@ -513,7 +513,7 @@ class TestSuccinctRank {
 
     // The rank structure references the bitmap directly
     // If we modify the bitmap, rank queries will be incorrect
-    final RoaringBitmap snapshot = rank.snapshot();
+    final RoaringBitmap snapshot = rank.getUnderlyingBitmap();
     assertTrue(snapshot.contains(1));
     assertTrue(snapshot.contains(100));
     assertTrue(snapshot.contains(1000));
