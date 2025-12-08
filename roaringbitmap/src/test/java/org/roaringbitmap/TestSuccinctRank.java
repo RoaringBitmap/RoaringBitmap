@@ -36,22 +36,22 @@ class TestSuccinctRank {
     final SuccinctRank rank = SuccinctRank.build(rb);
 
     assertEquals(1L, rank.cardinality());
-    assertEquals(1L, rank.rank(42)); // Count of elements ≤ 42
-    assertEquals(0L, rank.rank(41)); // Count of elements ≤ 41
-    assertEquals(1L, rank.rank(43)); // Count of elements ≤ 43
+    assertEquals(1L, rank.rank(42)); 
+    assertEquals(0L, rank.rank(41)); 
+    assertEquals(1L, rank.rank(43)); 
   }
 
   @Test
   void consecutiveElements() {
     final RoaringBitmap rb = new RoaringBitmap();
-    rb.add(0L, 100L); // adds 0..99
+    rb.add(0L, 100L); 
     final SuccinctRank rank = SuccinctRank.build(rb);
 
     assertEquals(100L, rank.cardinality());
-    assertEquals(1L, rank.rank(0)); // Count of elements ≤ 0
-    assertEquals(50L, rank.rank(49)); // Count of elements ≤ 49
-    assertEquals(100L, rank.rank(99)); // Count of elements ≤ 99
-    assertEquals(100L, rank.rank(100)); // Count of elements ≤ 100 (all elements < 100)
+    assertEquals(1L, rank.rank(0)); 
+    assertEquals(50L, rank.rank(49)); 
+    assertEquals(100L, rank.rank(99)); 
+    assertEquals(100L, rank.rank(100)); 
   }
 
   @Test
@@ -64,12 +64,12 @@ class TestSuccinctRank {
     final SuccinctRank rank = SuccinctRank.build(rb);
 
     assertEquals(4L, rank.cardinality());
-    assertEquals(1L, rank.rank(10)); // Count of elements ≤ 10
-    assertEquals(2L, rank.rank(100)); // Count of elements ≤ 100
-    assertEquals(3L, rank.rank(1000)); // Count of elements ≤ 1000
-    assertEquals(4L, rank.rank(10000)); // Count of elements ≤ 10000
-    assertEquals(0L, rank.rank(9)); // Count of elements ≤ 9
-    assertEquals(1L, rank.rank(11)); // Count of elements ≤ 11
+    assertEquals(1L, rank.rank(10)); 
+    assertEquals(2L, rank.rank(100)); 
+    assertEquals(3L, rank.rank(1000)); 
+    assertEquals(4L, rank.rank(10000)); 
+    assertEquals(0L, rank.rank(9)); 
+    assertEquals(1L, rank.rank(11)); 
   }
 
   @Test
@@ -89,17 +89,17 @@ class TestSuccinctRank {
     // First container
     assertEquals(1L, rank.rank(0));
     assertEquals(100L, rank.rank(99));
-    assertEquals(100L, rank.rank(100)); // All elements in first container
+    assertEquals(100L, rank.rank(100)); 
 
     // Second container
     assertEquals(101L, rank.rank(65536));
     assertEquals(200L, rank.rank(65635));
-    assertEquals(200L, rank.rank(65636)); // All elements in first two containers
+    assertEquals(200L, rank.rank(65636)); 
 
     // Third container
     assertEquals(201L, rank.rank(131072));
     assertEquals(300L, rank.rank(131171));
-    assertEquals(300L, rank.rank(131172)); // All elements
+    assertEquals(300L, rank.rank(131172)); 
   }
 
   @Test
@@ -136,7 +136,7 @@ class TestSuccinctRank {
 
     // Add 10000 random values
     for (int i = 0; i < 10000; i++) {
-      rb.add(random.nextInt() & 0x7FFFFFFF); // positive values only
+      rb.add(random.nextInt() & 0x7FFFFFFF); 
     }
 
     final SuccinctRank fastRank = SuccinctRank.build(rb);
@@ -162,11 +162,11 @@ class TestSuccinctRank {
   void highKeyBoundaries() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add elements at high key boundaries
-    rb.add(0); // high key 0, low 0
-    rb.add(65535); // high key 0, low 65535
-    rb.add(65536); // high key 1, low 0
-    rb.add(131071); // high key 1, low 65535
-    rb.add(131072); // high key 2, low 0
+    rb.add(0); 
+    rb.add(65535); 
+    rb.add(65536); 
+    rb.add(131071); 
+    rb.add(131072); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
 
@@ -182,10 +182,10 @@ class TestSuccinctRank {
   void largeHighKeys() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add values with large high keys (near max unsigned int)
-    final int base = 0x7FFF0000; // high key 32767
+    final int base = 0x7FFF0000; 
     rb.add(base);
     rb.add(base + 100);
-    rb.add(base + 65536); // next container
+    rb.add(base + 65536); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
 
@@ -327,7 +327,7 @@ class TestSuccinctRank {
     // Add one element in each of the first 8 words to test switch cases
     // This tests mod4 = 0, 1, 2, 3 for the switch statement
     for (int word = 0; word < 8; word++) {
-      rb.add(word * 64 + 32); // middle of each word
+      rb.add(word * 64 + 32); 
     }
 
     final SuccinctRank rank = SuccinctRank.build(rb);
@@ -338,38 +338,6 @@ class TestSuccinctRank {
       assertEquals(
           (long) word + 1, rank.rank(value), "rank(" + value + ") should be " + (word + 1));
     }
-  }
-
-  @Test
-  void spaceUsageReported() {
-    final RoaringBitmap rb = new RoaringBitmap();
-    // Create a dense container (BitmapContainer)
-    rb.add(0L, 50000L);
-
-    final SuccinctRank rank = SuccinctRank.build(rb);
-    final long spaceUsage = rank.memoryUsageBytes();
-
-    // Should have: prefix array (2 * 8 = 16 bytes) + cumulative ranks (256 * 2 = 512 bytes)
-    // Small bitmap uses linear scan, so no highBits or highRankCount
-    assertTrue(spaceUsage > 0, "Space usage should be positive");
-    assertTrue(spaceUsage < 1024, "Small bitmap should use less than 1KB");
-  }
-
-  @Test
-  void spaceUsageLargeBitmap() {
-    final RoaringBitmap rb = new RoaringBitmap();
-    // Create 20 dense containers (BitmapContainers)
-    for (int i = 0; i < 20; i++) {
-      rb.add((long) i * 65536, (long) i * 65536 + 50000);
-    }
-
-    final SuccinctRank rank = SuccinctRank.build(rb);
-    final long spaceUsage = rank.memoryUsageBytes();
-
-    // Should have: highBits (8 KB) + highRankCount (2 KB) + prefix (21 * 8 = 168 bytes)
-    // + 20 * 512 bytes for cumulative ranks = ~20.5 KB
-    assertTrue(spaceUsage > 10000, "Large bitmap should use more than 10KB");
-    assertTrue(spaceUsage < 25000, "Large bitmap should use less than 25KB");
   }
 
   @Test
@@ -414,7 +382,7 @@ class TestSuccinctRank {
   void runContainerSupport() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add a long run that will be stored as RunContainer
-    rb.add(1000L, 10000L); // 9000 consecutive values
+    rb.add(1000L, 10000L); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(9000L, rank.cardinality());
@@ -433,9 +401,9 @@ class TestSuccinctRank {
   void multipleRunContainers() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add multiple runs in different containers
-    rb.add(100L, 200L); // 100 values in container 0
-    rb.add(65536L, 65736L); // 200 values in container 1
-    rb.add(131072L, 131372L); // 300 values in container 2
+    rb.add(100L, 200L); 
+    rb.add(65536L, 65736L); 
+    rb.add(131072L, 131372L); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(600L, rank.cardinality());
@@ -457,9 +425,9 @@ class TestSuccinctRank {
   void runContainerWithGaps() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add runs with gaps to test proper handling
-    rb.add(100L, 200L); // Run 1
-    rb.add(300L, 400L); // Run 2 (gap from 200-299)
-    rb.add(500L, 600L); // Run 3 (gap from 400-499)
+    rb.add(100L, 200L); 
+    rb.add(300L, 400L); 
+    rb.add(500L, 600L); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(300L, rank.cardinality());
@@ -585,9 +553,9 @@ class TestSuccinctRank {
   void negativeValues() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add negative values - they're treated as large unsigned ints
-    rb.add(-1); // 0xFFFFFFFF
-    rb.add(-100); // 0xFFFFFF9C
-    rb.add(-65536); // 0xFFFF0000
+    rb.add(-1); 
+    rb.add(-100); 
+    rb.add(-65536); 
     rb.add(0);
     rb.add(100);
 
@@ -626,8 +594,8 @@ class TestSuccinctRank {
 
     // Query for values not in the bitmap
     assertEquals(2L, rank.rank(2));
-    assertEquals(6L, rank.rank(Integer.MIN_VALUE + 2)); // After MIN_VALUE+1
-    assertEquals(2L, rank.rank(Integer.MAX_VALUE - 2)); // After 1, before MAX_VALUE-1
+    assertEquals(6L, rank.rank(Integer.MIN_VALUE + 2)); 
+    assertEquals(2L, rank.rank(Integer.MAX_VALUE - 2)); 
   }
 
   @Test
@@ -654,11 +622,11 @@ class TestSuccinctRank {
   void maxHighKey() {
     final RoaringBitmap rb = new RoaringBitmap();
     // High key 65535 is the maximum (represents values 0xFFFF0000 to 0xFFFFFFFF)
-    final int base = -65536; // High key 65535, low key 0
+    final int base = -65536; 
     rb.add(base);
     rb.add(base + 1);
     rb.add(base + 100);
-    rb.add(-1); // High key 65535, low key 65535
+    rb.add(-1); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(4L, rank.cardinality());
@@ -676,22 +644,22 @@ class TestSuccinctRank {
   void valuesInGapsBetweenContainers() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add values in containers 0, 5, and 10
-    rb.add(100); // Container 0
-    rb.add(5 * 65536 + 200); // Container 5
-    rb.add(10 * 65536 + 300); // Container 10
+    rb.add(100); 
+    rb.add(5 * 65536 + 200); 
+    rb.add(10 * 65536 + 300); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(3L, rank.cardinality());
 
     // Test values in gaps between containers
-    assertEquals(1L, rank.rank(1 * 65536)); // Gap: container 1
-    assertEquals(1L, rank.rank(2 * 65536)); // Gap: container 2
-    assertEquals(1L, rank.rank(3 * 65536)); // Gap: container 3
-    assertEquals(1L, rank.rank(4 * 65536)); // Gap: container 4
-    assertEquals(2L, rank.rank(6 * 65536)); // Gap: container 6
-    assertEquals(2L, rank.rank(7 * 65536)); // Gap: container 7
-    assertEquals(2L, rank.rank(8 * 65536)); // Gap: container 8
-    assertEquals(2L, rank.rank(9 * 65536)); // Gap: container 9
+    assertEquals(1L, rank.rank(1 * 65536)); 
+    assertEquals(1L, rank.rank(2 * 65536)); 
+    assertEquals(1L, rank.rank(3 * 65536)); 
+    assertEquals(1L, rank.rank(4 * 65536)); 
+    assertEquals(2L, rank.rank(6 * 65536)); 
+    assertEquals(2L, rank.rank(7 * 65536)); 
+    assertEquals(2L, rank.rank(8 * 65536)); 
+    assertEquals(2L, rank.rank(9 * 65536)); 
 
     // Verify present values
     assertEquals(1L, rank.rank(100));
@@ -704,7 +672,7 @@ class TestSuccinctRank {
     final RoaringBitmap rb = new RoaringBitmap();
     // Add exactly 17 containers (just above threshold)
     for (int i = 0; i < 17; i++) {
-      rb.add(i * 65536 + i); // Different offset in each container
+      rb.add(i * 65536 + i); 
     }
 
     final SuccinctRank rank = SuccinctRank.build(rb);
@@ -876,9 +844,9 @@ class TestSuccinctRank {
   void highKeyZeroExplicit() {
     final RoaringBitmap rb = new RoaringBitmap();
     // Explicitly test container at high key 0
-    rb.add(0); // High key 0, low key 0
-    rb.add(1); // High key 0, low key 1
-    rb.add(65535); // High key 0, low key 65535
+    rb.add(0); 
+    rb.add(1); 
+    rb.add(65535); 
 
     final SuccinctRank rank = SuccinctRank.build(rb);
     assertEquals(3L, rank.cardinality());

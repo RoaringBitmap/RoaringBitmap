@@ -107,12 +107,11 @@ public class SuccinctRank {
 
       long packed = 0;
       long blockCumulative = Long.bitCount(highBits[wordIdx]);
+      final int superblockLimit = Math.min(WORDS_PER_SUPERBLOCK, highBits.length - wordIdx);
 
-      for (int j = 1; j < WORDS_PER_SUPERBLOCK; j++) {
+      for (int j = 1; j < superblockLimit; j++) {
         packed |= (blockCumulative & BLOCK_MASK) << (BITS_PER_PACKED_BLOCK * (j - 1));
-        if (wordIdx + j < highBits.length) {
-          blockCumulative += Long.bitCount(highBits[wordIdx + j]);
-        }
+        blockCumulative += Long.bitCount(highBits[wordIdx + j]);
       }
       count[countPos + 1] = packed;
 
@@ -141,7 +140,7 @@ public class SuccinctRank {
   }
 
   /**
-   * Returns the number of integers ≤ x.
+   * Returns the number of integers <= x.
    *
    * @param x upper limit
    * @return the rank
@@ -274,26 +273,5 @@ public class SuccinctRank {
 
   public int containerCount() {
     return this.bitmap.highLowContainer.size();
-  }
-
-  public long memoryUsageBytes() {
-    long bytes = Long.BYTES;
-
-    if (this.highBits != null) {
-      bytes += 12L + this.highBits.length * Long.BYTES;
-      bytes += 12L + this.highRankCount.length * Long.BYTES;
-    }
-
-    bytes += 12L + this.cumulativePerContainer.length * Long.BYTES;
-    bytes += 12L + (long) this.containerCumulativeRanks.length * Long.BYTES;
-
-    for (final char[] ranks : this.containerCumulativeRanks) {
-      if (ranks != null) {
-        bytes += 12L + ranks.length * Character.BYTES;
-      }
-    }
-
-    bytes += Integer.BYTES;
-    return bytes;
   }
 }
