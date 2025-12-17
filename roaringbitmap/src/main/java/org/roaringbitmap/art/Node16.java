@@ -2,9 +2,6 @@ package org.roaringbitmap.art;
 
 import org.roaringbitmap.longlong.LongUtils;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -231,38 +228,4 @@ public class Node16 extends BranchNode {
     return this;
   }
 
-  @Override
-  public void serializeNodeBody(DataOutput dataOutput) throws IOException {
-    // little endian
-    dataOutput.writeLong(Long.reverseBytes(firstV));
-    dataOutput.writeLong(Long.reverseBytes(secondV));
-  }
-
-  @Override
-  public void serializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    byteBuffer.putLong(firstV);
-    byteBuffer.putLong(secondV);
-  }
-
-  @Override
-  public void deserializeNodeBody(DataInput dataInput) throws IOException {
-    firstV = Long.reverseBytes(dataInput.readLong());
-    secondV = Long.reverseBytes(dataInput.readLong());
-  }
-
-  @Override
-  public void deserializeNodeBody(ByteBuffer byteBuffer) throws IOException {
-    this.firstV = byteBuffer.getLong();
-    this.secondV = byteBuffer.getLong();
-  }
-
-  @Override
-  public int serializeNodeBodySizeInBytes() {
-    return 16;
-  }
-
-  @Override
-  public void replaceChildren(Node[] children) {
-    System.arraycopy(children, 0, this.children, 0, count);
-  }
 }
