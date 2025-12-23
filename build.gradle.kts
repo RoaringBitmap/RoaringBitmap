@@ -12,13 +12,13 @@ plugins {
 
 subprojects {
     // used in per-subproject dependencies
-    @Suppress("UNUSED_VARIABLE") val deps by extra {
-        mapOf(
-                "jupiter" to "5.6.1",
-                "guava" to "20.0",
-                "commons-lang" to "3.4"
-        )
-    }
+    // MODIFICA: Assegnazione diretta a 'extra' per evitare il warning "property never used".
+    // I sottoprogetti potranno ancora accedere a rootProject.extra["deps"]
+    extra["deps"] = mapOf(
+        "jupiter" to "5.6.1",
+        "guava" to "20.0",
+        "commons-lang" to "3.4"
+    )
 
     apply(plugin = "java-library")
 
@@ -45,6 +45,11 @@ subprojects {
         }
 
         withType<Test> {
+            // --- INIZIO MODIFICA PER PARALLELISMO ---
+            // Esegue i test in parallelo usando metà dei core disponibili (minimo 1)
+            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+            // --- FINE MODIFICA ---
+
             val javaToolchains = project.extensions.getByType<JavaToolchainService>()
             val requestedVersion = (project.properties["testOnJava"] ?: "11").toString().toInt()
             val currentVersion = JavaVersion.current().majorVersion.toInt()
@@ -132,7 +137,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
-             // A safe throw-away place to publish to:
+            // A safe throw-away place to publish to:
             // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
             repositories {
                 maven {
@@ -164,4 +169,3 @@ release {
     // instead of just 0.1.0 or v0.1.0.
     tagTemplate = "\$version"
 }
-	
