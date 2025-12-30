@@ -21,6 +21,11 @@ subprojects {
     )
 
     apply(plugin = "java-library")
+    configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -32,8 +37,16 @@ subprojects {
         withType<JavaCompile> {
             options.isDeprecation = true
             options.isWarnings = true
-            options.compilerArgs = listOf("-Xlint:unchecked")
-            options.release.set(8)
+            if (!options.compilerArgs.contains("-Xlint:unchecked")) {
+                options.compilerArgs.add("-Xlint:unchecked")
+            }
+            options.release.set(21)
+            doFirst {
+                val release = options.release.orNull
+                if (release != null && release >= 16 && !options.compilerArgs.contains("--add-modules")) {
+                    options.compilerArgs.addAll(listOf("--add-modules", "jdk.incubator.vector"))
+                }
+            }
         }
 
         withType<Javadoc> {
@@ -41,6 +54,10 @@ subprojects {
                 // suppress javadoc's complaints about undocumented things
                 // we have to set a dummy "value" (here, `true`) to have the option actually used
                 (this as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:none").value = true
+                (this as StandardJavadocDocletOptions).addStringOption(
+                    "add-modules",
+                    "jdk.incubator.vector"
+                )
             }
         }
 
@@ -49,14 +66,19 @@ subprojects {
             // Esegue i test in parallelo usando metà dei core disponibili (minimo 1)
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
             // --- FINE MODIFICA ---
+            jvmArgs("--add-modules", "jdk.incubator.vector")
 
             val javaToolchains = project.extensions.getByType<JavaToolchainService>()
-            val requestedVersion = (project.properties["testOnJava"] ?: "11").toString().toInt()
+            val requestedVersion = (project.properties["testOnJava"] ?: "21").toString().toInt()
             val currentVersion = JavaVersion.current().majorVersion.toInt()
             val versionToUse = if (currentVersion > requestedVersion) currentVersion else requestedVersion
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(versionToUse))
             })
+        }
+
+        withType<JavaExec> {
+            jvmArgs("--add-modules", "jdk.incubator.vector")
         }
     }
 
