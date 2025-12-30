@@ -274,10 +274,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     if (cardinality <= ArrayContainer.DEFAULT_MAX_SIZE) {
       return false;
     }
-    int computed_cardinality = 0;
-    for (int k = 0; k < this.bitmap.length; k++) {
-      computed_cardinality += Long.bitCount(this.bitmap[k]);
-    }
+    int computed_cardinality = vectorCardinality(this.bitmap);
     return cardinality == computed_cardinality;
   }
 
@@ -303,10 +300,27 @@ public final class BitmapContainer extends Container implements Cloneable {
    * Recomputes the cardinality of the bitmap.
    */
   void computeCardinality() {
-    this.cardinality = 0;
-    for (int k = 0; k < this.bitmap.length; k++) {
-      this.cardinality += Long.bitCount(this.bitmap[k]);
+    this.cardinality = vectorCardinality(this.bitmap);
+  }
+
+  private static int vectorCardinality(long[] bitmap) {
+    int length = bitmap.length;
+    int i = 0;
+    int laneCount = LONG_VECTOR_SPECIES.length();
+    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
+    long total = 0;
+    for (; i < upperBound; i += laneCount) {
+      LongVector v = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i);
+      LongVector counts = v.lanewise(VectorOperators.BIT_COUNT);
+      total += counts.reduceLanes(VectorOperators.ADD);
     }
+    if (i < length) {
+      VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
+      LongVector v = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i, mask);
+      LongVector counts = v.lanewise(VectorOperators.BIT_COUNT);
+      total += counts.reduceLanes(VectorOperators.ADD);
+    }
+    return (int) total;
   }
 
   int cardinalityInRange(int start, int end) {
