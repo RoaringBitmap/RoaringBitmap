@@ -6,6 +6,10 @@ package org.roaringbitmap;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
+import jdk.incubator.vector.ShortVector;
+import jdk.incubator.vector.VectorMask;
+import jdk.incubator.vector.VectorOperators;
+import jdk.incubator.vector.VectorSpecies;
 import java.util.Arrays;
 
 /**
@@ -18,6 +22,11 @@ public final class Util {
    * combine a binary search with a sequential search
    */
   public static final boolean USE_HYBRID_BINSEARCH = true;
+
+  private static final VectorSpecies<Short> SHORT_VECTOR_SPECIES = ShortVector.SPECIES_PREFERRED;
+  private static final int SHORT_VECTOR_LANES = SHORT_VECTOR_SPECIES.length();
+  private static final int VECTOR_INTERSECT_MIN_SIZE = SHORT_VECTOR_LANES * 2;
+  private static final int VECTOR_BITMAP_LOAD_MIN_SIZE = SHORT_VECTOR_LANES * 4;
 
   /**
    * Add value "offset" to all values in the container, producing
@@ -543,6 +552,50 @@ public final class Util {
   }
 
   /**
+   * Set bits in the bitmap for the provided sorted array values.
+   *
+   * @param array sorted array of values
+   * @param length how many values to consume
+   * @param bitmap array of words to be modified
+   * @param bitmapOffset offset in the bitmap array (in words)
+   */
+  public static void fillBitmapFromSortedArray(
+      char[] array, int length, long[] bitmap, int bitmapOffset) {
+    if (length == 0) {
+      return;
+    }
+    int i = 0;
+    if (useVectorBitmapLoad(length)) {
+      // Scatter stores would need gather/or and unique word indices, so keep per-word updates.
+      int limit = length - SHORT_VECTOR_LANES;
+      short[] laneValues = new short[SHORT_VECTOR_LANES];
+      while (i <= limit) {
+        ShortVector values = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, array, i);
+        ShortVector words = values.lanewise(VectorOperators.LSHR, 6);
+        short word0 = words.lane(0);
+        VectorMask<Short> sameWordMask = words.compare(VectorOperators.EQ, word0);
+        int run = sameWordMask.trueCount();
+        values.intoArray(laneValues, 0);
+        long wordMask = 0L;
+        for (int lane = 0; lane < run; ++lane) {
+          int value = laneValues[lane] & 0xFFFF;
+          wordMask |= 1L << value;
+        }
+        bitmap[bitmapOffset + (word0 & 0xFFFF)] |= wordMask;
+        i += run;
+      }
+    }
+    for (; i < length; ++i) {
+      char value = array[i];
+      bitmap[bitmapOffset + (value >>> 6)] |= 1L << value;
+    }
+  }
+
+  private static boolean useVectorBitmapLoad(int length) {
+    return SHORT_VECTOR_LANES >= 4 && length >= VECTOR_BITMAP_LOAD_MIN_SIZE;
+  }
+
+  /**
    * Given a word w, return the position of the jth true bit.
    *
    * @param w word
@@ -890,8 +943,17 @@ public final class Util {
     } else if (set2.length * THRESHOLD < set1.length) {
       return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
     } else {
+      if (useVectorIntersect(length1, length2)) {
+        return unsignedVectorIntersect2by2(set1, length1, set2, length2, buffer);
+      }
       return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
     }
+  }
+
+  private static boolean useVectorIntersect(int length1, int length2) {
+    return SHORT_VECTOR_LANES >= 4
+        && length1 >= VECTOR_INTERSECT_MIN_SIZE
+        && length2 >= VECTOR_INTERSECT_MIN_SIZE;
   }
 
   /**
@@ -992,6 +1054,130 @@ public final class Util {
       }
     }
     return pos;
+  }
+
+  // Vectorized block intersection with per-lane matching and mask compaction.
+  private static int unsignedVectorIntersect2by2(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
+    if ((0 == length1) || (0 == length2)) {
+      return 0;
+    }
+    if (length1 < SHORT_VECTOR_LANES || length2 < SHORT_VECTOR_LANES) {
+      return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
+    }
+    int k1 = 0;
+    int k2 = 0;
+    int pos = 0;
+    final int limit1 = length1 - SHORT_VECTOR_LANES;
+    final int limit2 = length2 - SHORT_VECTOR_LANES;
+    while (k1 <= limit1 && k2 <= limit2) {
+      ShortVector v1 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set1, k1);
+      ShortVector v2 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set2, k2);
+      long matchBits = 0L;
+      for (int lane = 0; lane < SHORT_VECTOR_LANES; ++lane) {
+        short value = v1.lane(lane);
+        if (v2.compare(VectorOperators.EQ, value).anyTrue()) {
+          matchBits |= 1L << lane;
+        }
+      }
+      if (matchBits != 0L) {
+        VectorMask<Short> matchMask = VectorMask.fromLong(SHORT_VECTOR_SPECIES, matchBits);
+        ShortVector compressed = v1.compress(matchMask);
+        int count = matchMask.trueCount();
+        VectorMask<Short> storeMask =
+            VectorMask.fromLong(SHORT_VECTOR_SPECIES, prefixMaskBits(count));
+        compressed.intoCharArray(buffer, pos, storeMask);
+        pos += count;
+      }
+
+      short max1 = v1.lane(SHORT_VECTOR_LANES - 1);
+      short max2 = v2.lane(SHORT_VECTOR_LANES - 1);
+      boolean advance1 = v1.compare(VectorOperators.UNSIGNED_LT, max2).allTrue();
+      boolean advance2 = v2.compare(VectorOperators.UNSIGNED_LT, max1).allTrue();
+      if (advance1) {
+        k1 += SHORT_VECTOR_LANES;
+      } else if (advance2) {
+        k2 += SHORT_VECTOR_LANES;
+      } else {
+        k1 += SHORT_VECTOR_LANES;
+        k2 += SHORT_VECTOR_LANES;
+      }
+    }
+    return pos
+        + unsignedLocalIntersect2by2From(
+            set1, k1, length1, set2, k2, length2, buffer, pos);
+  }
+
+  private static int unsignedLocalIntersect2by2From(
+      final char[] set1,
+      final int start1,
+      final int length1,
+      final char[] set2,
+      final int start2,
+      final int length2,
+      final char[] buffer,
+      final int bufferOffset) {
+    if ((start1 >= length1) || (start2 >= length2)) {
+      return 0;
+    }
+    int k1 = start1;
+    int k2 = start2;
+    int pos = bufferOffset;
+    char s1 = set1[k1];
+    char s2 = set2[k2];
+
+    mainwhile:
+    while (true) {
+      int v1 = s1;
+      int v2 = s2;
+      if (v2 < v1) {
+        do {
+          ++k2;
+          if (k2 == length2) {
+            break mainwhile;
+          }
+          s2 = set2[k2];
+          v2 = s2;
+        } while (v2 < v1);
+      }
+      if (v1 < v2) {
+        do {
+          ++k1;
+          if (k1 == length1) {
+            break mainwhile;
+          }
+          s1 = set1[k1];
+          v1 = s1;
+        } while (v1 < v2);
+      } else {
+        buffer[pos++] = s1;
+        ++k1;
+        if (k1 == length1) {
+          break;
+        }
+        ++k2;
+        if (k2 == length2) {
+          break;
+        }
+        s1 = set1[k1];
+        s2 = set2[k2];
+      }
+    }
+    return pos - bufferOffset;
+  }
+
+  private static long prefixMaskBits(int count) {
+    if (count <= 0) {
+      return 0L;
+    }
+    if (count >= Long.SIZE) {
+      return -1L;
+    }
+    return (1L << count) - 1L;
   }
 
   /**

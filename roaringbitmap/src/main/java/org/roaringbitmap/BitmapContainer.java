@@ -1049,10 +1049,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   void loadData(final ArrayContainer arrayContainer) {
     this.cardinality = arrayContainer.cardinality;
-    for (int k = 0; k < arrayContainer.cardinality; ++k) {
-      final char x = arrayContainer.content[k];
-      bitmap[(x) / 64] |= (1L << x);
-    }
+    Util.fillBitmapFromSortedArray(arrayContainer.content, arrayContainer.cardinality, bitmap, 0);
   }
 
   /**

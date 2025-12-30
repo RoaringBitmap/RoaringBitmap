@@ -1272,12 +1272,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
     long[] bitArray = bitmap.array();
     if (BufferUtil.isBackedBySimpleArray(bitmap)
         && BufferUtil.isBackedBySimpleArray(arrayContainer.content)) {
-      long[] b = bitmap.array();
       char[] ac = arrayContainer.content.array();
-      for (int k = 0; k < arrayContainer.cardinality; ++k) {
-        final char x = ac[k];
-        bitArray[(x) >>> 6] = b[(x) >>> 6] | (1L << x);
-      }
+      Util.fillBitmapFromSortedArray(ac, arrayContainer.cardinality, bitArray, 0);
 
     } else {
       for (int k = 0; k < arrayContainer.cardinality; ++k) {
