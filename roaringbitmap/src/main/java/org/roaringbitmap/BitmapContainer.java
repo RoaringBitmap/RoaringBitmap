@@ -50,6 +50,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   private static final boolean USE_BRANCHLESS = true;
 
   private static final VectorSpecies<Long> LONG_VECTOR_SPECIES = LongVector.SPECIES_PREFERRED;
+  // Heuristics to avoid vectorizing when most words are empty.
+  private static final int VECTOR_SPARSE_CARDINALITY = MAX_CAPACITY / 4;
+  private static final int VECTOR_DENSE_CARDINALITY = MAX_CAPACITY / 2;
+  private static final int VECTOR_WORD_SAMPLE_STRIDE = 16;
+  private static final int VECTOR_WORD_SAMPLE_NONZERO_RATIO = 4;
+  private static final int VECTOR_MIN_CARDINALITY = 1024;
 
   /**
    * Return a bitmap iterator over this array
@@ -205,7 +211,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int andCardinality(final BitmapContainer value2) {
-    return vectorAndCardinality(this.bitmap, value2.bitmap);
+    return andCardinality(this.bitmap, this.cardinality, value2.bitmap, value2.cardinality);
   }
 
   @Override
@@ -308,17 +314,17 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    long total = 0;
+    LongVector acc = LongVector.zero(LONG_VECTOR_SPECIES);
     for (; i < upperBound; i += laneCount) {
       LongVector v = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i);
       LongVector counts = v.lanewise(VectorOperators.BIT_COUNT);
-      total += counts.reduceLanes(VectorOperators.ADD);
+      acc = acc.add(counts);
     }
+    long total = acc.reduceLanes(VectorOperators.ADD);
     if (i < length) {
-      VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
-      LongVector v = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i, mask);
-      LongVector counts = v.lanewise(VectorOperators.BIT_COUNT);
-      total += counts.reduceLanes(VectorOperators.ADD);
+      for (; i < length; ++i) {
+        total += Long.bitCount(bitmap[i]);
+      }
     }
     return (int) total;
   }
@@ -337,6 +343,113 @@ public final class BitmapContainer extends Container implements Cloneable {
     this.cardinality = oldCardinality - prevOnes + newOnes;
   }
 
+  private static boolean useVectorAnd(
+      int leftCardinality, int rightCardinality, long[] left, long[] right) {
+    if (leftCardinality >= 0 && rightCardinality >= 0) {
+      int minCardinality = Math.min(leftCardinality, rightCardinality);
+      if (minCardinality <= VECTOR_SPARSE_CARDINALITY) {
+        return false;
+      }
+    }
+    return sampledNonZeroAnd(left, right);
+  }
+
+  private static boolean useVectorOr(
+      int leftCardinality, int rightCardinality, long[] left, long[] right) {
+    if (leftCardinality >= 0 && rightCardinality >= 0) {
+      int maxCardinality = Math.max(leftCardinality, rightCardinality);
+      if (maxCardinality >= VECTOR_DENSE_CARDINALITY) {
+        return true;
+      }
+      if (maxCardinality <= VECTOR_SPARSE_CARDINALITY) {
+        return false;
+      }
+    }
+    return sampledNonZeroOr(left, right);
+  }
+
+  private static boolean useVectorXor(
+      int leftCardinality, int rightCardinality, long[] left, long[] right) {
+    if (leftCardinality >= 0 && rightCardinality >= 0) {
+      int maxCardinality = Math.max(leftCardinality, rightCardinality);
+      if (maxCardinality <= VECTOR_SPARSE_CARDINALITY) {
+        return false;
+      }
+    }
+    return sampledNonZeroXor(left, right);
+  }
+
+  private static boolean sampledNonZeroAnd(long[] left, long[] right) {
+    int length = Math.min(left.length, right.length);
+    if (length == 0) {
+      return true;
+    }
+    int stride = Math.min(VECTOR_WORD_SAMPLE_STRIDE, length);
+    int nonZero = 0;
+    int samples = 0;
+    for (int i = 0; i < length; i += stride) {
+      if ((left[i] & right[i]) != 0L) {
+        ++nonZero;
+      }
+      ++samples;
+    }
+    return nonZero * VECTOR_WORD_SAMPLE_NONZERO_RATIO >= samples;
+  }
+
+  private static boolean sampledNonZeroOr(long[] left, long[] right) {
+    int length = Math.min(left.length, right.length);
+    if (length == 0) {
+      return true;
+    }
+    int stride = Math.min(VECTOR_WORD_SAMPLE_STRIDE, length);
+    int nonZero = 0;
+    int samples = 0;
+    for (int i = 0; i < length; i += stride) {
+      if ((left[i] | right[i]) != 0L) {
+        ++nonZero;
+      }
+      ++samples;
+    }
+    return nonZero * VECTOR_WORD_SAMPLE_NONZERO_RATIO >= samples;
+  }
+
+  private static boolean sampledNonZeroXor(long[] left, long[] right) {
+    int length = Math.min(left.length, right.length);
+    if (length == 0) {
+      return true;
+    }
+    int stride = Math.min(VECTOR_WORD_SAMPLE_STRIDE, length);
+    int nonZero = 0;
+    int samples = 0;
+    for (int i = 0; i < length; i += stride) {
+      if ((left[i] ^ right[i]) != 0L) {
+        ++nonZero;
+      }
+      ++samples;
+    }
+    return nonZero * VECTOR_WORD_SAMPLE_NONZERO_RATIO >= samples;
+  }
+
+  private boolean vectorContains(long[] superset, long[] subset) {
+    int length = subset.length;
+    int i = 0;
+    int laneCount = LONG_VECTOR_SPECIES.length();
+    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
+    for (; i < upperBound; i += laneCount) {
+      LongVector vSuper = LongVector.fromArray(LONG_VECTOR_SPECIES, superset, i);
+      LongVector vSub = LongVector.fromArray(LONG_VECTOR_SPECIES, subset, i);
+      if (vSuper.and(vSub).compare(VectorOperators.NE, vSub).anyTrue()) {
+        return false;
+      }
+    }
+    for (; i < length; ++i) {
+      if ((superset[i] & subset[i]) != subset[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private static void vectorAnd(long[] left, long[] right, long[] out) {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int i = 0;
@@ -353,6 +466,56 @@ public final class BitmapContainer extends Container implements Cloneable {
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
       v1.and(v2).intoArray(out, i, mask);
     }
+  }
+
+  private static int scalarAndCardinality(long[] left, long[] right) {
+    int length = Math.min(left.length, right.length);
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      long word = left[i] & right[i];
+      if (word != 0L) {
+        cardinality += Long.bitCount(word);
+      }
+    }
+    return (int) cardinality;
+  }
+
+  private static int scalarOrIntoCardinality(long[] left, long[] right, long[] out) {
+    int length = Math.min(Math.min(left.length, right.length), out.length);
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      long word = left[i] | right[i];
+      out[i] = word;
+      if (word != 0L) {
+        cardinality += Long.bitCount(word);
+      }
+    }
+    return cardinality;
+  }
+
+  private static int scalarXorCardinality(long[] left, long[] right) {
+    int length = Math.min(left.length, right.length);
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      long word = left[i] ^ right[i];
+      if (word != 0L) {
+        cardinality += Long.bitCount(word);
+      }
+    }
+    return cardinality;
+  }
+
+  private static int scalarXorIntoCardinality(long[] left, long[] right, long[] out) {
+    int length = Math.min(Math.min(left.length, right.length), out.length);
+    int cardinality = 0;
+    for (int i = 0; i < length; ++i) {
+      long word = left[i] ^ right[i];
+      out[i] = word;
+      if (word != 0L) {
+        cardinality += Long.bitCount(word);
+      }
+    }
+    return cardinality;
   }
 
   private static void vectorOr(long[] left, long[] right, long[] out) {
@@ -391,22 +554,126 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
   }
 
+  private static int vectorOrIntoCardinality(long[] left, long[] right, long[] out) {
+    int length = Math.min(Math.min(left.length, right.length), out.length);
+    int i = 0;
+    int laneCount = LONG_VECTOR_SPECIES.length();
+    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
+    long cardinality = 0;
+    for (; i < upperBound; i += laneCount) {
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector v = v1.or(v2);
+      v.intoArray(out, i);
+      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+    }
+    if (i < length) {
+      VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
+      LongVector v = v1.or(v2);
+      v.intoArray(out, i, mask);
+      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+    }
+    return (int) cardinality;
+  }
+
+  private static int vectorXorIntoCardinality(long[] left, long[] right, long[] out) {
+    int length = Math.min(Math.min(left.length, right.length), out.length);
+    int i = 0;
+    int laneCount = LONG_VECTOR_SPECIES.length();
+    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
+    long cardinality = 0;
+    for (; i < upperBound; i += laneCount) {
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector v = v1.lanewise(VectorOperators.XOR, v2);
+      v.intoArray(out, i);
+      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+    }
+    if (i < length) {
+      VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
+      LongVector v = v1.lanewise(VectorOperators.XOR, v2);
+      v.intoArray(out, i, mask);
+      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+    }
+    return (int) cardinality;
+  }
+
+  private static int andCardinality(
+      long[] left, int leftCardinality, long[] right, int rightCardinality) {
+    if (leftCardinality >= 0
+        && rightCardinality >= 0
+        && (leftCardinality < VECTOR_MIN_CARDINALITY
+            || rightCardinality < VECTOR_MIN_CARDINALITY)) {
+      return scalarAndCardinality(left, right);
+    }
+    if (useVectorAnd(leftCardinality, rightCardinality, left, right)) {
+      return vectorAndCardinality(left, right);
+    }
+    return scalarAndCardinality(left, right);
+  }
+
+  private static int orInto(
+      long[] left, int leftCardinality, long[] right, int rightCardinality, long[] out) {
+    if (leftCardinality >= 0
+        && rightCardinality >= 0
+        && (leftCardinality < VECTOR_MIN_CARDINALITY
+            || rightCardinality < VECTOR_MIN_CARDINALITY)) {
+      return scalarOrIntoCardinality(left, right, out);
+    }
+    if (useVectorOr(leftCardinality, rightCardinality, left, right)) {
+      return vectorOrIntoCardinality(left, right, out);
+    }
+    return scalarOrIntoCardinality(left, right, out);
+  }
+
+  private static int xorCardinality(
+      long[] left, int leftCardinality, long[] right, int rightCardinality) {
+    if (leftCardinality >= 0
+        && rightCardinality >= 0
+        && (leftCardinality < VECTOR_MIN_CARDINALITY
+            || rightCardinality < VECTOR_MIN_CARDINALITY)) {
+      return scalarXorCardinality(left, right);
+    }
+    if (useVectorXor(leftCardinality, rightCardinality, left, right)) {
+      return vectorXorCardinality(left, right);
+    }
+    return scalarXorCardinality(left, right);
+  }
+
+  private static int xorInto(
+      long[] left, int leftCardinality, long[] right, int rightCardinality, long[] out) {
+    if (leftCardinality >= 0
+        && rightCardinality >= 0
+        && (leftCardinality < VECTOR_MIN_CARDINALITY
+            || rightCardinality < VECTOR_MIN_CARDINALITY)) {
+      return scalarXorIntoCardinality(left, right, out);
+    }
+    if (useVectorXor(leftCardinality, rightCardinality, left, right)) {
+      return vectorXorIntoCardinality(left, right, out);
+    }
+    return scalarXorIntoCardinality(left, right, out);
+  }
+
   private static int vectorAndCardinality(long[] left, long[] right) {
     int length = Math.min(left.length, right.length);
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    int cardinality = 0;
+    LongVector acc = LongVector.zero(LONG_VECTOR_SPECIES);
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      cardinality +=
-          (int) v1.and(v2).lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+      acc = acc.add(v1.and(v2).lanewise(VectorOperators.BIT_COUNT));
     }
+    long cardinality = acc.reduceLanes(VectorOperators.ADD);
     for (; i < length; ++i) {
       cardinality += Long.bitCount(left[i] & right[i]);
     }
-    return cardinality;
+    return (int) cardinality;
   }
 
   private static int vectorXorCardinality(long[] left, long[] right) {
@@ -465,12 +732,7 @@ public final class BitmapContainer extends Container implements Cloneable {
         return false;
       }
     }
-    for (int i = 0; i < bitmapContainer.bitmap.length; ++i) {
-      if ((this.bitmap[i] & bitmapContainer.bitmap[i]) != bitmapContainer.bitmap[i]) {
-        return false;
-      }
-    }
-    return true;
+    return vectorContains(this.bitmap, bitmapContainer.bitmap);
   }
 
   @Override
@@ -872,8 +1134,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container ior(final BitmapContainer b2) {
-    vectorOr(this.bitmap, b2.bitmap, this.bitmap);
-    computeCardinality();
+    this.cardinality =
+        orInto(this.bitmap, this.cardinality, b2.bitmap, b2.cardinality, this.bitmap);
     if (isFull()) {
       return RunContainer.full();
     }
@@ -956,11 +1218,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container ixor(BitmapContainer b2) {
-    // do this first because we have to compute the xor no matter what, and this loop gets
-    // vectorized and is faster than computing the cardinality or filling the array
-    vectorXor(this.bitmap, b2.bitmap, this.bitmap);
-    // now count the bits
-    computeCardinality();
+    this.cardinality =
+        xorInto(this.bitmap, this.cardinality, b2.bitmap, b2.cardinality, this.bitmap);
     if (cardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
       return this;
     }
@@ -1489,7 +1748,8 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container xor(BitmapContainer value2) {
-    int newCardinality = vectorXorCardinality(this.bitmap, value2.bitmap);
+    int newCardinality =
+        xorCardinality(this.bitmap, this.cardinality, value2.bitmap, value2.cardinality);
     if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
       final BitmapContainer answer = new BitmapContainer();
       vectorXor(this.bitmap, value2.bitmap, answer.bitmap);
