@@ -25,8 +25,8 @@ public final class Util {
 
   private static final VectorSpecies<Short> SHORT_VECTOR_SPECIES = ShortVector.SPECIES_PREFERRED;
   private static final int SHORT_VECTOR_LANES = SHORT_VECTOR_SPECIES.length();
-  private static final int VECTOR_INTERSECT_MIN_SIZE = SHORT_VECTOR_LANES * 2;
-  private static final int VECTOR_BITMAP_LOAD_MIN_SIZE = SHORT_VECTOR_LANES * 4;
+  private static final int VECTOR_INTERSECT_MIN_SIZE = SHORT_VECTOR_LANES * 4;
+  private static final int VECTOR_BITMAP_LOAD_MIN_SIZE = SHORT_VECTOR_LANES * 8;
 
   /**
    * Add value "offset" to all values in the container, producing
@@ -565,7 +565,7 @@ public final class Util {
       return;
     }
     int i = 0;
-    if (useVectorBitmapLoad(length)) {
+    if (useVectorBitmapLoad(length) && hasDenseInitialWordRun(array, length)) {
       // Scatter stores would need gather/or and unique word indices, so keep per-word updates.
       int limit = length - SHORT_VECTOR_LANES;
       short[] laneValues = new short[SHORT_VECTOR_LANES];
@@ -593,6 +593,16 @@ public final class Util {
 
   private static boolean useVectorBitmapLoad(int length) {
     return SHORT_VECTOR_LANES >= 4 && length >= VECTOR_BITMAP_LOAD_MIN_SIZE;
+  }
+
+  private static boolean hasDenseInitialWordRun(char[] array, int length) {
+    int minRun = Math.max(2, SHORT_VECTOR_LANES / 4);
+    int firstWord = array[0] >>> 6;
+    int run = 1;
+    while (run < length && run < minRun && (array[run] >>> 6) == firstWord) {
+      ++run;
+    }
+    return run >= minRun;
   }
 
   /**
@@ -1077,6 +1087,18 @@ public final class Util {
     while (k1 <= limit1 && k2 <= limit2) {
       ShortVector v1 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set1, k1);
       ShortVector v2 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set2, k2);
+      int min1 = v1.lane(0) & 0xFFFF;
+      int max1 = v1.lane(SHORT_VECTOR_LANES - 1) & 0xFFFF;
+      int min2 = v2.lane(0) & 0xFFFF;
+      int max2 = v2.lane(SHORT_VECTOR_LANES - 1) & 0xFFFF;
+      if (max1 < min2) {
+        k1 += SHORT_VECTOR_LANES;
+        continue;
+      }
+      if (max2 < min1) {
+        k2 += SHORT_VECTOR_LANES;
+        continue;
+      }
       long matchBits = 0L;
       for (int lane = 0; lane < SHORT_VECTOR_LANES; ++lane) {
         short value = v1.lane(lane);
@@ -1094,13 +1116,9 @@ public final class Util {
         pos += count;
       }
 
-      short max1 = v1.lane(SHORT_VECTOR_LANES - 1);
-      short max2 = v2.lane(SHORT_VECTOR_LANES - 1);
-      boolean advance1 = v1.compare(VectorOperators.UNSIGNED_LT, max2).allTrue();
-      boolean advance2 = v2.compare(VectorOperators.UNSIGNED_LT, max1).allTrue();
-      if (advance1) {
+      if (max1 < max2) {
         k1 += SHORT_VECTOR_LANES;
-      } else if (advance2) {
+      } else if (max2 < max1) {
         k2 += SHORT_VECTOR_LANES;
       } else {
         k1 += SHORT_VECTOR_LANES;

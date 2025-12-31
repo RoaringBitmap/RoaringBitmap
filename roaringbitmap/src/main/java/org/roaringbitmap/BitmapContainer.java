@@ -397,14 +397,11 @@ public final class BitmapContainer extends Container implements Cloneable {
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
     int cardinality = 0;
-    long[] lanes = new long[laneCount];
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      v1.and(v2).intoArray(lanes, 0);
-      for (int lane = 0; lane < laneCount; ++lane) {
-        cardinality += Long.bitCount(lanes[lane]);
-      }
+      cardinality +=
+          (int) v1.and(v2).lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
     }
     for (; i < length; ++i) {
       cardinality += Long.bitCount(left[i] & right[i]);
@@ -418,14 +415,14 @@ public final class BitmapContainer extends Container implements Cloneable {
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
     int cardinality = 0;
-    long[] lanes = new long[laneCount];
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      v1.lanewise(VectorOperators.XOR, v2).intoArray(lanes, 0);
-      for (int lane = 0; lane < laneCount; ++lane) {
-        cardinality += Long.bitCount(lanes[lane]);
-      }
+      cardinality +=
+          (int)
+              v1.lanewise(VectorOperators.XOR, v2)
+                  .lanewise(VectorOperators.BIT_COUNT)
+                  .reduceLanes(VectorOperators.ADD);
     }
     for (; i < length; ++i) {
       cardinality += Long.bitCount(left[i] ^ right[i]);
