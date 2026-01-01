@@ -25,7 +25,10 @@ public final class Util {
 
   private static final VectorSpecies<Short> SHORT_VECTOR_SPECIES = ShortVector.SPECIES_PREFERRED;
   private static final int SHORT_VECTOR_LANES = SHORT_VECTOR_SPECIES.length();
-  private static final int VECTOR_INTERSECT_MIN_SIZE = SHORT_VECTOR_LANES * 4;
+  private static final int VECTOR_INTERSECT_MIN_SIZE = 64;
+  private static final int VECTOR_SEARCH_THRESHOLD = Math.max(SHORT_VECTOR_LANES, 32);
+  private static final int VECTOR_INTERSECT_MAX_LENGTH_RATIO = 8;
+  private static final int VECTOR_INTERSECT_VECTOR_LENGTH_RATIO = 4;
   private static final int VECTOR_BITMAP_LOAD_MIN_SIZE = SHORT_VECTOR_LANES * 8;
 
   /**
@@ -143,6 +146,58 @@ public final class Util {
    *         length if it is not possible.
    */
   public static int advanceUntil(char[] array, int pos, int length, char min) {
+    if (length - pos >= VECTOR_SEARCH_THRESHOLD) {
+      return vectorAdvanceUntil(array, pos, length, min);
+    }
+    return advanceUntilScalar(array, pos, length, min);
+  }
+
+  private static int vectorAdvanceUntil(char[] array, int pos, int length, char min) {
+    int lower = pos + 1;
+
+    // special handling for a possibly common sequential case
+    if (lower >= length || (array[lower]) >= (int) (min)) {
+      return lower;
+    }
+
+    int remaining = length - lower;
+    if (remaining < VECTOR_SEARCH_THRESHOLD) {
+      return advanceUntilScalar(array, pos, length, min);
+    }
+
+    // Flip the sign bit so signed compares match unsigned char ordering.
+    short unsignedMin = (short) (min ^ 0x8000);
+    ShortVector minVector = ShortVector.broadcast(SHORT_VECTOR_SPECIES, unsignedMin);
+    ShortVector signMask = ShortVector.broadcast(SHORT_VECTOR_SPECIES, (short) 0x8000);
+    int i = lower;
+    int vectorBound = lower + SHORT_VECTOR_SPECIES.loopBound(remaining);
+    while (i < vectorBound) {
+      ShortVector values = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, array, i);
+      ShortVector unsignedValues = values.lanewise(VectorOperators.XOR, signMask);
+      VectorMask<Short> geMask = unsignedValues.compare(VectorOperators.GE, minVector);
+      long bits = geMask.toLong();
+      if (bits != 0L) {
+        return i + numberOfTrailingZeros(bits);
+      }
+      i += SHORT_VECTOR_LANES;
+    }
+
+    if (i < length) {
+      VectorMask<Short> rangeMask = SHORT_VECTOR_SPECIES.indexInRange(i, length);
+      ShortVector values = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, array, i, rangeMask);
+      ShortVector unsignedValues = values.lanewise(VectorOperators.XOR, signMask);
+      VectorMask<Short> geMask =
+          unsignedValues.compare(VectorOperators.GE, minVector).and(rangeMask);
+      long bits = geMask.toLong();
+      if (bits != 0L) {
+        return i + numberOfTrailingZeros(bits);
+      }
+      return length;
+    }
+    return i;
+  }
+
+  private static int advanceUntilScalar(char[] array, int pos, int length, char min) {
     int lower = pos + 1;
 
     // special handling for a possibly common sequential case
@@ -953,8 +1008,17 @@ public final class Util {
     } else if (set2.length * THRESHOLD < set1.length) {
       return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
     } else {
-      if (useVectorIntersect(length1, length2)) {
-        return unsignedVectorIntersect2by2(set1, length1, set2, length2, buffer);
+      int minLength = Math.min(length1, length2);
+      int maxLength = Math.max(length1, length2);
+      if (maxLength >= minLength * VECTOR_INTERSECT_MAX_LENGTH_RATIO) {
+        if (length1 <= length2) {
+          return unsignedOneSidedGallopingIntersect2by2(set1, length1, set2, length2, buffer);
+        }
+        return unsignedOneSidedGallopingIntersect2by2(set2, length2, set1, length1, buffer);
+      }
+      if (maxLength <= minLength * VECTOR_INTERSECT_VECTOR_LENGTH_RATIO
+          && useVectorIntersect(length1, length2)) {
+        return unsignedVectorIntersect2by2Linear(set1, length1, set2, length2, buffer);
       }
       return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
     }
@@ -1024,9 +1088,20 @@ public final class Util {
     int pos = 0;
     char s1 = set1[k1];
     char s2 = set2[k2];
+    final int vectorLength = SHORT_VECTOR_LANES;
 
     mainwhile:
     while (true) {
+      if (k1 + vectorLength < length1 && set1[k1 + vectorLength] < s2) {
+        k1 += vectorLength;
+        s1 = set1[k1];
+        continue;
+      }
+      if (k2 + vectorLength < length2 && set2[k2 + vectorLength] < s1) {
+        k2 += vectorLength;
+        s2 = set2[k2];
+        continue;
+      }
       int v1 = (s1);
       int v2 = s2;
       if (v2 < v1) {
@@ -1066,8 +1141,7 @@ public final class Util {
     return pos;
   }
 
-  // Vectorized block intersection with per-lane matching and mask compaction.
-  private static int unsignedVectorIntersect2by2(
+  private static int unsignedVectorIntersect2by2Linear(
       final char[] set1,
       final int length1,
       final char[] set2,
@@ -1076,78 +1150,48 @@ public final class Util {
     if ((0 == length1) || (0 == length2)) {
       return 0;
     }
-    if (length1 < SHORT_VECTOR_LANES || length2 < SHORT_VECTOR_LANES) {
-      return unsignedLocalIntersect2by2(set1, length1, set2, length2, buffer);
-    }
     int k1 = 0;
     int k2 = 0;
     int pos = 0;
-    final int limit1 = length1 - SHORT_VECTOR_LANES;
-    final int limit2 = length2 - SHORT_VECTOR_LANES;
+    int laneCount = SHORT_VECTOR_LANES;
+    int limit1 = length1 - laneCount;
+    int limit2 = length2 - laneCount;
     while (k1 <= limit1 && k2 <= limit2) {
-      ShortVector v1 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set1, k1);
-      ShortVector v2 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set2, k2);
-      int min1 = v1.lane(0) & 0xFFFF;
-      int max1 = v1.lane(SHORT_VECTOR_LANES - 1) & 0xFFFF;
-      int min2 = v2.lane(0) & 0xFFFF;
-      int max2 = v2.lane(SHORT_VECTOR_LANES - 1) & 0xFFFF;
+      char min1 = set1[k1];
+      char max1 = set1[k1 + laneCount - 1];
+      char min2 = set2[k2];
+      char max2 = set2[k2 + laneCount - 1];
       if (max1 < min2) {
-        k1 += SHORT_VECTOR_LANES;
+        k1 += laneCount;
         continue;
       }
       if (max2 < min1) {
-        k2 += SHORT_VECTOR_LANES;
+        k2 += laneCount;
         continue;
       }
-      long matchBits = 0L;
-      for (int lane = 0; lane < SHORT_VECTOR_LANES; ++lane) {
+      ShortVector v1 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set1, k1);
+      ShortVector v2 = ShortVector.fromCharArray(SHORT_VECTOR_SPECIES, set2, k2);
+      for (int lane = 0; lane < laneCount; ++lane) {
         short value = v1.lane(lane);
-        if (v2.compare(VectorOperators.EQ, value).anyTrue()) {
-          matchBits |= 1L << lane;
+        ShortVector broadcast = ShortVector.broadcast(SHORT_VECTOR_SPECIES, value);
+        if (v2.compare(VectorOperators.EQ, broadcast).anyTrue()) {
+          buffer[pos++] = (char) value;
         }
       }
-      if (matchBits != 0L) {
-        VectorMask<Short> matchMask = VectorMask.fromLong(SHORT_VECTOR_SPECIES, matchBits);
-        ShortVector compressed = v1.compress(matchMask);
-        int count = matchMask.trueCount();
-        VectorMask<Short> storeMask =
-            VectorMask.fromLong(SHORT_VECTOR_SPECIES, prefixMaskBits(count));
-        compressed.intoCharArray(buffer, pos, storeMask);
-        pos += count;
-      }
-
-      if (max1 < max2) {
-        k1 += SHORT_VECTOR_LANES;
-      } else if (max2 < max1) {
-        k2 += SHORT_VECTOR_LANES;
+      if (max1 == max2) {
+        k1 += laneCount;
+        k2 += laneCount;
+      } else if (max1 < max2) {
+        k1 += laneCount;
       } else {
-        k1 += SHORT_VECTOR_LANES;
-        k2 += SHORT_VECTOR_LANES;
+        k2 += laneCount;
       }
     }
-    return pos
-        + unsignedLocalIntersect2by2From(
-            set1, k1, length1, set2, k2, length2, buffer, pos);
-  }
-
-  private static int unsignedLocalIntersect2by2From(
-      final char[] set1,
-      final int start1,
-      final int length1,
-      final char[] set2,
-      final int start2,
-      final int length2,
-      final char[] buffer,
-      final int bufferOffset) {
-    if ((start1 >= length1) || (start2 >= length2)) {
-      return 0;
+    if (k1 >= length1 || k2 >= length2) {
+      return pos;
     }
-    int k1 = start1;
-    int k2 = start2;
-    int pos = bufferOffset;
     char s1 = set1[k1];
     char s2 = set2[k2];
-
     mainwhile:
     while (true) {
       int v1 = s1;
@@ -1185,7 +1229,52 @@ public final class Util {
         s2 = set2[k2];
       }
     }
-    return pos - bufferOffset;
+    return pos;
+  }
+
+  // Vectorized intersection using SIMD-accelerated advanceUntil for galloping.
+  private static int unsignedVectorIntersect2by2(
+      final char[] set1,
+      final int length1,
+      final char[] set2,
+      final int length2,
+      final char[] buffer) {
+    if ((0 == length1) || (0 == length2)) {
+      return 0;
+    }
+    int k1 = 0;
+    int k2 = 0;
+    int pos = 0;
+    char s1 = set1[k1];
+    char s2 = set2[k2];
+    while (true) {
+      if (s1 < s2) {
+        k1 = vectorAdvanceUntil(set1, k1, length1, s2);
+        if (k1 == length1) {
+          break;
+        }
+        s1 = set1[k1];
+      } else if (s2 < s1) {
+        k2 = vectorAdvanceUntil(set2, k2, length2, s1);
+        if (k2 == length2) {
+          break;
+        }
+        s2 = set2[k2];
+      } else {
+        buffer[pos++] = s1;
+        ++k1;
+        if (k1 == length1) {
+          break;
+        }
+        ++k2;
+        if (k2 == length2) {
+          break;
+        }
+        s1 = set1[k1];
+        s2 = set2[k2];
+      }
+    }
+    return pos;
   }
 
   private static long prefixMaskBits(int count) {

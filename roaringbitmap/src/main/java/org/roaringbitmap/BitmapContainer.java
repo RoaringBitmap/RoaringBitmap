@@ -50,12 +50,22 @@ public final class BitmapContainer extends Container implements Cloneable {
   private static final boolean USE_BRANCHLESS = true;
 
   private static final VectorSpecies<Long> LONG_VECTOR_SPECIES = LongVector.SPECIES_PREFERRED;
+  private static final int VECTOR_LANE_COUNT = LONG_VECTOR_SPECIES.length();
+  private static final int VECTOR_THRESHOLD_FACTOR = 64;
+  // Baseline lane count (4 lanes = 256-bit) for scaling density thresholds.
+  private static final int VECTOR_LANE_BASELINE = 4;
   // Heuristics to avoid vectorizing when most words are empty.
-  private static final int VECTOR_SPARSE_CARDINALITY = MAX_CAPACITY / 4;
-  private static final int VECTOR_DENSE_CARDINALITY = MAX_CAPACITY / 2;
+  private static final int VECTOR_SPARSE_CARDINALITY =
+      (int) Math.min(
+          MAX_CAPACITY,
+          (long) (MAX_CAPACITY / 4) * VECTOR_LANE_COUNT / VECTOR_LANE_BASELINE);
+  private static final int VECTOR_DENSE_CARDINALITY =
+      (int) Math.min(
+          MAX_CAPACITY,
+          (long) (MAX_CAPACITY / 2) * VECTOR_LANE_COUNT / VECTOR_LANE_BASELINE);
   private static final int VECTOR_WORD_SAMPLE_STRIDE = 16;
   private static final int VECTOR_WORD_SAMPLE_NONZERO_RATIO = 4;
-  private static final int VECTOR_MIN_CARDINALITY = 1024;
+  private static final int VECTOR_MIN_CARDINALITY = VECTOR_LANE_COUNT * VECTOR_THRESHOLD_FACTOR;
 
   /**
    * Return a bitmap iterator over this array
@@ -245,9 +255,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     }
     if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
       final BitmapContainer answer = new BitmapContainer();
-      for (int k = 0; k < answer.bitmap.length; ++k) {
-        answer.bitmap[k] = this.bitmap[k] & (~value2.bitmap[k]);
-      }
+      vectorAndNot(this.bitmap, value2.bitmap, answer.bitmap);
       answer.cardinality = newCardinality;
       return answer;
     }
@@ -314,17 +322,31 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    LongVector acc = LongVector.zero(LONG_VECTOR_SPECIES);
+    int unroll = laneCount * 4;
+    int unrolledBound = upperBound - (upperBound % unroll);
+    LongVector acc0 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc1 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc2 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc3 = LongVector.zero(LONG_VECTOR_SPECIES);
+    // Unroll to keep multiple accumulators and reduce once at the end.
+    for (; i < unrolledBound; i += unroll) {
+      LongVector v0 = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i);
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i + laneCount);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i + 2 * laneCount);
+      LongVector v3 = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i + 3 * laneCount);
+      acc0 = acc0.add(v0.lanewise(VectorOperators.BIT_COUNT));
+      acc1 = acc1.add(v1.lanewise(VectorOperators.BIT_COUNT));
+      acc2 = acc2.add(v2.lanewise(VectorOperators.BIT_COUNT));
+      acc3 = acc3.add(v3.lanewise(VectorOperators.BIT_COUNT));
+    }
+    LongVector acc = acc0.add(acc1).add(acc2).add(acc3);
     for (; i < upperBound; i += laneCount) {
       LongVector v = LongVector.fromArray(LONG_VECTOR_SPECIES, bitmap, i);
-      LongVector counts = v.lanewise(VectorOperators.BIT_COUNT);
-      acc = acc.add(counts);
+      acc = acc.add(v.lanewise(VectorOperators.BIT_COUNT));
     }
     long total = acc.reduceLanes(VectorOperators.ADD);
-    if (i < length) {
-      for (; i < length; ++i) {
-        total += Long.bitCount(bitmap[i]);
-      }
+    for (; i < length; ++i) {
+      total += Long.bitCount(bitmap[i]);
     }
     return (int) total;
   }
@@ -347,6 +369,9 @@ public final class BitmapContainer extends Container implements Cloneable {
       int leftCardinality, int rightCardinality, long[] left, long[] right) {
     if (leftCardinality >= 0 && rightCardinality >= 0) {
       int minCardinality = Math.min(leftCardinality, rightCardinality);
+      if (minCardinality < VECTOR_MIN_CARDINALITY) {
+        return false;
+      }
       if (minCardinality <= VECTOR_SPARSE_CARDINALITY) {
         return false;
       }
@@ -358,6 +383,10 @@ public final class BitmapContainer extends Container implements Cloneable {
       int leftCardinality, int rightCardinality, long[] left, long[] right) {
     if (leftCardinality >= 0 && rightCardinality >= 0) {
       int maxCardinality = Math.max(leftCardinality, rightCardinality);
+      int minCardinality = Math.min(leftCardinality, rightCardinality);
+      if (minCardinality < VECTOR_MIN_CARDINALITY) {
+        return false;
+      }
       if (maxCardinality >= VECTOR_DENSE_CARDINALITY) {
         return true;
       }
@@ -372,6 +401,10 @@ public final class BitmapContainer extends Container implements Cloneable {
       int leftCardinality, int rightCardinality, long[] left, long[] right) {
     if (leftCardinality >= 0 && rightCardinality >= 0) {
       int maxCardinality = Math.max(leftCardinality, rightCardinality);
+      int minCardinality = Math.min(leftCardinality, rightCardinality);
+      if (minCardinality < VECTOR_MIN_CARDINALITY) {
+        return false;
+      }
       if (maxCardinality <= VECTOR_SPARSE_CARDINALITY) {
         return false;
       }
@@ -438,7 +471,7 @@ public final class BitmapContainer extends Container implements Cloneable {
     for (; i < upperBound; i += laneCount) {
       LongVector vSuper = LongVector.fromArray(LONG_VECTOR_SPECIES, superset, i);
       LongVector vSub = LongVector.fromArray(LONG_VECTOR_SPECIES, subset, i);
-      if (vSuper.and(vSub).compare(VectorOperators.NE, vSub).anyTrue()) {
+      if (!vSub.and(vSuper.not()).test(VectorOperators.IS_DEFAULT).allTrue()) {
         return false;
       }
     }
@@ -454,17 +487,86 @@ public final class BitmapContainer extends Container implements Cloneable {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
-    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    for (; i < upperBound; i += laneCount) {
+    int vectorBound = LONG_VECTOR_SPECIES.loopBound(length);
+    int unroll = laneCount * 4;
+    int unrolledBound = vectorBound - (vectorBound % unroll);
+    boolean skipZeroStores = out != left && out != right;
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      LongVector v0 = left0.and(right0);
+      LongVector v1 = left1.and(right1);
+      LongVector v2 = left2.and(right2);
+      LongVector v3 = left3.and(right3);
+      if (!skipZeroStores || !v0.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v0.intoArray(out, i);
+      }
+      if (!skipZeroStores || !v1.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v1.intoArray(out, i + laneCount);
+      }
+      if (!skipZeroStores || !v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v2.intoArray(out, i + 2 * laneCount);
+      }
+      if (!skipZeroStores || !v3.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v3.intoArray(out, i + 3 * laneCount);
+      }
+    }
+    for (; i < vectorBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      v1.and(v2).intoArray(out, i);
+      LongVector v = v1.and(v2);
+      if (!skipZeroStores || !v.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v.intoArray(out, i);
+      }
     }
     if (i < length) {
       VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
-      v1.and(v2).intoArray(out, i, mask);
+      LongVector v = v1.and(v2);
+      if (!skipZeroStores || !v.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v.intoArray(out, i, mask);
+      }
+    }
+  }
+
+  private static void vectorAndNot(long[] left, long[] right, long[] out) {
+    int length = Math.min(Math.min(left.length, right.length), out.length);
+    int i = 0;
+    int laneCount = LONG_VECTOR_SPECIES.length();
+    int vectorBound = LONG_VECTOR_SPECIES.loopBound(length);
+    int unroll = laneCount * 4;
+    int unrolledBound = vectorBound - (vectorBound % unroll);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      left0.and(right0.not()).intoArray(out, i);
+      left1.and(right1.not()).intoArray(out, i + laneCount);
+      left2.and(right2.not()).intoArray(out, i + 2 * laneCount);
+      left3.and(right3.not()).intoArray(out, i + 3 * laneCount);
+    }
+    for (; i < vectorBound; i += laneCount) {
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      v1.and(v2.not()).intoArray(out, i);
+    }
+    if (i < length) {
+      VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
+      LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
+      LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
+      v1.and(v2.not()).intoArray(out, i, mask);
     }
   }
 
@@ -483,9 +585,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   private static int scalarOrIntoCardinality(long[] left, long[] right, long[] out) {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int cardinality = 0;
+    boolean inPlace = out == left;
     for (int i = 0; i < length; ++i) {
       long word = left[i] | right[i];
-      out[i] = word;
+      if (!inPlace || word != left[i]) {
+        out[i] = word;
+      }
       if (word != 0L) {
         cardinality += Long.bitCount(word);
       }
@@ -508,9 +613,12 @@ public final class BitmapContainer extends Container implements Cloneable {
   private static int scalarXorIntoCardinality(long[] left, long[] right, long[] out) {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int cardinality = 0;
+    boolean skipZeroStores = out != left && out != right;
     for (int i = 0; i < length; ++i) {
       long word = left[i] ^ right[i];
-      out[i] = word;
+      if (!skipZeroStores || word != 0L) {
+        out[i] = word;
+      }
       if (word != 0L) {
         cardinality += Long.bitCount(word);
       }
@@ -522,17 +630,70 @@ public final class BitmapContainer extends Container implements Cloneable {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
-    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    for (; i < upperBound; i += laneCount) {
+    int vectorBound = LONG_VECTOR_SPECIES.loopBound(length);
+    int unroll = laneCount * 4;
+    int unrolledBound = vectorBound - (vectorBound % unroll);
+    boolean inPlace = out == left;
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      if (right0.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          left0.intoArray(out, i);
+        }
+      } else {
+        left0.or(right0).intoArray(out, i);
+      }
+      if (right1.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          left1.intoArray(out, i + laneCount);
+        }
+      } else {
+        left1.or(right1).intoArray(out, i + laneCount);
+      }
+      if (right2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          left2.intoArray(out, i + 2 * laneCount);
+        }
+      } else {
+        left2.or(right2).intoArray(out, i + 2 * laneCount);
+      }
+      if (right3.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          left3.intoArray(out, i + 3 * laneCount);
+        }
+      } else {
+        left3.or(right3).intoArray(out, i + 3 * laneCount);
+      }
+    }
+    for (; i < vectorBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      v1.or(v2).intoArray(out, i);
+      if (v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          v1.intoArray(out, i);
+        }
+      } else {
+        v1.or(v2).intoArray(out, i);
+      }
     }
     if (i < length) {
       VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
-      v1.or(v2).intoArray(out, i, mask);
+      if (v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        if (!inPlace) {
+          v1.intoArray(out, i, mask);
+        }
+      } else {
+        v1.or(v2).intoArray(out, i, mask);
+      }
     }
   }
 
@@ -540,8 +701,24 @@ public final class BitmapContainer extends Container implements Cloneable {
     int length = Math.min(Math.min(left.length, right.length), out.length);
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
-    int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    for (; i < upperBound; i += laneCount) {
+    int vectorBound = LONG_VECTOR_SPECIES.loopBound(length);
+    int unroll = laneCount * 4;
+    int unrolledBound = vectorBound - (vectorBound % unroll);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      left0.lanewise(VectorOperators.XOR, right0).intoArray(out, i);
+      left1.lanewise(VectorOperators.XOR, right1).intoArray(out, i + laneCount);
+      left2.lanewise(VectorOperators.XOR, right2).intoArray(out, i + 2 * laneCount);
+      left3.lanewise(VectorOperators.XOR, right3).intoArray(out, i + 3 * laneCount);
+    }
+    for (; i < vectorBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
       v1.lanewise(VectorOperators.XOR, v2).intoArray(out, i);
@@ -559,22 +736,112 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    long cardinality = 0;
+    int unroll = laneCount * 4;
+    int unrolledBound = upperBound - (upperBound % unroll);
+    boolean inPlace = out == left;
+    LongVector acc0 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc1 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc2 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc3 = LongVector.zero(LONG_VECTOR_SPECIES);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      LongVector v0;
+      LongVector v1;
+      LongVector v2;
+      LongVector v3;
+      if (right0.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v0 = left0;
+        if (!inPlace) {
+          v0.intoArray(out, i);
+        }
+      } else {
+        v0 = left0.or(right0);
+        if (!inPlace || v0.compare(VectorOperators.NE, left0).anyTrue()) {
+          v0.intoArray(out, i);
+        }
+      }
+      if (right1.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v1 = left1;
+        if (!inPlace) {
+          v1.intoArray(out, i + laneCount);
+        }
+      } else {
+        v1 = left1.or(right1);
+        if (!inPlace || v1.compare(VectorOperators.NE, left1).anyTrue()) {
+          v1.intoArray(out, i + laneCount);
+        }
+      }
+      if (right2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v2 = left2;
+        if (!inPlace) {
+          v2.intoArray(out, i + 2 * laneCount);
+        }
+      } else {
+        v2 = left2.or(right2);
+        if (!inPlace || v2.compare(VectorOperators.NE, left2).anyTrue()) {
+          v2.intoArray(out, i + 2 * laneCount);
+        }
+      }
+      if (right3.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v3 = left3;
+        if (!inPlace) {
+          v3.intoArray(out, i + 3 * laneCount);
+        }
+      } else {
+        v3 = left3.or(right3);
+        if (!inPlace || v3.compare(VectorOperators.NE, left3).anyTrue()) {
+          v3.intoArray(out, i + 3 * laneCount);
+        }
+      }
+      acc0 = acc0.add(v0.lanewise(VectorOperators.BIT_COUNT));
+      acc1 = acc1.add(v1.lanewise(VectorOperators.BIT_COUNT));
+      acc2 = acc2.add(v2.lanewise(VectorOperators.BIT_COUNT));
+      acc3 = acc3.add(v3.lanewise(VectorOperators.BIT_COUNT));
+    }
+    LongVector acc = acc0.add(acc1).add(acc2).add(acc3);
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      LongVector v = v1.or(v2);
-      v.intoArray(out, i);
-      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+      LongVector v;
+      if (v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v = v1;
+        if (!inPlace) {
+          v.intoArray(out, i);
+        }
+      } else {
+        v = v1.or(v2);
+        if (!inPlace || v.compare(VectorOperators.NE, v1).anyTrue()) {
+          v.intoArray(out, i);
+        }
+      }
+      acc = acc.add(v.lanewise(VectorOperators.BIT_COUNT));
     }
     if (i < length) {
       VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
-      LongVector v = v1.or(v2);
-      v.intoArray(out, i, mask);
-      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+      LongVector v;
+      if (v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v = v1;
+        if (!inPlace) {
+          v.intoArray(out, i, mask);
+        }
+      } else {
+        v = v1.or(v2);
+        if (!inPlace || v.compare(VectorOperators.NE, v1).anyTrue()) {
+          v.intoArray(out, i, mask);
+        }
+      }
+      acc = acc.add(v.lanewise(VectorOperators.BIT_COUNT));
     }
+    long cardinality = acc.reduceLanes(VectorOperators.ADD);
     return (int) cardinality;
   }
 
@@ -583,22 +850,64 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    long cardinality = 0;
+    int unroll = laneCount * 4;
+    int unrolledBound = upperBound - (upperBound % unroll);
+    boolean skipZeroStores = out != left && out != right;
+    LongVector acc0 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc1 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc2 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc3 = LongVector.zero(LONG_VECTOR_SPECIES);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      LongVector v0 = left0.lanewise(VectorOperators.XOR, right0);
+      LongVector v1 = left1.lanewise(VectorOperators.XOR, right1);
+      LongVector v2 = left2.lanewise(VectorOperators.XOR, right2);
+      LongVector v3 = left3.lanewise(VectorOperators.XOR, right3);
+      if (!skipZeroStores || !v0.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v0.intoArray(out, i);
+      }
+      if (!skipZeroStores || !v1.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v1.intoArray(out, i + laneCount);
+      }
+      if (!skipZeroStores || !v2.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v2.intoArray(out, i + 2 * laneCount);
+      }
+      if (!skipZeroStores || !v3.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v3.intoArray(out, i + 3 * laneCount);
+      }
+      acc0 = acc0.add(v0.lanewise(VectorOperators.BIT_COUNT));
+      acc1 = acc1.add(v1.lanewise(VectorOperators.BIT_COUNT));
+      acc2 = acc2.add(v2.lanewise(VectorOperators.BIT_COUNT));
+      acc3 = acc3.add(v3.lanewise(VectorOperators.BIT_COUNT));
+    }
+    LongVector acc = acc0.add(acc1).add(acc2).add(acc3);
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
       LongVector v = v1.lanewise(VectorOperators.XOR, v2);
-      v.intoArray(out, i);
-      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+      if (!skipZeroStores || !v.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v.intoArray(out, i);
+      }
+      acc = acc.add(v.lanewise(VectorOperators.BIT_COUNT));
     }
     if (i < length) {
       VectorMask<Long> mask = LONG_VECTOR_SPECIES.indexInRange(i, length);
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i, mask);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i, mask);
       LongVector v = v1.lanewise(VectorOperators.XOR, v2);
-      v.intoArray(out, i, mask);
-      cardinality += v.lanewise(VectorOperators.BIT_COUNT).reduceLanes(VectorOperators.ADD);
+      if (!skipZeroStores || !v.test(VectorOperators.IS_DEFAULT).allTrue()) {
+        v.intoArray(out, i, mask);
+      }
+      acc = acc.add(v.lanewise(VectorOperators.BIT_COUNT));
     }
+    long cardinality = acc.reduceLanes(VectorOperators.ADD);
     return (int) cardinality;
   }
 
@@ -663,7 +972,27 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    LongVector acc = LongVector.zero(LONG_VECTOR_SPECIES);
+    int unroll = laneCount * 4;
+    int unrolledBound = upperBound - (upperBound % unroll);
+    LongVector acc0 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc1 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc2 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc3 = LongVector.zero(LONG_VECTOR_SPECIES);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      acc0 = acc0.add(left0.and(right0).lanewise(VectorOperators.BIT_COUNT));
+      acc1 = acc1.add(left1.and(right1).lanewise(VectorOperators.BIT_COUNT));
+      acc2 = acc2.add(left2.and(right2).lanewise(VectorOperators.BIT_COUNT));
+      acc3 = acc3.add(left3.and(right3).lanewise(VectorOperators.BIT_COUNT));
+    }
+    LongVector acc = acc0.add(acc1).add(acc2).add(acc3);
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
@@ -681,20 +1010,51 @@ public final class BitmapContainer extends Container implements Cloneable {
     int i = 0;
     int laneCount = LONG_VECTOR_SPECIES.length();
     int upperBound = LONG_VECTOR_SPECIES.loopBound(length);
-    int cardinality = 0;
+    int unroll = laneCount * 4;
+    int unrolledBound = upperBound - (upperBound % unroll);
+    LongVector acc0 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc1 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc2 = LongVector.zero(LONG_VECTOR_SPECIES);
+    LongVector acc3 = LongVector.zero(LONG_VECTOR_SPECIES);
+    for (; i < unrolledBound; i += unroll) {
+      LongVector left0 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
+      LongVector left1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + laneCount);
+      LongVector left2 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 2 * laneCount);
+      LongVector left3 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i + 3 * laneCount);
+      LongVector right0 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
+      LongVector right1 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + laneCount);
+      LongVector right2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 2 * laneCount);
+      LongVector right3 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i + 3 * laneCount);
+      acc0 =
+          acc0.add(
+              left0.lanewise(VectorOperators.XOR, right0)
+                  .lanewise(VectorOperators.BIT_COUNT));
+      acc1 =
+          acc1.add(
+              left1.lanewise(VectorOperators.XOR, right1)
+                  .lanewise(VectorOperators.BIT_COUNT));
+      acc2 =
+          acc2.add(
+              left2.lanewise(VectorOperators.XOR, right2)
+                  .lanewise(VectorOperators.BIT_COUNT));
+      acc3 =
+          acc3.add(
+              left3.lanewise(VectorOperators.XOR, right3)
+                  .lanewise(VectorOperators.BIT_COUNT));
+    }
+    LongVector acc = acc0.add(acc1).add(acc2).add(acc3);
     for (; i < upperBound; i += laneCount) {
       LongVector v1 = LongVector.fromArray(LONG_VECTOR_SPECIES, left, i);
       LongVector v2 = LongVector.fromArray(LONG_VECTOR_SPECIES, right, i);
-      cardinality +=
-          (int)
-              v1.lanewise(VectorOperators.XOR, v2)
-                  .lanewise(VectorOperators.BIT_COUNT)
-                  .reduceLanes(VectorOperators.ADD);
+      acc =
+          acc.add(
+              v1.lanewise(VectorOperators.XOR, v2).lanewise(VectorOperators.BIT_COUNT));
     }
+    long cardinality = acc.reduceLanes(VectorOperators.ADD);
     for (; i < length; ++i) {
       cardinality += Long.bitCount(left[i] ^ right[i]);
     }
-    return cardinality;
+    return (int) cardinality;
   }
 
   @Override
@@ -994,9 +1354,7 @@ public final class BitmapContainer extends Container implements Cloneable {
       newCardinality += Long.bitCount(this.bitmap[k] & (~b2.bitmap[k]));
     }
     if (newCardinality > ArrayContainer.DEFAULT_MAX_SIZE) {
-      for (int k = 0; k < this.bitmap.length; ++k) {
-        this.bitmap[k] = this.bitmap[k] & (~b2.bitmap[k]);
-      }
+      vectorAndNot(this.bitmap, b2.bitmap, this.bitmap);
       this.cardinality = newCardinality;
       return this;
     }
