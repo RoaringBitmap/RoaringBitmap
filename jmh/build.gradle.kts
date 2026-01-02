@@ -54,6 +54,8 @@ jmh {
     warmupIterations = 5
     iterations = 5
     fork = 1
+    resultFormat = "JSON"
+    resultsFile = file("$buildDir/reports/jmh/results.json")
 }
 
 tasks.assemble {
