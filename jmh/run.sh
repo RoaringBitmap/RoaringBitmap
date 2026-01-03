@@ -21,4 +21,4 @@ echo "Building benchmarks jar"
 $BASEDIR/../gradlew shadowJar
 
 echo "Running benchmarks"
-java -jar $BASEDIR/build/libs/benchmarks.jar true -wi 5 -i 5 -f 1 $@
+java --add-modules jdk.incubator.vector -jar $BASEDIR/build/libs/benchmarks.jar true -wi 5 -i 5 -f 1 $@
