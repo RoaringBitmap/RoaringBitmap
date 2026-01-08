@@ -125,6 +125,57 @@ public final class BufferFastAggregation {
   }
 
   /**
+   * Checks if bitmaps intersect each other.
+   *
+   * @param bitmaps input bitmaps
+   * @return whether they intersect
+   */
+  public static boolean intersects(ImmutableRoaringBitmap... bitmaps) {
+    switch (bitmaps.length) {
+      case 0:
+        return false;
+      case 1:
+        return !bitmaps[0].isEmpty();
+      case 2:
+        return ImmutableRoaringBitmap.intersects(bitmaps[0], bitmaps[1]);
+      default:
+        return intersectsMultiple(bitmaps);
+    }
+  }
+
+  private static boolean intersectsMultiple(ImmutableRoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    char[] keys = BufferUtil.intersectKeys(words, bitmaps);
+    if (keys.length == 0) {
+      return false;
+    }
+    int numKeys = keys.length;
+    outer:
+    for (int i = 0; i < numKeys; i++) {
+      Arrays.fill(words, -1L);
+      MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
+      for (ImmutableRoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex(keys[i]);
+        MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(index);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
+        MappeableContainer and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
+        }
+      }
+      if (!tmp.repairAfterLazy().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Compute cardinality of the OR aggregate.
    *
    * @param bitmaps input bitmaps
