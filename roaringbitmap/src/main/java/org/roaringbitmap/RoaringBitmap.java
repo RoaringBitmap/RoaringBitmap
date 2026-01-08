@@ -1667,19 +1667,31 @@ public class RoaringBitmap
    */
   public boolean checkedRemove(final int x) {
     final char hb = Util.highbits(x);
+    final char lb = Util.lowbits(x);
     final int i = highLowContainer.getIndex(hb);
     if (i < 0) {
       return false;
     }
+    boolean containerNotEmpty;
     Container C = highLowContainer.getContainerAtIndex(i);
-    int oldcard = C.getCardinality();
-    Container newC = C.remove(Util.lowbits(x));
-    int newcard = newC.getCardinality();
-    if (newcard == oldcard) {
-      return false;
+    if (C instanceof RunContainer) {
+      if (C.contains(lb)) { // getCardinality() is costly for run container
+        C = C.remove(lb);
+        containerNotEmpty = !C.isEmpty();
+      } else {
+        return false;
+      }
+    } else {
+      int oldcard = C.getCardinality();
+      C = C.remove(lb);
+      int newcard = C.getCardinality();
+      if (newcard == oldcard) {
+        return false;
+      }
+      containerNotEmpty = newcard > 0;
     }
-    if (newcard > 0) {
-      highLowContainer.setContainerAtIndex(i, newC);
+    if (containerNotEmpty) {
+      highLowContainer.setContainerAtIndex(i, C);
     } else {
       highLowContainer.removeAtIndex(i);
     }
@@ -2606,6 +2618,8 @@ public class RoaringBitmap
         size += this.highLowContainer.getContainerAtIndex(i).getCardinality();
       } else if (key == xhigh) {
         return size + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits(x));
+      } else {
+        break;
       }
     }
     return size;
@@ -2637,6 +2651,8 @@ public class RoaringBitmap
       } else if (key == xhigh) {
         return size
             + this.highLowContainer.getContainerAtIndex(i).rank(Util.lowbits((int) (end - 1)));
+      } else {
+        break;
       }
     }
     return size;
