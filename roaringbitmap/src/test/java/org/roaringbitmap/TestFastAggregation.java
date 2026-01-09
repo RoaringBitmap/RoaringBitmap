@@ -125,15 +125,6 @@ public class TestFastAggregation {
   }
 
   @Test
-  public void testIntersects() {
-    final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2, 0x10001, 0x20001, 0x30001);
-    final RoaringBitmap b2 = RoaringBitmap.bitmapOf(5, 3, 0x20002, 0x30002);
-    final RoaringBitmap b3 = RoaringBitmap.bitmapOf(4, 6, 0x20003, 0x30003);
-    boolean intersects = FastAggregation.intersects(b1, b2, b3);
-    assertFalse(intersects);
-  }
-
-  @Test
   public void testOrWithIterator() {
     final RoaringBitmap b1 = RoaringBitmap.bitmapOf(1, 2);
     final RoaringBitmap b2 = RoaringBitmap.bitmapOf(2, 3);
@@ -273,6 +264,18 @@ public class TestFastAggregation {
       RoaringBitmap and = FastAggregation.and(subset);
       int andCardinality = FastAggregation.andCardinality(subset);
       assertEquals(and.getCardinality(), andCardinality);
+    }
+  }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testIntersects")
+  public void testIntersects(List<RoaringBitmap> list) {
+    RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
+    for (int length = 0; length <= bitmaps.length; length++) {
+      RoaringBitmap[] subset = Arrays.copyOf(bitmaps, length);
+      RoaringBitmap and = FastAggregation.and(subset);
+      boolean intersects = FastAggregation.intersects(subset);
+      assertEquals(!and.isEmpty(), intersects);
     }
   }
 
