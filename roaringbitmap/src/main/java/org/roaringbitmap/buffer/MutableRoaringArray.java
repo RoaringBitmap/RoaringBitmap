@@ -333,6 +333,17 @@ public final class MutableRoaringArray
     if (hasrun) {
       bitmapOfRunContainers = new byte[(size + 7) / 8];
       in.readFully(bitmapOfRunContainers);
+      boolean hasNonZero = false;
+      for (byte b : bitmapOfRunContainers) {
+        if (b != 0) {
+          hasNonZero = true;
+          break;
+        }
+      }
+      if (!hasNonZero) {
+        throw new InvalidRoaringFormat(
+            "You indicated the presence of run containers but none were found.");
+      }
     }
 
     final char keys[] = new char[this.size];
@@ -422,6 +433,17 @@ public final class MutableRoaringArray
     if (hasrun) {
       bitmapOfRunContainers = new byte[(size + 7) / 8];
       buffer.get(bitmapOfRunContainers);
+      boolean hasNonZero = false;
+      for (byte b : bitmapOfRunContainers) {
+        if (b != 0) {
+          hasNonZero = true;
+          break;
+        }
+      }
+      if (!hasNonZero) {
+        throw new InvalidRoaringFormat(
+            "You indicated the presence of run containers but none were found.");
+      }
     }
 
     final char[] keys = new char[this.size];
