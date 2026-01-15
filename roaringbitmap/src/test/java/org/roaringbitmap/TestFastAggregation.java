@@ -268,6 +268,18 @@ public class TestFastAggregation {
   }
 
   @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testIntersects")
+  public void testIntersects(List<RoaringBitmap> list) {
+    RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
+    for (int length = 0; length <= bitmaps.length; length++) {
+      RoaringBitmap[] subset = Arrays.copyOf(bitmaps, length);
+      RoaringBitmap and = FastAggregation.and(subset);
+      boolean intersects = FastAggregation.intersects(subset);
+      assertEquals(!and.isEmpty(), intersects);
+    }
+  }
+
+  @MethodSource("bitmaps")
   @ParameterizedTest(name = "testOrCardinality")
   public void testOrCardinality(List<RoaringBitmap> list) {
     RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
