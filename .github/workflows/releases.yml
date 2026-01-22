@@ -2,6 +2,9 @@ name: Publish package to GitHub Packages
 on:
   release:
     types: [created]
+  push:
+    tags:
+      - '*'
 jobs:
   publish:
     runs-on: ubuntu-latest
