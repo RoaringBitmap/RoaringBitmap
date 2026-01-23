@@ -179,9 +179,11 @@ release {
 nmcpAggregation {
   allowDuplicateProjectNames.set(true)
   centralPortal {
-    username.value(provider { System.getenv("ORG_GRADLE_PROJECT_sonatypeUsername") })
-    password.value(provider { System.getenv("ORG_GRADLE_PROJECT_sonatypePassword") })
-    publishingType = if (System.getenv("CI") != null) "AUTOMATIC" else "USER_MANAGED"
+    username = providers.gradleProperty("sonatypeUsername")
+    password = providers.gradleProperty("sonatypePassword")
+    publishingType = providers.environmentVariable("CI")
+      .map { "AUTOMATIC" }
+      .orElse("USER_MANAGED")
     publishingTimeout = Duration.ofMinutes(120)
     validationTimeout = Duration.ofMinutes(120)
     publicationName = "${project.name}-$version"
