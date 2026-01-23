@@ -138,7 +138,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             }
 
             signing {
-                useInMemoryPgpKeys(System.getenv("ORG_GRADLE_PROJECT_signingKey"), System.getenv("ORG_GRADLE_PROJECT_signingPassword"))
+                useInMemoryPgpKeys(providers.gradleProperty("signingKey").orNull, providers.gradleProperty("signingPassword").orNull)
                 sign(publishing.publications["sonatype"])
             }
 
