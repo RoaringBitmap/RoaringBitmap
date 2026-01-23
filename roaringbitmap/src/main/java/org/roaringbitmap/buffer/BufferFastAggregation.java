@@ -570,6 +570,7 @@ public final class BufferFastAggregation {
 
     MutableRoaringArray array =
         new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       MappeableContainer[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -581,6 +582,9 @@ public final class BufferFastAggregation {
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();
@@ -600,14 +604,12 @@ public final class BufferFastAggregation {
 
     LongBuffer longBuffer = LongBuffer.wrap(words);
     int cardinality = 0;
+    outer:
     for (char key : keys) {
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(longBuffer, -1);
       for (ImmutableRoaringBitmap bitmap : bitmaps) {
         int index = bitmap.highLowContainer.getIndex(key);
-        if (index < 0) {
-          continue;
-        }
         MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(index);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -615,6 +617,9 @@ public final class BufferFastAggregation {
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       cardinality += tmp.repairAfterLazy().getCardinality();
@@ -684,15 +689,13 @@ public final class BufferFastAggregation {
 
     MutableRoaringArray array =
         new MutableRoaringArray(keys, new MappeableContainer[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       MappeableContainer tmp = new MappeableBitmapContainer(LongBuffer.wrap(words), -1);
       for (ImmutableRoaringBitmap bitmap : bitmaps) {
         int idx = bitmap.highLowContainer.getIndex(MatchingKey);
-        if (idx < 0) {
-          continue;
-        }
         MappeableContainer container = bitmap.highLowContainer.getContainerAtIndex(idx);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -700,6 +703,9 @@ public final class BufferFastAggregation {
         MappeableContainer and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();

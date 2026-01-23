@@ -424,6 +424,7 @@ public final class FastAggregation {
     }
 
     RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       Container[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -435,6 +436,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();
@@ -453,14 +457,12 @@ public final class FastAggregation {
     }
     int numKeys = keys.length;
     int cardinality = 0;
+    outer:
     for (int i = 0; i < numKeys; i++) {
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for (RoaringBitmap bitmap : bitmaps) {
         int index = bitmap.highLowContainer.getIndex(keys[i]);
-        if (index < 0) {
-          continue;
-        }
         Container container = bitmap.highLowContainer.getContainerAtIndex(index);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -468,6 +470,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       cardinality += tmp.repairAfterLazy().getCardinality();
@@ -534,15 +539,13 @@ public final class FastAggregation {
     int numContainers = keys.length;
 
     RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for (RoaringBitmap bitmap : bitmaps) {
         int idx = bitmap.highLowContainer.getIndex(MatchingKey);
-        if (idx < 0) {
-          continue;
-        }
         Container container = bitmap.highLowContainer.getContainerAtIndex(idx);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -550,6 +553,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();
