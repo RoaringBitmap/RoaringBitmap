@@ -86,6 +86,57 @@ public final class FastAggregation {
   }
 
   /**
+   * Checks if bitmaps intersect each other.
+   *
+   * @param bitmaps input bitmaps
+   * @return whether they intersect
+   */
+  public static boolean intersects(RoaringBitmap... bitmaps) {
+    switch (bitmaps.length) {
+      case 0:
+        return false;
+      case 1:
+        return !bitmaps[0].isEmpty();
+      case 2:
+        return RoaringBitmap.intersects(bitmaps[0], bitmaps[1]);
+      default:
+        return intersectsMultiple(bitmaps);
+    }
+  }
+
+  private static boolean intersectsMultiple(RoaringBitmap... bitmaps) {
+    long[] words = new long[1024];
+    char[] keys = Util.intersectKeys(words, bitmaps);
+    if (keys.length == 0) {
+      return false;
+    }
+    int numKeys = keys.length;
+    outer:
+    for (int i = 0; i < numKeys; i++) {
+      Arrays.fill(words, -1L);
+      Container tmp = new BitmapContainer(words, -1);
+      for (RoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex(keys[i]);
+        Container container = bitmap.highLowContainer.getContainerAtIndex(index);
+        // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
+        // as a garbage-collection optimization: we want to avoid
+        // the write barrier. (Richard Startin)
+        Container and = tmp.iand(container);
+        if (and != tmp) {
+          tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
+        }
+      }
+      if (!tmp.repairAfterLazy().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Compute cardinality of the OR aggregate.
    *
    * @param bitmaps input bitmaps
@@ -373,6 +424,7 @@ public final class FastAggregation {
     }
 
     RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       Container[] slice = containers[i];
       Arrays.fill(words, -1L);
@@ -384,6 +436,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();
@@ -402,14 +457,12 @@ public final class FastAggregation {
     }
     int numKeys = keys.length;
     int cardinality = 0;
+    outer:
     for (int i = 0; i < numKeys; i++) {
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for (RoaringBitmap bitmap : bitmaps) {
         int index = bitmap.highLowContainer.getIndex(keys[i]);
-        if (index < 0) {
-          continue;
-        }
         Container container = bitmap.highLowContainer.getContainerAtIndex(index);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -417,6 +470,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       cardinality += tmp.repairAfterLazy().getCardinality();
@@ -483,15 +539,13 @@ public final class FastAggregation {
     int numContainers = keys.length;
 
     RoaringArray array = new RoaringArray(keys, new Container[numContainers], 0);
+    outer:
     for (int i = 0; i < numContainers; ++i) {
       char MatchingKey = keys[i];
       Arrays.fill(words, -1L);
       Container tmp = new BitmapContainer(words, -1);
       for (RoaringBitmap bitmap : bitmaps) {
         int idx = bitmap.highLowContainer.getIndex(MatchingKey);
-        if (idx < 0) {
-          continue;
-        }
         Container container = bitmap.highLowContainer.getContainerAtIndex(idx);
         // We only assign to 'tmp' when 'tmp != tmp.iand(container)'
         // as a garbage-collection optimization: we want to avoid
@@ -499,6 +553,9 @@ public final class FastAggregation {
         Container and = tmp.iand(container);
         if (and != tmp) {
           tmp = and;
+        }
+        if (tmp.isEmpty()) {
+          continue outer;
         }
       }
       tmp = tmp.repairAfterLazy();
