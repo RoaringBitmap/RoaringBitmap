@@ -1,0 +1,58 @@
+name: Publish snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 11,23 * * 1-5'
+
+concurrency:
+  group: publish-snapshot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-maven-central-snapshot:
+    name: Publish snapshot to Maven Central
+    runs-on: ubuntu-latest
+    if: github.repository == 'RoaringBitmap/RoaringBitmap'
+    environment: release
+    timeout-minutes: 240
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+          validate-wrappers: false
+
+      - name: Validate required publish secrets
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        run: |
+          for var in GPG_PRIVATE_KEY GPG_PASSPHRASE MAVEN_USER MAVEN_PASSWORD; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Missing required secret: $var"
+              exit 1
+            fi
+          done
+
+      - name: Publish Maven snapshot artifacts
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
+        run: ./gradlew publishAggregationToCentralPortalSnapshots --no-scan
