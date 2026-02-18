@@ -1,19 +1,29 @@
 name: Publish release
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - '*'
+      - 'v*.*.*'
+
+concurrency:
+  group: publish-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish-maven-central:
     name: Publish to Maven Central
     runs-on: ubuntu-latest
+    if: github.repository == 'RoaringBitmap/RoaringBitmap'
     environment: release
     timeout-minutes: 240
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
 
       - uses: actions/setup-java@v4
         with:
@@ -25,6 +35,20 @@ jobs:
         with:
           cache-disabled: true
           validate-wrappers: false
+
+      - name: Validate required publish secrets
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        run: |
+          for var in GPG_PRIVATE_KEY GPG_PASSPHRASE MAVEN_USER MAVEN_PASSWORD; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Missing required secret: $var"
+              exit 1
+            fi
+          done
 
       - name: Publish Maven artifacts
         env:

@@ -138,7 +138,13 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             }
 
             signing {
-                useInMemoryPgpKeys(providers.gradleProperty("signingKey").orNull, providers.gradleProperty("signingPassword").orNull)
+                val signingKey = providers.gradleProperty("signingKey")
+                    .orElse(providers.environmentVariable("GPG_PRIVATE_KEY"))
+                    .orNull
+                val signingPassword = providers.gradleProperty("signingPassword")
+                    .orElse(providers.environmentVariable("GPG_PASSPHRASE"))
+                    .orNull
+                useInMemoryPgpKeys(signingKey, signingPassword)
                 sign(publishing.publications["sonatype"])
             }
 
@@ -179,8 +185,12 @@ release {
 nmcpAggregation {
   allowDuplicateProjectNames.set(true)
   centralPortal {
-    username = providers.gradleProperty("sonatypeUsername")
-    password = providers.gradleProperty("sonatypePassword")
+        username = providers.gradleProperty("sonatypeUsername")
+            .orElse(providers.environmentVariable("MAVEN_USER"))
+            .orElse(providers.environmentVariable("SONATYPE_USERNAME"))
+        password = providers.gradleProperty("sonatypePassword")
+            .orElse(providers.environmentVariable("MAVEN_PASSWORD"))
+            .orElse(providers.environmentVariable("SONATYPE_PASSWORD"))
     publishingType = providers.environmentVariable("CI")
       .map { "AUTOMATIC" }
       .orElse("USER_MANAGED")
