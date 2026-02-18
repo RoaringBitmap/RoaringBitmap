@@ -2,6 +2,17 @@ name: Publish snapshot
 
 on:
   workflow_dispatch:
+    inputs:
+      publishGroup:
+        description: 'Override Maven group (e.g., io.github.<user>)'
+        required: false
+        type: string
+        default: ''
+      publishVersion:
+        description: 'Override snapshot version (e.g., 0.0.0-forktest-SNAPSHOT)'
+        required: false
+        type: string
+        default: ''
   schedule:
     - cron: '0 11,23 * * 1-5'
 
@@ -49,10 +60,32 @@ jobs:
             fi
           done
 
+      - name: Show resolved publish parameters
+        env:
+          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
+          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
+        run: |
+          echo "Resolved publishGroup: ${INPUT_PUBLISH_GROUP:-org.roaringbitmap}"
+          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
+            echo "Resolved publishVersion: $INPUT_PUBLISH_VERSION"
+          else
+            echo "Resolved publishVersion: <from build default>"
+          fi
+
       - name: Publish Maven snapshot artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
-        run: ./gradlew publishAggregationToCentralPortalSnapshots --no-scan
+          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
+          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
+        run: |
+          ARGS=(publishAggregationToCentralPortalSnapshots --no-scan)
+          if [ -n "$INPUT_PUBLISH_GROUP" ]; then
+            ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
+          fi
+          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
+            ARGS+=("-Pversion=$INPUT_PUBLISH_VERSION")
+          fi
+          ./gradlew "${ARGS[@]}"

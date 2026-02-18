@@ -9,6 +9,9 @@ plugins {
     id("com.gradleup.nmcp.aggregation") version "1.4.3"
 }
 
+val publishGroup = providers.gradleProperty("publishGroup")
+    .orElse("org.roaringbitmap")
+
 
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
@@ -30,7 +33,7 @@ subprojects {
         mavenCentral()
     }
 
-    group = "org.roaringbitmap"
+    group = publishGroup.get()
 
     tasks {
         withType<JavaCompile> {
