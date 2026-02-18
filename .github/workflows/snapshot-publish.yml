@@ -81,7 +81,7 @@ jobs:
           INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
           INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
         run: |
-          ARGS=(publishAggregationToCentralPortalSnapshots --no-scan)
+          ARGS=(publishAggregationToCentralSnapshots --no-scan)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
             ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
           fi
