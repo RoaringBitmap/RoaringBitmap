@@ -13,7 +13,7 @@ jobs:
   publish-maven-central-snapshot:
     name: Publish snapshot to Maven Central
     runs-on: ubuntu-latest
-    if: github.repository == 'RoaringBitmap/RoaringBitmap'
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'RoaringBitmap/RoaringBitmap'
     environment: release
     timeout-minutes: 240
     permissions:
