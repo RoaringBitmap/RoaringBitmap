@@ -257,8 +257,8 @@ Add the following dependency to your pom.xml file...
 ```xml
 <dependency>
     <groupId>com.github.RoaringBitmap.RoaringBitmap</groupId>
-    <artifactId>roaringbitmap</artifactId>
-    <version>1.5.1</version>
+    <artifactId>RoaringBitmap</artifactId>
+    <version>1.6.8</version>
 </dependency>
 ```
 
@@ -284,8 +284,8 @@ Add the following dependency to your `pom.xml` file inside the `<dependencies>` 
 ```xml
 <dependency>
     <groupId>org.roaringbitmap</groupId>
-    <artifactId>roaringbitmap</artifactId>
-    <version>1.5.1</version>
+    <artifactId>RoaringBitmap</artifactId>
+    <version>1.6.8</version>
 </dependency>
 ```
 
@@ -341,7 +341,7 @@ plugins {
     id 'java'
 }
 
-group 'org.roaringbitmap' // name of your project
+group 'my.awesome.project' // name of your project
 version '1.0-SNAPSHOT' // version of your project
 
 repositories {
@@ -352,7 +352,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.RoaringBitmap.RoaringBitmap:roaringbitmap:1.5.1'
+    implementation 'org.roaringbitmapRoaringBitmap:1.6.8'
     testImplementation 'junit:junit:3.8.1'
 }
 ```
