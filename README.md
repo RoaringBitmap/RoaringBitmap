@@ -352,7 +352,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.roaringbitmapRoaringBitmap:1.6.8'
+    implementation 'org.roaringbitmap:RoaringBitmap:1.6.8'
     testImplementation 'junit:junit:3.8.1'
 }
 ```
