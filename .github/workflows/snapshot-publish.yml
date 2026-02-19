@@ -17,7 +17,7 @@ on:
     - cron: '0 11,23 * * 1-5'
 
 concurrency:
-  group: publish-snapshot-${{ github.ref }}
+  group: publish-snapshot-${{ github.repository }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -29,6 +29,10 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
+    env:
+      CI: "1"
+      INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
+      INPUT_PUBLISH_VERSION: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishVersion || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -61,9 +65,6 @@ jobs:
           done
 
       - name: Show resolved publish parameters
-        env:
-          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
-          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
         run: |
           echo "Resolved publishGroup: ${INPUT_PUBLISH_GROUP:-org.roaringbitmap}"
           if [ -n "$INPUT_PUBLISH_VERSION" ]; then
@@ -72,16 +73,32 @@ jobs:
             echo "Resolved publishVersion: <from build default>"
           fi
 
+      - name: Validate snapshot version override
+        run: |
+          if [ -n "$INPUT_PUBLISH_VERSION" ] && [[ "$INPUT_PUBLISH_VERSION" != *-SNAPSHOT ]]; then
+            echo "::error::publishVersion must end with -SNAPSHOT"
+            exit 1
+          fi
+
+      - name: Build NMCP bundle (dry run)
+        run: |
+          ARGS=(nmcpZipAggregation --no-scan)
+          if [ -n "$INPUT_PUBLISH_GROUP" ]; then
+            ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
+          fi
+          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
+            ARGS+=("-Pversion=$INPUT_PUBLISH_VERSION")
+          fi
+          ./gradlew "${ARGS[@]}"
+
       - name: Publish Maven snapshot artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
-          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
-          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
         run: |
-          ARGS=(publishAggregationToCentralSnapshots --no-scan)
+          ARGS=(publishAggregationToCentralPortalSnapshots --no-scan)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
             ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
           fi
