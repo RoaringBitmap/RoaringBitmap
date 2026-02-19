@@ -13,9 +13,6 @@ buildscript {
 // files with Java 8 compatibility
 apply(plugin = "org.javamodularity.moduleplugin")
 
-archivesBaseName = "RoaringBitmap"
-
-
 // Unset Java 8 release applied from root project to allow modularity plugin to
 // control the class file versions.
 tasks.named<JavaCompile>("compileJava") {
