@@ -1,11 +1,5 @@
 import java.time.Duration
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
@@ -13,6 +7,10 @@ plugins {
     id("com.diffplug.spotless") version "6.25.0"
     id("signing")
     id("com.gradleup.nmcp.aggregation") version "1.4.3"
+}
+
+repositories {
+    mavenCentral()
 }
 
 
