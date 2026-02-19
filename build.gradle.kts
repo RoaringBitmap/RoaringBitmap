@@ -1,8 +1,12 @@
+import java.time.Duration
+
 plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
     id("com.diffplug.spotless") version "6.25.0"
+    id("signing")
+    id("com.gradleup.nmcp.aggregation") version "1.4.3"
 }
 
 
@@ -81,6 +85,7 @@ subprojects {
 subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
+        apply(plugin = "signing")
         configure<JavaPluginExtension> {
             withSourcesJar()
             withJavadocJar()
@@ -132,6 +137,11 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
+            signing {
+                useInMemoryPgpKeys(providers.gradleProperty("signingKey").orNull, providers.gradleProperty("signingPassword").orNull)
+                sign(publishing.publications["sonatype"])
+            }
+
              // A safe throw-away place to publish to:
             // ./gradlew publishSonatypePublicationToLocalDebugRepository -Pversion=foo
             repositories {
@@ -165,3 +175,18 @@ release {
     tagTemplate = "\$version"
 }
 	
+
+nmcpAggregation {
+  allowDuplicateProjectNames.set(true)
+  centralPortal {
+    username = providers.gradleProperty("sonatypeUsername")
+    password = providers.gradleProperty("sonatypePassword")
+    publishingType = providers.environmentVariable("CI")
+      .map { "AUTOMATIC" }
+      .orElse("USER_MANAGED")
+    publishingTimeout = Duration.ofMinutes(120)
+    validationTimeout = Duration.ofMinutes(120)
+    publicationName = "${project.name}-$version"
+  }
+  publishAllProjectsProbablyBreakingProjectIsolation()
+}
