@@ -41,6 +41,7 @@ jobs:
           HAS_MAVEN_USER: ${{ secrets.MAVEN_USER != '' }}
           HAS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD != '' }}
         run: |
+          set -euo pipefail
           for var in HAS_GPG_PRIVATE_KEY HAS_GPG_PASSPHRASE HAS_MAVEN_USER HAS_MAVEN_PASSWORD; do
             if [ "${!var}" != "true" ]; then
               echo "::error::Missing required secret: ${var#HAS_}"
@@ -50,6 +51,7 @@ jobs:
 
       - name: Resolve and validate release version
         run: |
+          set -euo pipefail
           if ! [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Release tag must match X.Y.Z. Got '$GITHUB_REF_NAME'"
             exit 1
@@ -82,6 +84,7 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: |
+          set -euo pipefail
           ARGS=(publishAggregationToCentralPortal --no-scan)
           ARGS+=("-Pversion=$PUBLISH_VERSION")
           ./gradlew "${ARGS[@]}"
