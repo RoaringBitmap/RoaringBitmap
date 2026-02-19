@@ -8,11 +8,6 @@ on:
         required: false
         type: string
         default: ''
-      publishVersion:
-        description: 'Override version for manual test publish'
-        required: false
-        type: string
-        default: ''
   push:
     tags:
       - 'v*.*.*'
@@ -33,7 +28,6 @@ jobs:
     env:
       CI: "1"
       INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
-      INPUT_PUBLISH_VERSION: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishVersion || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,33 +47,17 @@ jobs:
 
       - name: Validate required publish secrets
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          MAVEN_USER: ${{ secrets.MAVEN_USER }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          HAS_GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+          HAS_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE != '' }}
+          HAS_MAVEN_USER: ${{ secrets.MAVEN_USER != '' }}
+          HAS_MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD != '' }}
         run: |
-          for var in GPG_PRIVATE_KEY GPG_PASSPHRASE MAVEN_USER MAVEN_PASSWORD; do
-            if [ -z "${!var}" ]; then
-              echo "::error::Missing required secret: $var"
+          for var in HAS_GPG_PRIVATE_KEY HAS_GPG_PASSPHRASE HAS_MAVEN_USER HAS_MAVEN_PASSWORD; do
+            if [ "${!var}" != "true" ]; then
+              echo "::error::Missing required secret: ${var#HAS_}"
               exit 1
             fi
           done
-
-      - name: Show resolved publish parameters
-        run: |
-          echo "Resolved publishGroup: ${INPUT_PUBLISH_GROUP:-org.roaringbitmap}"
-          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
-            echo "Resolved publishVersion: $INPUT_PUBLISH_VERSION"
-          else
-            echo "Resolved publishVersion: <from build/tag default>"
-          fi
-
-      - name: Validate release version override
-        run: |
-          if [ -n "$INPUT_PUBLISH_VERSION" ] && [[ "$INPUT_PUBLISH_VERSION" == *-SNAPSHOT ]]; then
-            echo "::error::publishVersion must not end with -SNAPSHOT for release publishing"
-            exit 1
-          fi
 
       - name: Publish Maven artifacts
         env:
@@ -91,8 +69,5 @@ jobs:
           ARGS=(publishAggregationToCentralPortal --no-scan)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
             ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
-          fi
-          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
-            ARGS+=("-Pversion=$INPUT_PUBLISH_VERSION")
           fi
           ./gradlew "${ARGS[@]}"
