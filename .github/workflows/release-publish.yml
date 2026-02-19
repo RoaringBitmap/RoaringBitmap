@@ -54,9 +54,22 @@ jobs:
             echo "::error::Release tag must match X.Y.Z. Got '$GITHUB_REF_NAME'"
             exit 1
           fi
-          PUBLISH_VERSION="$GITHUB_REF_NAME"
+          GRADLE_VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' gradle.properties | head -n1)"
+          if [ -z "$GRADLE_VERSION" ]; then
+            echo "::error::Unable to read 'version' from gradle.properties"
+            exit 1
+          fi
+          if ! [[ "$GRADLE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)?$ ]]; then
+            echo "::error::gradle.properties version must be X.Y.Z or X.Y.Z-SNAPSHOT. Got '$GRADLE_VERSION'"
+            exit 1
+          fi
+          PUBLISH_VERSION="${GRADLE_VERSION%-SNAPSHOT}"
           if [[ "$PUBLISH_VERSION" == *-SNAPSHOT ]]; then
             echo "::error::Release version cannot end with -SNAPSHOT"
+            exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "$PUBLISH_VERSION" ]; then
+            echo "::error::Tag '$GITHUB_REF_NAME' does not match release version '$PUBLISH_VERSION' derived from gradle.properties ($GRADLE_VERSION)"
             exit 1
           fi
           echo "Publishing release version: $PUBLISH_VERSION"
