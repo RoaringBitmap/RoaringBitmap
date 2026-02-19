@@ -61,16 +61,16 @@ jobs:
       - name: Validate snapshot version
         run: |
           set -euo pipefail
-          GRADLE_VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' gradle.properties | head -n1)"
-          if [ -z "$GRADLE_VERSION" ]; then
+          PROJECT_VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' gradle.properties | head -n1)"
+          if [ -z "$PROJECT_VERSION" ]; then
             echo "::error::Unable to read 'version' from gradle.properties"
             exit 1
           fi
-          if ! [[ "$GRADLE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]; then
-            echo "::error::Snapshot publish requires gradle.properties version X.Y.Z-SNAPSHOT. Got '$GRADLE_VERSION'"
+          if ! [[ "$PROJECT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]; then
+            echo "::error::Snapshot publish requires gradle.properties version X.Y.Z-SNAPSHOT. Got '$PROJECT_VERSION'"
             exit 1
           fi
-          echo "Publishing snapshot version: $GRADLE_VERSION"
+          echo "Publishing snapshot version: $PROJECT_VERSION"
 
       - name: Publish Maven snapshot artifacts
         env:
