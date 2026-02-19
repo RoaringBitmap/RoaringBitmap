@@ -9,7 +9,7 @@ on:
         type: string
         default: ''
   schedule:
-    - cron: '0 11,23 * * 1-5'
+    - cron: '0 2 * * *'
 
 concurrency:
   group: publish-snapshot-${{ github.repository }}-${{ github.ref }}
