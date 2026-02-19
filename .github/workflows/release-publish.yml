@@ -30,6 +30,10 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
+    env:
+      CI: "1"
+      INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
+      INPUT_PUBLISH_VERSION: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishVersion || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -62,9 +66,6 @@ jobs:
           done
 
       - name: Show resolved publish parameters
-        env:
-          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
-          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
         run: |
           echo "Resolved publishGroup: ${INPUT_PUBLISH_GROUP:-org.roaringbitmap}"
           if [ -n "$INPUT_PUBLISH_VERSION" ]; then
@@ -73,14 +74,19 @@ jobs:
             echo "Resolved publishVersion: <from build/tag default>"
           fi
 
+      - name: Validate release version override
+        run: |
+          if [ -n "$INPUT_PUBLISH_VERSION" ] && [[ "$INPUT_PUBLISH_VERSION" == *-SNAPSHOT ]]; then
+            echo "::error::publishVersion must not end with -SNAPSHOT for release publishing"
+            exit 1
+          fi
+
       - name: Publish Maven artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
-          INPUT_PUBLISH_GROUP: ${{ github.event.inputs.publishGroup }}
-          INPUT_PUBLISH_VERSION: ${{ github.event.inputs.publishVersion }}
         run: |
           ARGS=(publishAggregationToCentralPortal --no-scan)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
