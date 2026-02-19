@@ -99,7 +99,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             publications {
                 register<MavenPublication>("sonatype") {
                     groupId = project.group.toString()
-                    artifactId = project.name
+                    artifactId = if (project.name == "roaringbitmap") "RoaringBitmap" else project.name
                     version = project.version.toString()
 
                     from(components["java"])
@@ -107,7 +107,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                     // requirements for maven central
                     // https://central.sonatype.org/pages/requirements.html
                     pom {
-                        name.set("${project.group}:${project.name}")
+                        name.set("$groupId:$artifactId")
                         description.set("Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.")
                         url.set("https://github.com/RoaringBitmap/RoaringBitmap")
                         issueManagement {
@@ -141,9 +141,15 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
-            signing {
-                useInMemoryPgpKeys(providers.gradleProperty("signingKey").orNull, providers.gradleProperty("signingPassword").orNull)
-                sign(publishing.publications["sonatype"])
+            val signingKey = providers.gradleProperty("signingKey")
+            if (signingKey.isPresent) {
+                signing {
+                    useInMemoryPgpKeys(
+                        providers.gradleProperty("signingKey").orNull,
+                        providers.gradleProperty("signingPassword").orNull
+                    )
+                    sign(publishing.publications["sonatype"])
+                }
             }
 
              // A safe throw-away place to publish to:
