@@ -1,13 +1,6 @@
 name: Publish release
 
 on:
-  workflow_dispatch:
-    inputs:
-      publishGroup:
-        description: 'Override Maven group (e.g., io.github.<user>)'
-        required: false
-        type: string
-        default: ''
   push:
     tags:
       - 'v*.*.*'
@@ -20,14 +13,13 @@ jobs:
   publish-maven-central:
     name: Publish to Maven Central
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.repository == 'RoaringBitmap/RoaringBitmap'
+    if: github.repository == 'RoaringBitmap/RoaringBitmap'
     environment: release
     timeout-minutes: 240
     permissions:
       contents: read
     env:
       CI: "1"
-      INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +51,20 @@ jobs:
             fi
           done
 
+      - name: Resolve and validate release version
+        run: |
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag must match vX.Y.Z. Got '$GITHUB_REF_NAME'"
+            exit 1
+          fi
+          PUBLISH_VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "$PUBLISH_VERSION" == *-SNAPSHOT ]]; then
+            echo "::error::Release version cannot end with -SNAPSHOT"
+            exit 1
+          fi
+          echo "Publishing release version: $PUBLISH_VERSION"
+          echo "PUBLISH_VERSION=$PUBLISH_VERSION" >> "$GITHUB_ENV"
+
       - name: Publish Maven artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -67,7 +73,5 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: |
           ARGS=(publishAggregationToCentralPortal --no-scan)
-          if [ -n "$INPUT_PUBLISH_GROUP" ]; then
-            ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
-          fi
+          ARGS+=("-Pversion=$PUBLISH_VERSION")
           ./gradlew "${ARGS[@]}"
