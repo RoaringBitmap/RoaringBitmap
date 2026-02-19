@@ -43,6 +43,9 @@ jobs:
       - name: Create release
         run: ./gradlew release -Prelease.releaseVersionBump=${{ github.event.inputs.bumpType }}
 
+      - name: Get tag name
+        run: echo "TAG_NAME=$(git tag | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)" >> $GITHUB_ENV
+
       - name: Publish Maven artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -56,3 +59,11 @@ jobs:
       #   env:
       #     GITHUB_USER: ${{ github.actor }}
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
