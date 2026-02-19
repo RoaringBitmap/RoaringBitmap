@@ -18,9 +18,8 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
-    env:
-      CI: "1"
-    steps:
+
+      steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
