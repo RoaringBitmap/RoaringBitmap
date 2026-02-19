@@ -144,11 +144,13 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
-            signing {
-                val signingKey = providers.gradleProperty("signingKey").orNull
-                val signingPassword = providers.gradleProperty("signingPassword").orNull
-                useInMemoryPgpKeys(signingKey, signingPassword)
-                sign(publishing.publications["sonatype"])
+            if (providers.gradleProperty("signingKey").isPresent) {
+                signing {
+                    val signingKey = providers.gradleProperty("signingKey").orNull
+                    val signingPassword = providers.gradleProperty("signingPassword").orNull
+                    useInMemoryPgpKeys(signingKey, signingPassword)
+                    sign(publishing.publications["sonatype"])
+                }
             }
 
              // A safe throw-away place to publish to:
