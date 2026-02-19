@@ -66,10 +66,10 @@ subprojects {
     spotless {
         // Ratchetting from master means we check/apply only files which are changed relatively to master
         // This is especially useful for performance, given the whole codebase has been formatted with Spotless.
-        ratchetFrom("origin/master")
+        // ratchetFrom("origin/master") // fails in CI.
 
         java {
-            // Disbale javadoc formatting as most the javacode do not follow HTML syntax.
+            // Disable javadoc formatting as most the javacode do not follow HTML syntax.
             googleJavaFormat().reflowLongStrings().formatJavadoc(false)
             formatAnnotations()
 

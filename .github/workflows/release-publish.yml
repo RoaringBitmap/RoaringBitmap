@@ -1,6 +1,8 @@
-name: Publish release
+name: Publish release to Maven Central (or the equivalent)
 
 on:
+  release:
+    types: [created]
   push:
     tags:
       - '*'
