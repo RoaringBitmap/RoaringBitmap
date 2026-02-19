@@ -24,8 +24,6 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
-    env:
-      CI: "1"
       INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
 
     steps:
@@ -42,7 +40,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
-          validate-wrappers: false
+          validate-wrappers: true
 
       - name: Validate required publish secrets
         env:

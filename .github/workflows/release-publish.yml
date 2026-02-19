@@ -20,7 +20,6 @@ jobs:
       contents: read
     env:
       CI: "1"
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
-          validate-wrappers: false
+          validate-wrappers: true
 
       - name: Validate required publish secrets
         env:
