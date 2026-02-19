@@ -50,11 +50,9 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: ./gradlew publishAggregationToCentralPortal --no-scan
-
-      - name: Publish package
-        run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
-        env:
-          GITHUB_USER: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+      # Publishing to GitHub Packages is currently disabled because it fails
+      # - name: Publish package
+      #   run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
+      #   env:
+      #     GITHUB_USER: ${{ github.actor }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
