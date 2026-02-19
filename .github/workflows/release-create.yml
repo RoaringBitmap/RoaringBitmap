@@ -45,7 +45,8 @@ jobs:
 
       - name: Create GitHub release
         run: |
-          TAG=$(git tag --sort=-version:refname | head -1)
-          gh release create "$TAG" --generate-notes
+          git fetch --tags
+          TAG=$(git tag --sort=-version:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          gh release create "$TAG" --generate-notes --title "Release $TAG" --verify-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
