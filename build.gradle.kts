@@ -12,6 +12,10 @@ plugins {
 val publishGroup = providers.gradleProperty("publishGroup")
     .orElse("org.roaringbitmap")
 
+repositories {
+    mavenCentral()
+}
+
 
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
