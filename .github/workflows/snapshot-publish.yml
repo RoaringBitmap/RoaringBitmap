@@ -80,17 +80,6 @@ jobs:
             exit 1
           fi
 
-      - name: Build NMCP bundle (dry run)
-        run: |
-          ARGS=(nmcpZipAggregation --no-scan)
-          if [ -n "$INPUT_PUBLISH_GROUP" ]; then
-            ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
-          fi
-          if [ -n "$INPUT_PUBLISH_VERSION" ]; then
-            ARGS+=("-Pversion=$INPUT_PUBLISH_VERSION")
-          fi
-          ./gradlew "${ARGS[@]}"
-
       - name: Publish Maven snapshot artifacts
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
