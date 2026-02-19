@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
+    env:
       INPUT_PUBLISH_GROUP: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publishGroup || '' }}
 
     steps:
@@ -55,6 +56,19 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Validate snapshot version
+        run: |
+          GRADLE_VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' gradle.properties | head -n1)"
+          if [ -z "$GRADLE_VERSION" ]; then
+            echo "::error::Unable to read 'version' from gradle.properties"
+            exit 1
+          fi
+          if ! [[ "$GRADLE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]; then
+            echo "::error::Snapshot publish requires gradle.properties version X.Y.Z-SNAPSHOT. Got '$GRADLE_VERSION'"
+            exit 1
+          fi
+          echo "Publishing snapshot version: $GRADLE_VERSION"
 
       - name: Publish Maven snapshot artifacts
         env:
