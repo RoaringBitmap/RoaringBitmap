@@ -3,7 +3,7 @@ name: Publish release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '[0-9]*.[0-9]*.[0-9]*'
 
 concurrency:
   group: publish-release-${{ github.ref }}
@@ -18,8 +18,7 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: read
-
-      steps:
+    steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: '0'
@@ -51,11 +50,11 @@ jobs:
 
       - name: Resolve and validate release version
         run: |
-          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Release tag must match vX.Y.Z. Got '$GITHUB_REF_NAME'"
+          if ! [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag must match X.Y.Z. Got '$GITHUB_REF_NAME'"
             exit 1
           fi
-          PUBLISH_VERSION="${GITHUB_REF_NAME#v}"
+          PUBLISH_VERSION="$GITHUB_REF_NAME"
           if [[ "$PUBLISH_VERSION" == *-SNAPSHOT ]]; then
             echo "::error::Release version cannot end with -SNAPSHOT"
             exit 1
