@@ -85,6 +85,6 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: |
           set -euo pipefail
-          ARGS=(publishAggregationToCentralPortal --no-scan)
+          ARGS=(publishAggregationToCentralPortal --no-scan --info)
           ARGS+=("-Pversion=$PUBLISH_VERSION")
           ./gradlew "${ARGS[@]}"

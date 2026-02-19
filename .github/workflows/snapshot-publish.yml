@@ -80,7 +80,7 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: |
           set -euo pipefail
-          ARGS=(publishAggregationToCentralSnapshots --no-scan)
+          ARGS=(publishAggregationToCentralSnapshots --no-scan --info)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
             ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
           fi
