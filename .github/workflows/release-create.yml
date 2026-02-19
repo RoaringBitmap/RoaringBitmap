@@ -42,3 +42,10 @@ jobs:
 
       - name: Create release
         run: ./gradlew release -Prelease.releaseVersionBump=${{ github.event.inputs.bumpType }}
+
+      - name: Create GitHub release
+        run: |
+          TAG=$(git tag --sort=-version:refname | head -1)
+          gh release create "$TAG" --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
