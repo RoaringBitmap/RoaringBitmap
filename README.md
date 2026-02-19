@@ -22,6 +22,7 @@ RoaringBitmap
 - [COW Roaring Bitmaps](#copy-on-write-roaringbitmaps)
 - [Prerequisites](#prerequisites)
 - [Usage for RoaringBitmap Developers](#usage-for-roaringbitmap-developers)
+- [Release process](#release-process)
 - [IntelliJ and Eclipse](#intellij-and-eclipse)
 - [Contributing](#contributing)
 - [FAQ](#faq)
@@ -689,6 +690,25 @@ Usage for RoaringBitmap Developers
 * ``./gradlew test `` will run the tests
 * ``./gradlew :roaringbitmap:test --tests TestIterators.testIndexIterator4`` runs just the test `TestIterators.testIndexIterator4`; `./gradlew -i :roaringbitmap:test --tests TestRoaringBitmap.issue623` runs just the test `issue623` in the class ` TestRoaringBitmap` while printing out to the console.
 * ``./gradlew  bsi:test --tests BufferBSITest.testEQ``  run just the test `BufferBSITest.testEQ` in the `bsi` submodule
+
+Release process
+------
+
+Use this flow for Maven Central releases:
+
+1. Start from the latest `master`.
+2. Create a release branch named `release/X.Y.Z`.
+3. In `gradle.properties`, set `version = X.Y.Z` (remove `-SNAPSHOT`).
+4. Commit and push the release branch.
+5. Create and push tag `X.Y.Z` on that release commit.
+6. GitHub Actions workflow `.github/workflows/release-publish.yml` publishes using that version.
+7. After release, bump `master` to the next snapshot version (`X.Y.(Z+1)-SNAPSHOT`).
+
+Notes:
+
+* Release tags must match `X.Y.Z` (no `v` prefix).
+* The release workflow validates that the tag matches the version derived from `gradle.properties`.
+* `master` can keep using `-SNAPSHOT`; releases are produced from the release branch/tag.
 
 
 IntelliJ and Eclipse
