@@ -12,10 +12,6 @@ plugins {
 val publishGroup = providers.gradleProperty("publishGroup")
     .orElse("org.roaringbitmap")
 
-repositories {
-    mavenCentral()
-}
-
 
 
 // some parts of the Kotlin DSL don't work inside a `subprojects` block yet, so we do them the old way
@@ -145,12 +141,8 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             }
 
             signing {
-                val signingKey = providers.gradleProperty("signingKey")
-                    .orElse(providers.environmentVariable("GPG_PRIVATE_KEY"))
-                    .orNull
-                val signingPassword = providers.gradleProperty("signingPassword")
-                    .orElse(providers.environmentVariable("GPG_PASSPHRASE"))
-                    .orNull
+                val signingKey = providers.gradleProperty("signingKey").orNull
+                val signingPassword = providers.gradleProperty("signingPassword").orNull
                 useInMemoryPgpKeys(signingKey, signingPassword)
                 sign(publishing.publications["sonatype"])
             }
@@ -192,12 +184,8 @@ release {
 nmcpAggregation {
   allowDuplicateProjectNames.set(true)
   centralPortal {
-        username = providers.gradleProperty("sonatypeUsername")
-            .orElse(providers.environmentVariable("MAVEN_USER"))
-            .orElse(providers.environmentVariable("SONATYPE_USERNAME"))
-        password = providers.gradleProperty("sonatypePassword")
-            .orElse(providers.environmentVariable("MAVEN_PASSWORD"))
-            .orElse(providers.environmentVariable("SONATYPE_PASSWORD"))
+    username = providers.gradleProperty("sonatypeUsername")
+    password = providers.gradleProperty("sonatypePassword")
     publishingType = providers.environmentVariable("CI")
       .map { "AUTOMATIC" }
       .orElse("USER_MANAGED")
