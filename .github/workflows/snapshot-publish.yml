@@ -65,7 +65,7 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.MAVEN_USER }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.MAVEN_PASSWORD }}
         run: |
-          ARGS=(publishAggregationToCentralPortalSnapshots --no-scan)
+          ARGS=(publishAggregationToCentralSnapshots --no-scan)
           if [ -n "$INPUT_PUBLISH_GROUP" ]; then
             ARGS+=("-PpublishGroup=$INPUT_PUBLISH_GROUP")
           fi
