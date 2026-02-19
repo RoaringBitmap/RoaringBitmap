@@ -1,5 +1,11 @@
 import java.time.Duration
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
 plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
