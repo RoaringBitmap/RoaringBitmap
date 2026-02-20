@@ -42,12 +42,6 @@ jobs:
 
       - name: Create release
         run: ./gradlew release -Prelease.releaseVersionBump=${{ github.event.inputs.bumpType }}
-      - name: Publish package
-        run: ./gradlew publishSonatypePublicationToGitHubPackagesRepository -i
-        env:
-          GITHUB_USER: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Get tag name
         run: echo "TAG_NAME=$(git tag | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)" >> $GITHUB_ENV
 
