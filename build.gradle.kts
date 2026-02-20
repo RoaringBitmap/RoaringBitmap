@@ -89,7 +89,9 @@ subprojects {
 subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
-        apply(plugin = "signing")
+        if (rootProject.providers.gradleProperty("signingKey").isPresent) {
+            apply(plugin = "signing")
+        }
         configure<JavaPluginExtension> {
             withSourcesJar()
             withJavadocJar()
@@ -141,12 +143,12 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                 }
             }
 
-            val signingKey = providers.gradleProperty("signingKey")
+            val signingKey = rootProject.providers.gradleProperty("signingKey")
             if (signingKey.isPresent) {
                 signing {
                     useInMemoryPgpKeys(
-                        providers.gradleProperty("signingKey").orNull,
-                        providers.gradleProperty("signingPassword").orNull
+                        rootProject.providers.gradleProperty("signingKey").orNull,
+                        rootProject.providers.gradleProperty("signingPassword").orNull
                     )
                     sign(publishing.publications["sonatype"])
                 }
