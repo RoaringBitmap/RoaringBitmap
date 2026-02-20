@@ -277,56 +277,26 @@ Then add the repository to your pom.xml file:
 See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete example.
 
 
-### 2. Using GitHub Packages
+### 2. Using Maven Central 
 
 Add the following dependency to your `pom.xml` file inside the `<dependencies>` element...
 
 ```xml
+
 <dependency>
     <groupId>org.roaringbitmap</groupId>
     <artifactId>RoaringBitmap</artifactId>
-    <version>1.6.8</version>
+    <version>1.6.9</version>
+</dependency>
+<dependency>
+    <groupId>org.roaringbitmap</groupId>
+    <artifactId>bsi</artifactId>
+    <version>1.6.9</version>
 </dependency>
 ```
 
-Add the GitHub repository inside the `<repositories>` element (`pom.xml` file)...
+See https://github.com/RoaringBitmap/CentralRoaringBitmapProject for a complete example.
 
-```xml
-<repositories>
-    <repository>
-        <id>github</id>
-        <name>Roaring Maven Packages</name>
-        <url>https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap</url>
-        <releases><enabled>true</enabled></releases>
-        <snapshots><enabled>true</enabled></snapshots>
-    </repository>
-</repositories>
-```
-
-See https://github.com/RoaringBitmap/MavenRoaringBitmapProject for a complete example.
-
-The registry access is is protected by an authorisation. So you have to add your GitHub credentials to your global settings.xml: `$HOME\.m2\settings.xml`.
-
-You will need a token which you can generate on GitHub.
-
-```
-GitHub > Settings > Developer Settings > Personal access tokens > Generate new token
-```
-
-The token needs the read:packages permission. The token identifier is a long string such as `ghp_ieOkN`.
-
-Put the following in your `settings.xml` file, within the `<servers>` element.
-
-```xml
-<server>
-  <id>github</id>
-  <username>lemire</username>
-  <password>ghp_ieOkN</password>
-</server>
-```
-
-Replace `lemire` by your GitHub username and `ghp_ieOkN` by the token identifier
-you just generated.
 
 Usage within a gradle project
 ------------------
@@ -361,63 +331,30 @@ dependencies {
 See https://github.com/RoaringBitmap/JitPackRoaringBitmapProject for a complete example.
 
 
-### 2. Using GitHub Packages
+### 2. Using  Maven Central 
 
-
-You first need your GitHub credentials. Go
-to 
-
-```
-GitHub > Settings > Developer Settings > Personal access tokens > Generate new token
-```
-
-And create a token with read:packages permission.
-
-If your GitHub user name is `lemire` and your GitHub personal token `ghp_ieOkN`,
-then you can set them using system variables. Under bash, you can do it like so:
-```
-export GITHUB_USER=lemire
-export GITHUB_PASSWORD=ghp_ieOkN
-```
-
-
-If you prefer you can write your GitHub credentials in your  gradle.properties
-file
-
-```
-# gradle.properties
-githubUser=lemire
-githubPassword=ghp_ieOkN
-```
-
-Then all you need is to edit your `build.gradle` file like so:
+All you need is to edit your `build.gradle` file like so:
 
 ```groovy
 plugins {
     id 'java'
 }
 
-group 'org.roaringbitmap' // name of your project
+group 'me.project' // name of your project
 version '1.0-SNAPSHOT' // version of your project
 
 repositories {
     mavenCentral()
-    maven {
-        url 'https://maven.pkg.github.com/RoaringBitmap/RoaringBitmap'
-        credentials {
-            username = System.properties['githubUser'] ?: System.env.GITHUB_USER
-            password = System.properties['githubPassword'] ?: System.env.GITHUB_PASSWORD
-        }
-    }
 }
 
 dependencies {
-    implementation 'org.roaringbitmap:RoaringBitmap:1.6.8'
+    implementation 'org.roaringbitmap:RoaringBitmap:1.6.9'
+    implementation 'org.roaringbitmap:bsi:1.6.9'
     testImplementation 'junit:junit:3.8.1'
 }
 ```
 
-See https://github.com/RoaringBitmap/MavenRoaringBitmapProject for a complete example.
+See https://github.com/RoaringBitmap/CentralRoaringBitmapProject for a complete example.
 
 
 
