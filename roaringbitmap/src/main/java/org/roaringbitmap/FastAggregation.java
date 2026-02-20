@@ -155,6 +155,44 @@ public final class FastAggregation {
     }
   }
 
+  public static RoaringBitmap orWithContext(RoaringBitmap context, RoaringBitmap... bitmaps) {
+    if (context.isEmpty()) {
+      return new RoaringBitmap();
+    }
+    char[] keys = context.highLowContainer.keys;
+    int numContainers = context.highLowContainer.size;
+    RoaringArray array = new RoaringArray(new char[numContainers], new Container[numContainers], 0);
+    long[] bitset = new long[1024];
+    boolean marked = false;
+    ContainerPointer[] containerPointers = new ContainerPointer[bitmaps.length];
+    for (int i = 0; i < bitmaps.length; i++) {
+      containerPointers[i] = bitmaps[i].getContainerPointer();
+    }
+    for (int i = 0; i < numContainers; i++) {
+      char matchingKey = keys[i];
+      for (ContainerPointer ptr : containerPointers) {
+        if (ptr.advanceUntil(matchingKey)) {
+          if (ptr.hasRemaining() && ptr.key() == matchingKey) {
+            ptr.getContainer().orInto(bitset);
+            marked = true;
+          }
+        }
+      }
+      Container tmp =
+          new BitmapContainer(bitset, -1)
+              .iand(context.highLowContainer.values[i])
+              .repairAfterLazy();
+      if (!tmp.isEmpty()) {
+        array.append(matchingKey, tmp instanceof BitmapContainer ? tmp.clone() : tmp);
+      }
+      if (marked) {
+        Arrays.fill(bitset, 0L);
+        marked = false;
+      }
+    }
+    return new RoaringBitmap(array);
+  }
+
   /**
    * Calls naive_or.
    *
