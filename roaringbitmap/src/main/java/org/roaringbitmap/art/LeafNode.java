@@ -19,6 +19,10 @@ public class LeafNode extends Node {
   long containerIdx;
   public static final int LEAF_NODE_KEY_LENGTH_IN_BYTES = 6;
 
+  private LeafNode() {
+    super();
+  }
+
   /**
    * constructor
    *
@@ -43,8 +47,12 @@ public class LeafNode extends Node {
   }
 
   @Override
-  protected LeafNode clone() {
-    return new LeafNode(getKey(), containerIdx);
+  public LeafNode clone() {
+    LeafNode cloned = new LeafNode();
+    cloned.keyHigh = this.keyHigh;
+    cloned.keyLow = this.keyLow;
+    cloned.containerIdx = this.containerIdx;
+    return cloned;
   }
 
   @Override
@@ -99,14 +107,14 @@ public class LeafNode extends Node {
   }
 
   public long getKey() {
-    return (((long) keyHigh) & 0xFFFFFFFFL) << 16 | (((long)keyLow) & 0xFFFFL);
+    return (((long) keyHigh) & 0xFFFFFFFFL) << 16 | (((long) keyLow) & 0xFFFFL);
   }
 
-    /**
-     * Sets the key from a long value, only the high 48 bits are used.
-     *
-     * @param key the long value representing the key
-     */
+  /**
+   * Sets the key from a long value, only the high 48 bits are used.
+   *
+   * @param key the long value representing the key
+   */
   private void setKeyFromShifted(long key) {
     this.keyHigh = (int) (key >> 32);
     this.keyLow = (char) (key >> 16);
@@ -124,16 +132,17 @@ public class LeafNode extends Node {
   @Override
   protected void serializeHeader(ByteBuffer byteBuffer) throws IOException {
     byteBuffer.put((byte) NodeType.LEAF_NODE.ordinal());
-    byteBuffer.putShort((short)0);
-    byteBuffer.put((byte)0);
+    byteBuffer.putShort((short) 0);
+    byteBuffer.put((byte) 0);
   }
 
   @Override
   public String toString() {
-    return "LeafNode{" +
-            "key=" + Long.toHexString(getKey()) +
-            ", containerIdx=" + containerIdx +
-            '}';
+    return "LeafNode{"
+        + "key="
+        + Long.toHexString(getKey())
+        + ", containerIdx="
+        + containerIdx
+        + '}';
   }
-
 }
