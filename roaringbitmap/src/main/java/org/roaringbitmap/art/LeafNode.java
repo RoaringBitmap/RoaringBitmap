@@ -19,10 +19,6 @@ public class LeafNode extends Node {
   long containerIdx;
   public static final int LEAF_NODE_KEY_LENGTH_IN_BYTES = 6;
 
-  private LeafNode() {
-    super();
-  }
-
   /**
    * constructor
    *
@@ -48,11 +44,7 @@ public class LeafNode extends Node {
 
   @Override
   public LeafNode clone() {
-    LeafNode cloned = new LeafNode();
-    cloned.keyHigh = this.keyHigh;
-    cloned.keyLow = this.keyLow;
-    cloned.containerIdx = this.containerIdx;
-    return cloned;
+    return new LeafNode(getKey() << 16, containerIdx);
   }
 
   @Override
