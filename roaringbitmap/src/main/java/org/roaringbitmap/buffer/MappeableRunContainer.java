@@ -9,6 +9,7 @@ import static org.roaringbitmap.Util.setBitmapRange;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.CharRangeFiller;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
 import org.roaringbitmap.IntConsumer;
@@ -2236,7 +2237,6 @@ public final class MappeableRunContainer extends MappeableContainer implements C
    * @return new container
    */
   MappeableContainer toBitmapOrArrayContainer(int card) {
-    // int card = this.getCardinality();
     if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
       MappeableArrayContainer answer = new MappeableArrayContainer(card);
       answer.cardinality = 0;
@@ -2244,8 +2244,14 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         int runStart = (this.getValue(rlepos));
         int runEnd = runStart + (this.getLength(rlepos));
 
-        for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          answer.content.put(answer.cardinality++, (char) runValue);
+        if (BufferUtil.isBackedBySimpleArray(answer.content)) {
+          char[] ba = answer.content.array();
+          CharRangeFiller.fill(ba, answer.cardinality, runStart, runEnd + 1);
+          answer.cardinality += runEnd + 1 - runStart;
+        } else {
+          for (int runValue = runStart; runValue <= runEnd; ++runValue) {
+            answer.content.put(answer.cardinality++, (char) runValue);
+          }
         }
       }
       return answer;
@@ -2274,34 +2280,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     if (sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
       return this;
     }
-    if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-      MappeableArrayContainer answer = new MappeableArrayContainer(card);
-      answer.cardinality = 0;
-      for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-        int runStart = (this.getValue(rlepos));
-        int runEnd = runStart + (this.getLength(rlepos));
-        // next bit could potentially be faster, test
-        if (BufferUtil.isBackedBySimpleArray(answer.content)) {
-          char[] ba = answer.content.array();
-          for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-            ba[answer.cardinality++] = (char) runValue;
-          }
-        } else {
-          for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-            answer.content.put(answer.cardinality++, (char) runValue);
-          }
-        }
-      }
-      return answer;
-    }
-    MappeableBitmapContainer answer = new MappeableBitmapContainer();
-    for (int rlepos = 0; rlepos < this.nbrruns; ++rlepos) {
-      int start = (this.getValue(rlepos));
-      int end = start + (this.getLength(rlepos)) + 1;
-      BufferUtil.setBitmapRange(answer.bitmap, start, end);
-    }
-    answer.cardinality = card;
-    return answer;
+
+    return toBitmapOrArrayContainer(card);
   }
 
   /**
