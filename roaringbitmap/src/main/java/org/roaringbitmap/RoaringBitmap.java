@@ -608,8 +608,7 @@ public class RoaringBitmap
     final int hbLast = Util.highbits(max - 1);
     final int lbLast = Util.lowbits(max - 1);
 
-    RoaringArray array = new RoaringArray(hbLast - hbStart + 1);
-    RoaringBitmap bitmap = new RoaringBitmap(array);
+    RoaringBitmap bitmap = new RoaringBitmap(hbLast - hbStart + 1);
 
     int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast + 1;
     Container firstContainer = RunContainer.rangeOfOnes(lbStart, firstEnd);
@@ -1146,6 +1145,16 @@ public class RoaringBitmap
   }
 
   /**
+   * Creates an empty bitmap with a specified initial capacity.
+   * Use this to avoid internal array resizing when the number of containers is known in advance.
+   *
+   * @param initialCapacity the initial size of the underlying container array
+   */
+  RoaringBitmap(int initialCapacity) {
+    this.highLowContainer = new RoaringArray(initialCapacity);
+  }
+
+  /**
    * Wrap an existing high low container
    */
   RoaringBitmap(RoaringArray highLowContainer) {
@@ -1159,7 +1168,7 @@ public class RoaringBitmap
    * @param rb the original bitmap
    */
   public RoaringBitmap(ImmutableRoaringBitmap rb) {
-    highLowContainer = new RoaringArray();
+    highLowContainer = new RoaringArray(rb.getContainerCount());
     MappeableContainerPointer cp = rb.getContainerPointer();
     while (cp.getContainer() != null) {
       highLowContainer.append(cp.key(), cp.getContainer().toContainer());

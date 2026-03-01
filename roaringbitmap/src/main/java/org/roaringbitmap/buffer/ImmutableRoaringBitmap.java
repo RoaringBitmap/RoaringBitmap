@@ -2036,7 +2036,7 @@ public class ImmutableRoaringBitmap
    * @return a mutable bitmap.
    */
   public MutableRoaringBitmap toMutableRoaringBitmap() {
-    MutableRoaringBitmap c = new MutableRoaringBitmap();
+    MutableRoaringBitmap c = new MutableRoaringBitmap(getContainerCount());
     MappeableContainerPointer mcp = highLowContainer.getContainerPointer();
     while (mcp.hasContainer()) {
       c.getMappeableRoaringArray().appendCopy(mcp.key(), mcp.getContainer());

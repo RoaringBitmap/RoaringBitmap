@@ -423,8 +423,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     final int hbLast = BufferUtil.highbits(max - 1);
     final int lbLast = BufferUtil.lowbits(max - 1);
 
-    MutableRoaringArray array = new MutableRoaringArray(hbLast - hbStart + 1);
-    MutableRoaringBitmap bitmap = new MutableRoaringBitmap(array);
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap(hbLast - hbStart + 1);
 
     int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast + 1;
     MappeableContainer firstContainer = MappeableContainer.rangeOfOnes(lbStart, firstEnd);
@@ -816,6 +815,16 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
     this(new MutableRoaringArray());
   }
 
+  /**
+   * Creates an empty bitmap with a specified initial capacity.
+   * Use this to avoid internal array resizing when the number of containers is known in advance.
+   *
+   * @param initialCapacity the initial size of the underlying container array
+   */
+  MutableRoaringBitmap(int initialCapacity) {
+    this(new MutableRoaringArray(initialCapacity));
+  }
+
   public MutableRoaringBitmap(MutableRoaringArray highLowContainer) {
     this.highLowContainer = highLowContainer;
   }
@@ -826,7 +835,7 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
    * @param rb the original bitmap
    */
   public MutableRoaringBitmap(RoaringBitmap rb) {
-    highLowContainer = new MutableRoaringArray();
+    highLowContainer = new MutableRoaringArray(rb.getContainerCount());
     ContainerPointer cp = rb.getContainerPointer();
     while (cp.getContainer() != null) {
       ((MutableRoaringArray) highLowContainer)
