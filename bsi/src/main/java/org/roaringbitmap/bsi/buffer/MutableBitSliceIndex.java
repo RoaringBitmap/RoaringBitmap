@@ -64,12 +64,12 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     if (ebM.isEmpty()) {
       this.minValue = minValue;
       this.maxValue = maxValue;
-      grow(Integer.toBinaryString(maxValue).length());
+      grow(Integer.SIZE - Integer.numberOfLeadingZeros(maxValue));
     } else if (this.minValue > minValue) {
       this.minValue = minValue;
     } else if (this.maxValue < maxValue) {
       this.maxValue = maxValue;
-      grow(Integer.toBinaryString(maxValue).length());
+      grow(Integer.SIZE - Integer.numberOfLeadingZeros(maxValue));
     }
   }
 
