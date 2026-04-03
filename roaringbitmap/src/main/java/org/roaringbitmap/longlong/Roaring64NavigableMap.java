@@ -82,6 +82,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   // If true, we handle longs a plain java longs: -1 if right before 0
   // If false, we handle longs as unsigned longs: 0 has no predecessor and Long.MAX_VALUE + 1L is
   // expressed as a negative long
+  // Not final to enable initialization in Externalizable.readObject
   private boolean signedLongs = false;
 
   private transient BitmapDataProviderSupplier supplier;
@@ -302,6 +303,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
   }
 
+  private int minHigh(int x, int y) {
+    int compareResult = compare(x, y);
+    if (compareResult < 0) {
+      // x is smaller than y
+      return x;
+    } else {
+      return y;
+    }
+  }
+
   private void pushBitmapForHigh(int high, BitmapDataProvider bitmap) {
     // TODO .size is too slow
     // int nbHighBefore = highToBitmap.headMap(high).size();
@@ -381,7 +392,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
       return selectNoCache(j);
     }
 
-    // Ensure all cumulatives as we we have straightforward way to know in advance the high of the
+    // Ensure all cumulatives as we have straightforward way to know in advance the high of the
     // j-th value
     int indexOk = ensureCumulatives(highestHigh());
 
@@ -677,7 +688,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     return -(low + 1); // key not found.
   }
 
-  private void ensureOne(Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
+  /**
+   * BEWARE This method is synchronized as it is a mutating operation called by read operations
+   * (as it mutates some cached data-structure used to faster read operation).
+   */
+  private synchronized void ensureOne(Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
     // sortedHighs are valid only up to some index
     assert indexOk <= sortedHighs.length : indexOk + " is bigger than " + sortedHighs.length;
 
@@ -855,7 +870,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         firstBucket = false;
 
         // Invalidate the lowest high as lowest not valid
-        firstHighNotValid = Math.min(firstHighNotValid, high);
+        firstHighNotValid = minHigh(firstHighNotValid, high);
         allValid = false;
       }
     }
@@ -1007,7 +1022,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         firstBucket = false;
 
         // Invalidate the lowest high as lowest not valid
-        firstHighNotValid = Math.min(firstHighNotValid, high);
+        firstHighNotValid = minHigh(firstHighNotValid, high);
         allValid = false;
       }
     }
@@ -1103,7 +1118,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         firstBucket = false;
 
         // Invalidate the lowest high as lowest not valid
-        firstHighNotValid = Math.min(firstHighNotValid, high);
+        firstHighNotValid = minHigh(firstHighNotValid, high);
         allValid = false;
       }
     }
@@ -1258,7 +1273,7 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         firstBucket = false;
 
         // Invalidate the lowest high as lowest not valid
-        firstHighNotValid = Math.min(firstHighNotValid, high);
+        firstHighNotValid = minHigh(firstHighNotValid, high);
         allValid = false;
       }
     }
