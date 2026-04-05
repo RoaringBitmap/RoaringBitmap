@@ -50,9 +50,9 @@ public class TestRoaring64NavigableMap_concurrentReads {
   // number of threads
   int concurrency = 1024;
   // number of tasks per threads
-  long taskMultiplicator = 128;
+  int taskMultiplicator = 128;
   // This should be increased to a large value, as each run has one change to trigger a race-condition
-  long nbRuns = 1;
+  int nbRuns = 1;
   @Test
   public void testConcurrencyIsEmpty_manyRuns() throws InterruptedException {
     for (int i = 0; i < nbRuns; i++) {
