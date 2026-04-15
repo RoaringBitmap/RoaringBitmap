@@ -66,6 +66,8 @@ This library is used by
 *   [EvitaDB](https://evitadb.io/)
 *   [Apache Iceberg](https://iceberg.apache.org/)
 *   [Apache Pulsar](https://pulsar.apache.org/)
+*   [Apache Flink](https://flink.apache.org/)
+
 
 The library is mature and has been used in production for many years.
 
