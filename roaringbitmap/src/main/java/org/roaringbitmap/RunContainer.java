@@ -2305,7 +2305,6 @@ public final class RunContainer extends Container implements Cloneable {
    * @return new container
    */
   Container toBitmapOrArrayContainer(int card) {
-    // int card = this.getCardinality();
     if (card <= ArrayContainer.DEFAULT_MAX_SIZE) {
       ArrayContainer answer = new ArrayContainer(card);
       answer.cardinality = 0;
@@ -2313,9 +2312,8 @@ public final class RunContainer extends Container implements Cloneable {
         int runStart = (this.getValue(rlepos));
         int runEnd = runStart + (this.getLength(rlepos));
 
-        for (int runValue = runStart; runValue <= runEnd; ++runValue) {
-          answer.content[answer.cardinality++] = (char) runValue;
-        }
+        CharRangeFiller.fill(answer.content, answer.cardinality, runStart, runEnd + 1);
+        answer.cardinality += runEnd + 1 - runStart;
       }
       return answer;
     }
