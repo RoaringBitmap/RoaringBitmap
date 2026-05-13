@@ -52,6 +52,7 @@ This library is used by
 *   [Apache Hive](http://hive.apache.org),
 *   [Apache Tez](http://tez.apache.org),
 *   [Apache Kylin](http://kylin.io),
+*   [Apache Paimon](https://paimon.apache.org),
 *   [Apache CarbonData](https://carbondata.apache.org),
 *   [Netflix Atlas](https://github.com/Netflix/atlas),
 *   [OpenSearchServer](http://www.opensearchserver.com),
