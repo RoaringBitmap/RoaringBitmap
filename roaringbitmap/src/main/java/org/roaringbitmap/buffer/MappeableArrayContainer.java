@@ -8,6 +8,7 @@ import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.CharIterator;
+import org.roaringbitmap.CharRangeFiller;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
 import org.roaringbitmap.IntConsumer;
@@ -88,10 +89,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   public MappeableArrayContainer(final int firstOfRun, final int lastOfRun) {
     final int valuesInRange = lastOfRun - firstOfRun;
     content = CharBuffer.allocate(valuesInRange);
-    char[] sarray = content.array();
-    for (int i = 0; i < valuesInRange; ++i) {
-      sarray[i] = (char) (firstOfRun + i);
-    }
+    CharRangeFiller.fill(content.array(), 0, firstOfRun, lastOfRun);
     cardinality = valuesInRange;
   }
 
@@ -151,9 +149,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
     BufferUtil.arraycopy(
         content, indexend, answer.content, indexstart + rangelength, cardinality - indexend);
     char[] answerarray = answer.content.array();
-    for (int k = 0; k < rangelength; ++k) {
-      answerarray[k + indexstart] = (char) (begin + k);
-    }
+    CharRangeFiller.fill(answerarray, indexstart, begin, begin + rangelength);
     answer.cardinality = newcardinality;
     return answer;
   }
@@ -656,10 +652,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       CharBuffer destination = CharBuffer.allocate(newcardinality);
       BufferUtil.arraycopy(content, 0, destination, 0, indexstart);
       if (BufferUtil.isBackedBySimpleArray(content)) {
-        char[] destinationarray = destination.array();
-        for (int k = 0; k < rangelength; ++k) {
-          destinationarray[k + indexstart] = (char) (begin + k);
-        }
+        CharRangeFiller.fill(destination.array(), indexstart, begin, begin + rangelength);
       } else {
         for (int k = 0; k < rangelength; ++k) {
           destination.put(k + indexstart, (char) (begin + k));
@@ -672,10 +665,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       BufferUtil.arraycopy(
           content, indexend, content, indexstart + rangelength, cardinality - indexend);
       if (BufferUtil.isBackedBySimpleArray(content)) {
-        char[] contentarray = content.array();
-        for (int k = 0; k < rangelength; ++k) {
-          contentarray[k + indexstart] = (char) (begin + k);
-        }
+        CharRangeFiller.fill(content.array(), indexstart, begin, begin + rangelength);
       } else {
         for (int k = 0; k < rangelength; ++k) {
           content.put(k + indexstart, (char) (begin + k));
@@ -1096,8 +1086,13 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
     // if there are extra items (greater than the biggest
     // pre-existing one in range), buffer them
-    for (; valInRange < lastRange; ++valInRange) {
-      buffer.put(outPos++, (char) valInRange);
+    if (!BufferUtil.isBackedBySimpleArray(buffer)) {
+      CharRangeFiller.fill(buffer.array(), outPos, valInRange, lastRange);
+      outPos += lastRange - valInRange;
+    } else {
+      for (; valInRange < lastRange; ++valInRange) {
+        buffer.put(outPos++, (char) valInRange);
+      }
     }
 
     if (outPos != buffer.limit()) {
@@ -1165,13 +1160,16 @@ public final class MappeableArrayContainer extends MappeableContainer implements
       }
     }
 
-    for (; valInRange < lastOfRange; ++valInRange) {
-      answer.content.put(outPos++, (char) valInRange);
-    }
+    CharRangeFiller.fill(sarray, outPos, valInRange, lastOfRange);
+    outPos += lastOfRange - valInRange;
 
     // content after the active range
-    for (int i = lastIndex + 1; i < cardinality; ++i) {
-      answer.content.put(outPos++, content.get(i));
+    if (BufferUtil.isBackedBySimpleArray(content)) {
+      System.arraycopy(content.array(), lastIndex + 1, sarray, outPos, cardinality - lastIndex - 1);
+    } else {
+      for (int i = lastIndex + 1; i < cardinality; ++i) {
+        answer.content.put(outPos++, content.get(i));
+      }
     }
     answer.cardinality = newCardinality;
     return answer;

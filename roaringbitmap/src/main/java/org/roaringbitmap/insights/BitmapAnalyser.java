@@ -2,6 +2,7 @@ package org.roaringbitmap.insights;
 
 import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.RunContainer;
 
 import java.util.Collection;
 
@@ -15,14 +16,24 @@ public class BitmapAnalyser {
   public static BitmapStatistics analyse(RoaringBitmap r) {
     int acCount = 0;
     int acCardinalitySum = 0;
+    int rcCardinalitySum = 0;
     int bcCount = 0;
     int rcCount = 0;
+    int[] runLengthHistogram = new int[16];
     ContainerPointer cp = r.getContainerPointer();
     while (cp.getContainer() != null) {
       if (cp.isBitmapContainer()) {
         bcCount += 1;
       } else if (cp.isRunContainer()) {
         rcCount += 1;
+        RunContainer rc = (RunContainer) cp.getContainer();
+        int numberOfRuns = rc.numberOfRuns();
+        for (int i = 0; i < numberOfRuns; i++) {
+          int length = rc.getLength(i);
+          runLengthHistogram[Integer.numberOfLeadingZeros(length) - 17]++;
+        }
+
+        rcCardinalitySum += cp.getCardinality();
       } else {
         acCount += 1;
         acCardinalitySum += cp.getCardinality();
@@ -31,7 +42,9 @@ public class BitmapAnalyser {
     }
     BitmapStatistics.ArrayContainersStats acStats =
         new BitmapStatistics.ArrayContainersStats(acCount, acCardinalitySum);
-    return new BitmapStatistics(acStats, bcCount, rcCount);
+    BitmapStatistics.RunContainersStats rcStats =
+        new BitmapStatistics.RunContainersStats(rcCount, rcCardinalitySum, runLengthHistogram);
+    return new BitmapStatistics(acStats, rcStats, bcCount, rcCount);
   }
 
   /**
