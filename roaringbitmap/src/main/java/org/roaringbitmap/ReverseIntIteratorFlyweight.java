@@ -24,7 +24,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
 
   private ReverseRunContainerCharIterator runIter = new ReverseRunContainerCharIterator();
 
-  private short pos;
+  private int pos;
 
   private RoaringBitmap roaringBitmap = null;
 
@@ -98,7 +98,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
   public void wrap(RoaringBitmap r) {
     this.roaringBitmap = r;
     this.hs = 0;
-    this.pos = (short) (this.roaringBitmap.highLowContainer.size() - 1);
+    this.pos = this.roaringBitmap.highLowContainer.size() - 1;
     this.nextContainer();
   }
 }
