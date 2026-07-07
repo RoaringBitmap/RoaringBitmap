@@ -1177,6 +1177,9 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public int nextValue(char fromValue) {
+    if (cardinality == 0) {
+      return -1;
+    }
     int index = Util.advanceUntil(content, -1, cardinality, fromValue);
     if (index == cardinality) {
       return fromValue == content[cardinality - 1] ? (fromValue) : -1;

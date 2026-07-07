@@ -1468,6 +1468,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public int nextValue(char fromValue) {
+    if (cardinality == 0) {
+      return -1;
+    }
     int index = BufferUtil.advanceUntil(content, -1, cardinality, fromValue);
     if (index == cardinality) {
       return fromValue == content.get(cardinality - 1) ? (fromValue) : -1;
