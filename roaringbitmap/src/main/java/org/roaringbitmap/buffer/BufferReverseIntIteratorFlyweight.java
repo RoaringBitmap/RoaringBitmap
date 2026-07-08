@@ -30,7 +30,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
   private ReverseMappeableRunContainerCharIterator runIter =
       new ReverseMappeableRunContainerCharIterator();
 
-  private short pos;
+  private int pos;
 
   private ImmutableRoaringBitmap roaringBitmap = null;
 
@@ -106,7 +106,7 @@ public class BufferReverseIntIteratorFlyweight implements IntIterator {
   public void wrap(ImmutableRoaringBitmap r) {
     this.roaringBitmap = r;
     this.hs = 0;
-    this.pos = (short) (this.roaringBitmap.highLowContainer.size() - 1);
+    this.pos = this.roaringBitmap.highLowContainer.size() - 1;
     this.nextContainer();
   }
 }
