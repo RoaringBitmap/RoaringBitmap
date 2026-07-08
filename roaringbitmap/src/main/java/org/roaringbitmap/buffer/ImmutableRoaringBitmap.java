@@ -550,7 +550,7 @@ public class ImmutableRoaringBitmap
             key == maxKey
                 ? x1.highLowContainer
                     .getContainerAtIndex(pos1)
-                    .ior(MappeableRunContainer.rangeOfOnes(0, lastRun))
+                    .or(MappeableRunContainer.rangeOfOnes(0, lastRun))
                 : MappeableRunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;

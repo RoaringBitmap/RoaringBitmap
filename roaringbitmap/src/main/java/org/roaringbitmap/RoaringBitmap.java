@@ -1591,7 +1591,7 @@ public class RoaringBitmap
             key == maxKey
                 ? x1.highLowContainer
                     .getContainerAtIndex(pos1)
-                    .ior(RunContainer.rangeOfOnes(0, lastRun))
+                    .or(RunContainer.rangeOfOnes(0, lastRun))
                 : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
