@@ -553,7 +553,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     if (this.isArrayBacked()) {
       return BitmapContainer.getReverseShortIterator(bitmap.array());
     }
@@ -2254,7 +2254,7 @@ final class MappeableBitmapContainerCharIterator implements PeekableCharIterator
   }
 }
 
-final class ReverseMappeableBitmapContainerCharIterator implements CharIterator {
+final class ReverseMappeableBitmapContainerCharIterator implements PeekableCharIterator {
 
   private static final int len =
       MappeableBitmapContainer.MAX_CAPACITY >>> 6; // hard coded for speed
@@ -2270,9 +2270,9 @@ final class ReverseMappeableBitmapContainerCharIterator implements CharIterator 
   }
 
   @Override
-  public CharIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null;
     }
@@ -2301,6 +2301,33 @@ final class ReverseMappeableBitmapContainerCharIterator implements CharIterator 
   @Override
   public int nextAsInt() {
     return next();
+  }
+
+  @Override
+  public void advanceIfNeeded(char maxval) {
+    if (maxval < (x + 1) * 64) {
+      if (maxval < x * 64) {
+        x = maxval / 64;
+      }
+      long currentWord = parent.bitmap.get(x);
+      currentWord &= ~0L >>> (63 - (maxval & 63));
+      if (x > 0) {
+        while (currentWord == 0) {
+          x--;
+          if (x == 0) {
+            break;
+          }
+          currentWord = parent.bitmap.get(x);
+        }
+      }
+      w = currentWord;
+    }
+  }
+
+  @Override
+  public char peekNext() {
+    int shift = Long.numberOfLeadingZeros(w) + 1;
+    return (char) ((x + 1) * 64 - shift);
   }
 
   @Override

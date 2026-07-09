@@ -204,14 +204,14 @@ public class ImmutableRoaringBitmap
     }
   }
 
-  private final class ImmutableRoaringReverseIntIterator implements IntIterator {
+  private final class ImmutableRoaringReverseIntIterator implements PeekableIntIterator {
     private MappeableContainerPointer cp =
         ImmutableRoaringBitmap.this.highLowContainer.getContainerPointer(
             ImmutableRoaringBitmap.this.highLowContainer.size() - 1);
 
     private int hs = 0;
 
-    private CharIterator iter;
+    private PeekableCharIterator iter;
 
     private boolean ok;
 
@@ -220,7 +220,7 @@ public class ImmutableRoaringBitmap
     }
 
     @Override
-    public IntIterator clone() {
+    public PeekableIntIterator clone() {
       try {
         ImmutableRoaringReverseIntIterator x = (ImmutableRoaringReverseIntIterator) super.clone();
         if (this.iter != null) {
@@ -256,6 +256,27 @@ public class ImmutableRoaringBitmap
         iter = cp.getContainer().getReverseCharIterator();
         hs = (cp.key()) << 16;
       }
+    }
+
+    @Override
+    public void advanceIfNeeded(int maxval) {
+      // In reverse order: skip while next value is strictly greater than maxval (unsigned).
+      while (hasNext() && ((hs >>> 16) > (maxval >>> 16))) {
+        cp.previous();
+        nextContainer();
+      }
+      if (ok && ((hs >>> 16) == (maxval >>> 16))) {
+        iter.advanceIfNeeded(lowbits(maxval));
+        if (!iter.hasNext()) {
+          cp.previous();
+          nextContainer();
+        }
+      }
+    }
+
+    @Override
+    public int peekNext() {
+      return (iter.peekNext()) | hs;
     }
   }
 
@@ -1494,7 +1515,7 @@ public class ImmutableRoaringBitmap
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
    */
   @Override
-  public IntIterator getReverseIntIterator() {
+  public PeekableIntIterator getReverseIntIterator() {
     return new ImmutableRoaringReverseIntIterator();
   }
 

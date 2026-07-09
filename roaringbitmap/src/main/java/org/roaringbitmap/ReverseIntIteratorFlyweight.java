@@ -12,11 +12,11 @@ package org.roaringbitmap;
  *
  * @author Borislav Ivanov
  **/
-public class ReverseIntIteratorFlyweight implements IntIterator {
+public class ReverseIntIteratorFlyweight implements PeekableIntIterator {
 
   private int hs;
 
-  private CharIterator iter;
+  private PeekableCharIterator iter;
 
   private ReverseArrayContainerCharIterator arrIter = new ReverseArrayContainerCharIterator();
 
@@ -44,7 +44,7 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
   }
 
   @Override
-  public IntIterator clone() {
+  public PeekableIntIterator clone() {
     try {
       ReverseIntIteratorFlyweight x = (ReverseIntIteratorFlyweight) super.clone();
       if (this.iter != null) {
@@ -100,5 +100,26 @@ public class ReverseIntIteratorFlyweight implements IntIterator {
     this.hs = 0;
     this.pos = this.roaringBitmap.highLowContainer.size() - 1;
     this.nextContainer();
+  }
+
+  @Override
+  public void advanceIfNeeded(int maxval) {
+    // In reverse order: skip while next value is strictly greater than maxval (unsigned).
+    while (hasNext() && ((hs >>> 16) > (maxval >>> 16))) {
+      --pos;
+      nextContainer();
+    }
+    if (hasNext() && ((hs >>> 16) == (maxval >>> 16))) {
+      iter.advanceIfNeeded(Util.lowbits(maxval));
+      if (!iter.hasNext()) {
+        --pos;
+        nextContainer();
+      }
+    }
+  }
+
+  @Override
+  public int peekNext() {
+    return (iter.peekNext()) | hs;
   }
 }

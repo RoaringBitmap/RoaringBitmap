@@ -1597,7 +1597,7 @@ final class ReverseArrayContainerCharIterator implements PeekableCharIterator {
 
   @Override
   public void advanceIfNeeded(char maxval) {
-    pos = Util.reverseUntil(parent.content, pos + 1, parent.cardinality, maxval);
+    pos = Util.reverseUntil(parent.content, pos + 1, maxval);
   }
 
   @Override

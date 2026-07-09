@@ -88,6 +88,19 @@ public class TestIntIteratorFlyweight {
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
     reverseIter.wrap(bitmap);
 
+    BufferReverseIntIteratorFlyweight reverseIter2 = new BufferReverseIntIteratorFlyweight(bitmap);
+    PeekableIntIterator rj = bitmap.getReverseIntIterator();
+    for (int k = data.length - 1; k >= 0; k -= 3) {
+      reverseIter2.advanceIfNeeded(data[k]);
+      reverseIter2.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      assertEquals(data[k], rj.peekNext());
+      assertEquals(data[k], reverseIter2.peekNext());
+    }
+    new BufferReverseIntIteratorFlyweight(bitmap).advanceIfNeeded(-1);
+    bitmap.getReverseIntIterator().advanceIfNeeded(-1); // should not crash
+
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
@@ -120,6 +133,19 @@ public class TestIntIteratorFlyweight {
     }
 
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight(bitmap);
+    assertEquals(data[data.length - 1], reverseIter.peekNext());
+    assertEquals(data[data.length - 1], reverseIter.peekNext());
+
+    BufferReverseIntIteratorFlyweight reverseIter2 = new BufferReverseIntIteratorFlyweight(bitmap);
+    PeekableIntIterator rj = bitmap.getReverseIntIterator();
+    for (int k = data.length - 1; k >= 0; k -= 3) {
+      reverseIter2.advanceIfNeeded(data[k]);
+      reverseIter2.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      assertEquals(data[k], rj.peekNext());
+      assertEquals(data[k], reverseIter2.peekNext());
+    }
 
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);

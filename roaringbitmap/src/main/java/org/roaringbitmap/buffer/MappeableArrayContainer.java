@@ -569,7 +569,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     if (this.isArrayBacked()) {
       return new RawReverseArrayContainerCharIterator(this);
     }
@@ -1909,7 +1909,7 @@ final class RawArrayContainerCharIterator implements PeekableCharIterator {
   }
 }
 
-final class RawReverseArrayContainerCharIterator implements CharIterator {
+final class RawReverseArrayContainerCharIterator implements PeekableCharIterator {
   int pos;
   private MappeableArrayContainer parent;
   char[] content;
@@ -1924,9 +1924,14 @@ final class RawReverseArrayContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public void advanceIfNeeded(char maxval) {
+    pos = Util.reverseUntil(content, pos + 1, maxval);
+  }
+
+  @Override
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null; // will not happen
     }
@@ -1948,13 +1953,18 @@ final class RawReverseArrayContainerCharIterator implements CharIterator {
   }
 
   @Override
+  public char peekNext() {
+    return content[pos];
+  }
+
+  @Override
   public void remove() {
     parent.removeAtIndex(pos + 1);
     pos++;
   }
 }
 
-final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
+final class ReverseMappeableArrayContainerCharIterator implements PeekableCharIterator {
 
   int pos;
 
@@ -1967,9 +1977,14 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public void advanceIfNeeded(char maxval) {
+    pos = BufferUtil.reverseUntil(parent.content, pos + 1, maxval);
+  }
+
+  @Override
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null; // will not happen
     }
@@ -1988,6 +2003,11 @@ final class ReverseMappeableArrayContainerCharIterator implements CharIterator {
   @Override
   public int nextAsInt() {
     return (parent.content.get(pos--));
+  }
+
+  @Override
+  public char peekNext() {
+    return parent.content.get(pos);
   }
 
   @Override
