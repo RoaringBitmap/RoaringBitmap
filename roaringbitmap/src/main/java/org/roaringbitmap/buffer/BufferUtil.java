@@ -199,16 +199,15 @@ public final class BufferUtil {
   /**
    * Find the largest integer smaller than pos such that array[pos]&lt;= max. If none can be found,
    * return 0. Based on code by O. Kaser. CharBuffer counterpart of {@link
-   * org.roaringbitmap.Util#reverseUntil(char[], int, int, char)}.
+   * org.roaringbitmap.Util#reverseUntil(char[], int, char)}.
    *
    * @param array array to search within
    * @param pos starting position of the search
-   * @param length length of the array to search
    * @param max maximum value
    * @return x less than pos such that array[pos] is at least as small as max, 0 if it is not
    *     possible.
    */
-  protected static int reverseUntil(CharBuffer array, int pos, int length, char max) {
+  protected static int reverseUntil(CharBuffer array, int pos, char max) {
     int lower = pos - 1;
 
     // special handling for a possibly common sequential case
