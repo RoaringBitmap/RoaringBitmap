@@ -51,7 +51,7 @@ public final class BitmapContainer extends Container implements Cloneable {
    * @param bitmap array to be iterated over
    * @return an iterator
    */
-  public static CharIterator getReverseShortIterator(long[] bitmap) {
+  public static PeekableCharIterator getReverseShortIterator(long[] bitmap) {
     return new ReverseBitmapContainerCharIterator(bitmap);
   }
 

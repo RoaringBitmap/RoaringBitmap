@@ -4,7 +4,6 @@
 
 package org.roaringbitmap.buffer;
 
-import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
 import org.roaringbitmap.IntConsumer;
@@ -347,7 +346,7 @@ public abstract class MappeableContainer
    *
    * @return iterator
    */
-  public abstract CharIterator getReverseCharIterator();
+  public abstract PeekableCharIterator getReverseCharIterator();
 
   /**
    * Iterator to visit the char values in the container in ascending order.

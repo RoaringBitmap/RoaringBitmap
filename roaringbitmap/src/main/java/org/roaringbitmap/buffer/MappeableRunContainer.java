@@ -958,7 +958,7 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   @Override
-  public CharIterator getReverseCharIterator() {
+  public PeekableCharIterator getReverseCharIterator() {
     if (isArrayBacked()) {
       return new RawReverseMappeableRunContainerCharIterator(this);
     }
@@ -2995,7 +2995,7 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
   }
 }
 
-final class RawReverseMappeableRunContainerCharIterator implements CharIterator {
+final class RawReverseMappeableRunContainerCharIterator implements PeekableCharIterator {
   private int pos;
   private int le;
   private int maxlength;
@@ -3007,9 +3007,9 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
   }
 
   @Override
-  public CharIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null; // will not happen
     }
@@ -3059,6 +3059,29 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
   }
 
   @Override
+  public void advanceIfNeeded(char maxval) {
+    while (base > (maxval)) {
+      pos--;
+      le = 0;
+      if (pos >= 0) {
+        maxlength = getLength(pos);
+        base = getValue(pos);
+      } else {
+        return;
+      }
+    }
+    if (base + maxlength < (maxval)) {
+      return;
+    }
+    le = maxlength + base - (maxval);
+  }
+
+  @Override
+  public char peekNext() {
+    return (char) (base + maxlength - le);
+  }
+
+  @Override
   public void remove() {
     throw new RuntimeException("Not implemented"); // TODO
   }
@@ -3078,7 +3101,7 @@ final class RawReverseMappeableRunContainerCharIterator implements CharIterator 
   }
 }
 
-final class ReverseMappeableRunContainerCharIterator implements CharIterator {
+final class ReverseMappeableRunContainerCharIterator implements PeekableCharIterator {
   private int pos;
   private int le;
   private int maxlength;
@@ -3092,9 +3115,9 @@ final class ReverseMappeableRunContainerCharIterator implements CharIterator {
   }
 
   @Override
-  public CharIterator clone() {
+  public PeekableCharIterator clone() {
     try {
-      return (CharIterator) super.clone();
+      return (PeekableCharIterator) super.clone();
     } catch (CloneNotSupportedException e) {
       return null; // will not happen
     }
@@ -3133,6 +3156,29 @@ final class ReverseMappeableRunContainerCharIterator implements CharIterator {
       }
     }
     return ans;
+  }
+
+  @Override
+  public void advanceIfNeeded(char maxval) {
+    while (base > (maxval)) {
+      pos--;
+      le = 0;
+      if (pos >= 0) {
+        maxlength = parent.getLength(pos);
+        base = parent.getValue(pos);
+      } else {
+        return;
+      }
+    }
+    if (base + maxlength < (maxval)) {
+      return;
+    }
+    le = maxlength + base - (maxval);
+  }
+
+  @Override
+  public char peekNext() {
+    return (char) (base + maxlength - le);
   }
 
   @Override

@@ -22,7 +22,7 @@ subprojects {
     // used in per-subproject dependencies
     @Suppress("UNUSED_VARIABLE") val deps by extra {
         mapOf(
-                "jupiter" to "5.6.1",
+                "jupiter" to "5.12.2",
                 "guava" to "20.0",
                 "commons-lang" to "3.4"
         )
@@ -35,6 +35,11 @@ subprojects {
     }
 
     group = "org.roaringbitmap"
+
+    // Gradle 9+ no longer bundles the JUnit Platform launcher on the test classpath.
+    dependencies {
+        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher:1.12.2")
+    }
 
     tasks {
         withType<JavaCompile> {
