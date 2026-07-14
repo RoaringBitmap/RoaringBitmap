@@ -299,6 +299,14 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void orInto(long[] bits) {
+    for (int i = 0; i < this.getCardinality(); ++i) {
+      char value = content[i];
+      bits[value >>> 6] |= (1L << value);
+    }
+  }
+
+  @Override
   public boolean contains(final char x) {
     return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
   }

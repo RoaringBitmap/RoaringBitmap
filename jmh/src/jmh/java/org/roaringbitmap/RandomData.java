@@ -20,8 +20,16 @@ public class RandomData {
     return forKeys(keys, rleLimit, denseLimit);
   }
 
+  public static RoaringBitmap randomContiguousBitmap(int startKey, int numKeys) {
+    return randomContiguousBitmap(startKey, numKeys, 1 / 3d, 1 / 3d);
+  }
+
   public static RoaringBitmap randomBitmap(int maxKeys, double rleLimit, double denseLimit) {
     return forKeys(createSorted16BitInts(maxKeys), rleLimit, denseLimit);
+  }
+
+  public static RoaringBitmap randomBitmap(int maxKeys) {
+    return forKeys(createSorted16BitInts(maxKeys), 1 / 3d, 1 / 3d);
   }
 
   public static IntStream rleRegion() {

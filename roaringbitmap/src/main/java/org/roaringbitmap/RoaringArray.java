@@ -689,6 +689,12 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       }
 
       @Override
+      public boolean advanceUntil(char key) {
+        k = RoaringArray.this.advanceUntil(key, k - 1);
+        return k < size;
+      }
+
+      @Override
       public ContainerPointer clone() {
         try {
           return (ContainerPointer) super.clone();
@@ -712,10 +718,10 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
       @Override
       public Container getContainer() {
-        if (k >= RoaringArray.this.size) {
+        if (k >= size) {
           return null;
         }
-        return RoaringArray.this.values[k];
+        return values[k];
       }
 
       @Override
@@ -730,7 +736,12 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
 
       @Override
       public char key() {
-        return RoaringArray.this.keys[k];
+        return keys[k];
+      }
+
+      @Override
+      public boolean hasRemaining() {
+        return k < size;
       }
     };
   }
