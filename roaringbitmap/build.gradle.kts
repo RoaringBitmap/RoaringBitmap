@@ -87,6 +87,10 @@ tasks.named<Jar>("sourcesJar") {
     dependsOn(tasks.named("compileModuleInfoJava"))
 }
 
+tasks.named<Jar>("javadocJar") {
+    dependsOn(tasks.named("compileModuleInfoJava"))
+}
+
 tasks.test {
     systemProperty("kryo.unsafe", "false")
     useJUnitPlatform()
