@@ -98,8 +98,16 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   private MappeableArrayContainer(int newCard, CharBuffer newContent) {
     this.cardinality = newCard;
     CharBuffer tmp = newContent.duplicate(); // for thread-safety
-    this.content = CharBuffer.allocate(Math.max(newCard, tmp.limit()));
+    this.content = CharBuffer.allocate(newCard);
     tmp.rewind();
+    // Only the first newCard entries are retained. Callers such as limit() pass a
+    // target cardinality smaller than the source, so copy just those entries
+    // instead of allocating a buffer the size of the whole source and copying it
+    // all (which the cardinality then masks). When newCard >= the source length
+    // (e.g. range insertion) this copies the whole source, as before.
+    if (tmp.limit() > newCard) {
+      tmp.limit(newCard);
+    }
     this.content.put(tmp);
   }
 
