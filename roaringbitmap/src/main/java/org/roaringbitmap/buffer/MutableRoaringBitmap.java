@@ -1462,15 +1462,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
           getMappeableRoaringArray()
-              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+              .mergeBulk(x2.highLowContainer, pos1, pos1, pos2, MutableRoaringArray.MERGE_LAZY_OR);
+          return;
         }
       }
     }
@@ -1518,15 +1513,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
           getMappeableRoaringArray()
-              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+              .mergeBulk(x2.highLowContainer, pos1, pos1, pos2, MutableRoaringArray.MERGE_OR);
+          return;
         }
       }
     }
@@ -1772,8 +1762,12 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
             this.getMappeableRoaringArray().setContainerAtIndex(pos1, c);
             pos1++;
           } else {
-            getMappeableRoaringArray().removeAtIndex(pos1);
-            --length1;
+            // cancelled pair: bulk-merge the rest, dropping this empty container (removeAtIndex
+            // per key would be quadratic)
+            getMappeableRoaringArray()
+                .mergeBulk(
+                    x2.highLowContainer, pos1, pos1 + 1, pos2 + 1, MutableRoaringArray.MERGE_XOR);
+            return;
           }
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -1788,15 +1782,10 @@ public class MutableRoaringBitmap extends ImmutableRoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else { // s1 > s2
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
           getMappeableRoaringArray()
-              .insertNewKeyValueAt(pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+              .mergeBulk(x2.highLowContainer, pos1, pos1, pos2, MutableRoaringArray.MERGE_XOR);
+          return;
         }
       }
     }

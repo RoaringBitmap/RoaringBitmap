@@ -2494,15 +2494,10 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(
+              x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_LAZY_OR);
+          return;
         }
       }
     }
@@ -2576,15 +2571,9 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_OR);
+          return;
         }
       }
     }
@@ -3396,8 +3385,11 @@ public class RoaringBitmap
             this.highLowContainer.setContainerAtIndex(pos1, c);
             pos1++;
           } else {
-            highLowContainer.removeAtIndex(pos1);
-            --length1;
+            // cancelled pair: bulk-merge the rest, dropping this empty container (removeAtIndex
+            // per key would be quadratic)
+            highLowContainer.mergeBulk(
+                x2.highLowContainer, pos1, pos1 + 1, pos2 + 1, RoaringArray.MERGE_XOR);
+            return;
           }
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -3412,15 +3404,9 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_XOR);
+          return;
         }
       }
     }
