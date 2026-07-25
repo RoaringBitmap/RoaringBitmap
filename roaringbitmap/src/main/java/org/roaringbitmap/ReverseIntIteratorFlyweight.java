@@ -47,6 +47,11 @@ public class ReverseIntIteratorFlyweight implements PeekableIntIterator {
   public PeekableIntIterator clone() {
     try {
       ReverseIntIteratorFlyweight x = (ReverseIntIteratorFlyweight) super.clone();
+      // nextContainer() re-wraps the cached cursors in place, so the clone needs its own:
+      // sharing them lets whichever iterator crosses a container first clobber the other.
+      x.arrIter = new ReverseArrayContainerCharIterator();
+      x.bitmapIter = new ReverseBitmapContainerCharIterator();
+      x.runIter = new ReverseRunContainerCharIterator();
       if (this.iter != null) {
         x.iter = this.iter.clone();
       }
