@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
@@ -268,6 +269,66 @@ public class TestIterators {
       assertEquals(data[i], pii.peekNext());
     }
     bitmap.getReverseIntIterator().advanceIfNeeded(-1); // should not crash
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOfAnArrayContainer() {
+    // the second container is array-backed and every value it holds is above the bound
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(500, 65536 + 1000, 65536 + 2000);
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    pii.advanceIfNeeded(65536 + 700);
+
+    assertEquals(500, pii.peekNext());
+    assertEquals(500, pii.next());
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOfABitmapContainer() {
+    // a single container, bitmap-backed, whose only value at or below the bound sits in word 0
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(5);
+    for (int value = 5000; value <= 9200; value++) { // past the array/bitmap threshold
+      bitmap.add(value);
+    }
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    pii.advanceIfNeeded(4000);
+
+    assertTrue(bitmap.contains(pii.peekNext()));
+    assertEquals(5, pii.peekNext());
+    assertEquals(5, pii.next());
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOnDirectBuffer() throws IOException {
+    MutableRoaringBitmap mutable = new MutableRoaringBitmap();
+    mutable.add(5); // container 0, bitmap-backed once past the threshold
+    for (int value = 5000; value <= 9200; value++) {
+      mutable.add(value);
+    }
+    mutable.add(65536 + 1000); // container 1, array-backed
+    mutable.add(65536 + 2000);
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    mutable.serialize(dos);
+    dos.close();
+    byte[] serialized = bos.toByteArray();
+    // a direct buffer is not array-backed, so the Mappeable cursors are used
+    ByteBuffer direct = ByteBuffer.allocateDirect(serialized.length);
+    direct.put(serialized);
+    direct.position(0);
+    ImmutableRoaringBitmap bitmap = new ImmutableRoaringBitmap(direct);
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+
+    pii.advanceIfNeeded(65536 + 700); // inside container 1, below every value it holds
+    assertEquals(9200, pii.peekNext());
+
+    pii.advanceIfNeeded(4000); // inside container 0, the only match sits in word 0
+    assertTrue(bitmap.contains(pii.peekNext()));
+    assertEquals(5, pii.peekNext());
   }
 
   @Test

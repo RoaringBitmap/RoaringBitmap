@@ -1918,16 +1918,15 @@ final class ReverseBitmapContainerCharIterator implements PeekableCharIterator {
       }
       long currentWord = bitmap[position];
       currentWord &= ~0L >>> (63 - (maxval & 63));
-      if (position > 0) {
-        while (currentWord == 0) {
-          position--;
-          if (position == 0) {
-            break;
-          }
-          currentWord = bitmap[position];
-        }
+      while (currentWord == 0 && position > 0) {
+        position--;
+        currentWord = bitmap[position];
       }
       word = currentWord;
+      if (currentWord == 0) {
+        // no value at or below maxval in this container
+        position = -1;
+      }
     }
   }
 

@@ -2311,16 +2311,15 @@ final class ReverseMappeableBitmapContainerCharIterator implements PeekableCharI
       }
       long currentWord = parent.bitmap.get(x);
       currentWord &= ~0L >>> (63 - (maxval & 63));
-      if (x > 0) {
-        while (currentWord == 0) {
-          x--;
-          if (x == 0) {
-            break;
-          }
-          currentWord = parent.bitmap.get(x);
-        }
+      while (currentWord == 0 && x > 0) {
+        x--;
+        currentWord = parent.bitmap.get(x);
       }
       w = currentWord;
+      if (currentWord == 0) {
+        // no value at or below maxval in this container
+        x = -1;
+      }
     }
   }
 

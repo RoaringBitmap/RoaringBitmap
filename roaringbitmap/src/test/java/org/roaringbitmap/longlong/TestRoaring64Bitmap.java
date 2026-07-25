@@ -1927,6 +1927,18 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testSkipReverseBelowEveryValueOfAnArrayContainer() {
+    // the second container is array-backed and every value it holds is above the bound
+    Roaring64Bitmap bitmap = Roaring64Bitmap.bitmapOf(500L, 65536L + 1000L, 65536L + 2000L);
+
+    PeekableLongIterator pii = bitmap.getReverseLongIterator();
+    pii.advanceIfNeeded(65536L + 700L);
+
+    assertEquals(500L, pii.peekNext());
+    assertEquals(500L, pii.next());
+  }
+
+  @Test
   public void testSkipsDenseReverse() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     int n = 100000;
