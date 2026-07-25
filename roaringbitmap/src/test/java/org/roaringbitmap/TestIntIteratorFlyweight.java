@@ -6,6 +6,7 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -250,5 +251,38 @@ public class TestIntIteratorFlyweight {
     final List<Integer> iterList = asList(iter);
     final List<Integer> iterCloneList = asList(iterClone);
     assertEquals(iterList.toString(), iterCloneList.toString());
+  }
+
+  /** Two array-backed containers holding different low bits, so both use the same cached cursor. */
+  private static RoaringBitmap twoArrayContainers() {
+    return RoaringBitmap.bitmapOf(10, 20, 30, 65536 + 40, 65536 + 50, 65536 + 60);
+  }
+
+  @Test
+  public void testCloneIsIndependentAcrossContainers() {
+    RoaringBitmap bitmap = twoArrayContainers();
+    IntIteratorFlyweight origin = new IntIteratorFlyweight(bitmap);
+
+    PeekableIntIterator fork = origin.clone();
+    fork.next();
+    fork.next();
+    fork.next(); // the fork moves on to the second container
+
+    assertTrue(bitmap.contains(origin.peekNext()));
+    assertEquals(10, origin.next());
+  }
+
+  @Test
+  public void testReverseCloneIsIndependentAcrossContainers() {
+    RoaringBitmap bitmap = twoArrayContainers();
+    ReverseIntIteratorFlyweight origin = new ReverseIntIteratorFlyweight(bitmap);
+
+    PeekableIntIterator fork = origin.clone();
+    fork.next();
+    fork.next();
+    fork.next(); // the fork moves on to the first container
+
+    assertTrue(bitmap.contains(origin.peekNext()));
+    assertEquals(65536 + 60, origin.next());
   }
 }

@@ -47,6 +47,11 @@ public class IntIteratorFlyweight implements PeekableIntIterator {
   public PeekableIntIterator clone() {
     try {
       IntIteratorFlyweight x = (IntIteratorFlyweight) super.clone();
+      // nextContainer() re-wraps the cached cursors in place, so the clone needs its own:
+      // sharing them lets whichever iterator crosses a container first clobber the other.
+      x.arrIter = new ArrayContainerCharIterator();
+      x.bitmapIter = new BitmapContainerCharIterator();
+      x.runIter = new RunContainerCharIterator();
       if (this.iter != null) {
         x.iter = this.iter.clone();
       }
