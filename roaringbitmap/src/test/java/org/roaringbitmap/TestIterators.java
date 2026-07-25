@@ -361,6 +361,35 @@ public class TestIterators {
   }
 
   @Test
+  public void testSkipReverseBelowEveryValueOfAnArrayContainer() {
+    // the second container is array-backed and every value it holds is above the bound
+    RoaringBitmap bitset = RoaringBitmap.bitmapOf(500, 65536 + 1000, 65536 + 2000);
+
+    PeekableIntIterator bitIt = bitset.getReverseIntIterator();
+    bitIt.advanceIfNeeded(65536 + 700);
+
+    assertEquals(500, bitIt.peekNext());
+    assertEquals(500, bitIt.next());
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOfABitmapContainer() {
+    // a single container, bitmap-backed, whose only value at or below the bound sits in word 0
+    RoaringBitmap bitset = new RoaringBitmap();
+    bitset.add(5);
+    for (int value = 5000; value <= 9200; value++) { // past the array/bitmap threshold
+      bitset.add(value);
+    }
+
+    PeekableIntIterator bitIt = bitset.getReverseIntIterator();
+    bitIt.advanceIfNeeded(4000);
+
+    assertTrue(bitset.contains(bitIt.peekNext()));
+    assertEquals(5, bitIt.peekNext());
+    assertEquals(5, bitIt.next());
+  }
+
+  @Test
   public void testSkipIntoGapsReverse() {
     RoaringBitmap bitset = new RoaringBitmap();
 
