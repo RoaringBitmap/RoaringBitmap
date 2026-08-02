@@ -93,9 +93,6 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
 
     for (int i = newBitDepth - 1; i >= oldBitDepth; i--) {
       newBA[i] = new MutableRoaringBitmap();
-      if (this.runOptimized) {
-        newBA[i].runOptimize();
-      }
     }
     this.bA = newBA;
   }

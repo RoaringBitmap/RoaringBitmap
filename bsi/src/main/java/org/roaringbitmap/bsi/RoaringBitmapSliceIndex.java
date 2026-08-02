@@ -328,9 +328,6 @@ public class RoaringBitmapSliceIndex implements BitmapSliceIndex {
 
     for (int i = newBitDepth - 1; i >= oldBitDepth; i--) {
       newBA[i] = new RoaringBitmap();
-      if (this.runOptimized) {
-        newBA[i].runOptimize();
-      }
     }
     this.bA = newBA;
   }
