@@ -2327,4 +2327,23 @@ public class TestRoaring64NavigableMap {
     assertEquals(2, rb.first());
     assertEquals(-32, rb.last());
   }
+
+  // https://github.com/RoaringBitmap/RoaringBitmap/issues/828
+  @Test
+  public void testOr_negativeInt_sortedHighs_signedLongsTrue() {
+      Roaring64NavigableMap a = newDefaultCtor();
+      a.add(-1L);  // upper 32 bits = 0xFFFFFFFF (-1 as signed int)
+
+      Roaring64NavigableMap b = newDefaultCtor();
+      b.add(0L);   // upper 32 bits = 0x00000000
+      b.add(1L);
+
+      Roaring64NavigableMap dst = newDefaultCtor();
+      dst.or(a);
+      dst.or(b);
+
+      Assertions.assertEquals(dst.getLongCardinality(), 3);
+  }
+
+
 }

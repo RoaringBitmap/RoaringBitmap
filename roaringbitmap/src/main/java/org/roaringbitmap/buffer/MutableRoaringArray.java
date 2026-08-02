@@ -668,6 +668,99 @@ public final class MutableRoaringArray
     size--;
   }
 
+  static final int MERGE_OR = 0;
+  static final int MERGE_XOR = 1;
+  static final int MERGE_LAZY_OR = 2;
+
+  /**
+   * Finishes an in-place union/xor/lazy-union ({@code op}) once the receiver's structure must
+   * change, merging both suffixes into fresh arrays in one pass. Avoids the per-key insert/remove
+   * shift, which is quadratic when keys are interleaved.
+   *
+   * <p>{@code [0, dst)} is already final and copied over. {@code left}/{@code right} are the
+   * receiver/source scan positions. For a union {@code dst == left}; xor may pass
+   * {@code dst < left} to drop an emptied container. Source-only containers are cloned; the source
+   * is read through {@link PointableRoaringArray} as it may be memory-mapped.
+   */
+  void mergeBulk(PointableRoaringArray other, int dst, int left, int right, int op) {
+    final int length1 = this.size;
+    final int length2 = other.size();
+
+    // exact result size for union, tight upper bound for xor
+    int distinct = 0;
+    int l = left;
+    int r = right;
+    while (l < length1 && r < length2) {
+      char k1 = this.keys[l];
+      char k2 = other.getKeyAtIndex(r);
+      if (k1 < k2) {
+        l++;
+      } else if (k1 > k2) {
+        r++;
+      } else {
+        l++;
+        r++;
+      }
+      distinct++;
+    }
+    distinct += (length1 - l) + (length2 - r);
+    final int total = dst + distinct;
+
+    char[] newKeys = new char[total];
+    MappeableContainer[] newValues = new MappeableContainer[total];
+    System.arraycopy(this.keys, 0, newKeys, 0, dst);
+    System.arraycopy(this.values, 0, newValues, 0, dst);
+    int pos = dst;
+
+    while (left < length1 && right < length2) {
+      char k1 = this.keys[left];
+      char k2 = other.getKeyAtIndex(right);
+      if (k1 < k2) {
+        newKeys[pos] = k1;
+        newValues[pos] = this.values[left];
+        pos++;
+        left++;
+      } else if (k1 > k2) {
+        newKeys[pos] = k2;
+        newValues[pos] = other.getContainerAtIndex(right).clone();
+        pos++;
+        right++;
+      } else {
+        MappeableContainer c;
+        if (op == MERGE_XOR) {
+          c = this.values[left].ixor(other.getContainerAtIndex(right));
+        } else if (op == MERGE_LAZY_OR) {
+          c = this.values[left].toBitmapContainer().lazyIOR(other.getContainerAtIndex(right));
+        } else {
+          c = this.values[left].ior(other.getContainerAtIndex(right));
+        }
+        if (op != MERGE_XOR || !c.isEmpty()) {
+          newKeys[pos] = k1;
+          newValues[pos] = c;
+          pos++;
+        }
+        left++;
+        right++;
+      }
+    }
+    while (left < length1) {
+      newKeys[pos] = this.keys[left];
+      newValues[pos] = this.values[left];
+      pos++;
+      left++;
+    }
+    while (right < length2) {
+      newKeys[pos] = other.getKeyAtIndex(right);
+      newValues[pos] = other.getContainerAtIndex(right).clone();
+      pos++;
+      right++;
+    }
+
+    this.keys = newKeys;
+    this.values = newValues;
+    this.size = pos;
+  }
+
   protected void removeIndexRange(int begin, int end) {
     if (end <= begin) {
       return;

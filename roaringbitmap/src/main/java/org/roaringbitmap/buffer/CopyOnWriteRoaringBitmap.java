@@ -3,9 +3,6 @@ package org.roaringbitmap.buffer;
 /*
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
-
-
-
 import java.util.Arrays;
 
 /**
@@ -20,21 +17,30 @@ public class CopyOnWriteRoaringBitmap extends MutableRoaringBitmap {
    * Create a new copy-on-write bitmap.
    */
   public CopyOnWriteRoaringBitmap() {
-    super();
-    needsCopy = new boolean[4]; // Initial capacity
+    this(4); // Initial capacity
+  }
+
+  /**
+   * Creates an empty copy-on-write bitmap with a specified initial capacity.
+   * Use this to avoid internal array resizing when the number of containers is known in advance.
+   *
+   * @param initialCapacity the initial size of the underlying container array
+   */
+  private CopyOnWriteRoaringBitmap(int initialCapacity) {
+    super(initialCapacity);
+    needsCopy = new boolean[initialCapacity];
   }
 
   /**
    * Create a copy-on-write bitmap from an immutable bitmap.
    */
   public static CopyOnWriteRoaringBitmap fromImmutable(ImmutableRoaringBitmap immutable) {
-    CopyOnWriteRoaringBitmap result = new CopyOnWriteRoaringBitmap();
+    CopyOnWriteRoaringBitmap result = new CopyOnWriteRoaringBitmap(immutable.getContainerCount());
     MappeableContainerPointer mcp = immutable.highLowContainer.getContainerPointer();
     while (mcp.hasContainer()) {
       result.getMappeableRoaringArray().appendCopyOnWrite(mcp.key(), mcp.getContainer());
       mcp.advance();
     }
-    result.needsCopy = new boolean[result.getMappeableRoaringArray().size];
     Arrays.fill(result.needsCopy, true);
     return result;
   }

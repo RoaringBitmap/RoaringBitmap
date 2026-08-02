@@ -13,7 +13,6 @@ buildscript {
 // files with Java 8 compatibility
 apply(plugin = "org.javamodularity.moduleplugin")
 
-
 // Unset Java 8 release applied from root project to allow modularity plugin to
 // control the class file versions.
 tasks.named<JavaCompile>("compileJava") {
@@ -85,6 +84,10 @@ tasks.named<Jar>("jar") {
 }
 
 tasks.named<Jar>("sourcesJar") {
+    dependsOn(tasks.named("compileModuleInfoJava"))
+}
+
+tasks.named<Jar>("javadocJar") {
     dependsOn(tasks.named("compileModuleInfoJava"))
 }
 

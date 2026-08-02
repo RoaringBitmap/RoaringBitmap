@@ -81,7 +81,7 @@ public interface ImmutableBitmapDataProvider {
    * @return a custom iterator over set bits, the bits are traversed in unsigned integer descending
    *     sorted order
    */
-  IntIterator getReverseIntIterator();
+  PeekableIntIterator getReverseIntIterator();
 
   /**
    * @return an Ordered, Distinct, Sorted and Sized IntStream in ascending order

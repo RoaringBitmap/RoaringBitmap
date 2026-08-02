@@ -157,11 +157,11 @@ public class RoaringBitmap
     }
   }
 
-  private final class RoaringReverseIntIterator implements IntIterator {
+  private final class RoaringReverseIntIterator implements PeekableIntIterator {
 
     int hs = 0;
 
-    CharIterator iter;
+    PeekableCharIterator iter;
 
     int pos = RoaringBitmap.this.highLowContainer.size() - 1;
 
@@ -170,7 +170,7 @@ public class RoaringBitmap
     }
 
     @Override
-    public IntIterator clone() {
+    public PeekableIntIterator clone() {
       try {
         RoaringReverseIntIterator clone = (RoaringReverseIntIterator) super.clone();
         if (this.iter != null) {
@@ -203,6 +203,27 @@ public class RoaringBitmap
             RoaringBitmap.this.highLowContainer.getContainerAtIndex(pos).getReverseCharIterator();
         hs = RoaringBitmap.this.highLowContainer.getKeyAtIndex(pos) << 16;
       }
+    }
+
+    @Override
+    public void advanceIfNeeded(int maxval) {
+      // In reverse order: skip while next value is strictly greater than maxval (unsigned).
+      while (hasNext() && ((hs >>> 16) > (maxval >>> 16))) {
+        --pos;
+        nextContainer();
+      }
+      if (hasNext() && ((hs >>> 16) == (maxval >>> 16))) {
+        iter.advanceIfNeeded(Util.lowbits(maxval));
+        if (!iter.hasNext()) {
+          --pos;
+          nextContainer();
+        }
+      }
+    }
+
+    @Override
+    public int peekNext() {
+      return (iter.peekNext()) | hs;
     }
   }
 
@@ -608,8 +629,7 @@ public class RoaringBitmap
     final int hbLast = Util.highbits(max - 1);
     final int lbLast = Util.lowbits(max - 1);
 
-    RoaringArray array = new RoaringArray(hbLast - hbStart + 1);
-    RoaringBitmap bitmap = new RoaringBitmap(array);
+    RoaringBitmap bitmap = new RoaringBitmap(hbLast - hbStart + 1);
 
     int firstEnd = hbStart < hbLast ? 1 << 16 : lbLast + 1;
     Container firstContainer = RunContainer.rangeOfOnes(lbStart, firstEnd);
@@ -1146,6 +1166,16 @@ public class RoaringBitmap
   }
 
   /**
+   * Creates an empty bitmap with a specified initial capacity.
+   * Use this to avoid internal array resizing when the number of containers is known in advance.
+   *
+   * @param initialCapacity the initial size of the underlying container array
+   */
+  RoaringBitmap(int initialCapacity) {
+    this.highLowContainer = new RoaringArray(initialCapacity);
+  }
+
+  /**
    * Wrap an existing high low container
    */
   RoaringBitmap(RoaringArray highLowContainer) {
@@ -1159,7 +1189,7 @@ public class RoaringBitmap
    * @param rb the original bitmap
    */
   public RoaringBitmap(ImmutableRoaringBitmap rb) {
-    highLowContainer = new RoaringArray();
+    highLowContainer = new RoaringArray(rb.getContainerCount());
     MappeableContainerPointer cp = rb.getContainerPointer();
     while (cp.getContainer() != null) {
       highLowContainer.append(cp.key(), cp.getContainer().toContainer());
@@ -1582,7 +1612,7 @@ public class RoaringBitmap
             key == maxKey
                 ? x1.highLowContainer
                     .getContainerAtIndex(pos1)
-                    .ior(RunContainer.rangeOfOnes(0, lastRun))
+                    .or(RunContainer.rangeOfOnes(0, lastRun))
                 : RunContainer.full();
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
@@ -2193,7 +2223,7 @@ public class RoaringBitmap
    * @return a custom iterator over set bits, the bits are traversed in descending sorted order
    */
   @Override
-  public IntIterator getReverseIntIterator() {
+  public PeekableIntIterator getReverseIntIterator() {
     return new RoaringReverseIntIterator();
   }
 
@@ -2464,15 +2494,10 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(
+              x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_LAZY_OR);
+          return;
         }
       }
     }
@@ -2546,15 +2571,9 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_OR);
+          return;
         }
       }
     }
@@ -3366,8 +3385,11 @@ public class RoaringBitmap
             this.highLowContainer.setContainerAtIndex(pos1, c);
             pos1++;
           } else {
-            highLowContainer.removeAtIndex(pos1);
-            --length1;
+            // cancelled pair: bulk-merge the rest, dropping this empty container (removeAtIndex
+            // per key would be quadratic)
+            highLowContainer.mergeBulk(
+                x2.highLowContainer, pos1, pos1 + 1, pos2 + 1, RoaringArray.MERGE_XOR);
+            return;
           }
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
@@ -3382,15 +3404,9 @@ public class RoaringBitmap
           }
           s1 = highLowContainer.getKeyAtIndex(pos1);
         } else {
-          highLowContainer.insertNewKeyValueAt(
-              pos1, s2, x2.highLowContainer.getContainerAtIndex(pos2).clone());
-          pos1++;
-          length1++;
-          pos2++;
-          if (pos2 == length2) {
-            break main;
-          }
-          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+          // source-only insert: bulk-merge the rest (insert per key would be quadratic)
+          highLowContainer.mergeBulk(x2.highLowContainer, pos1, pos1, pos2, RoaringArray.MERGE_XOR);
+          return;
         }
       }
     }

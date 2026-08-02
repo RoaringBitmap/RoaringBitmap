@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.IntIterator;
@@ -247,6 +248,113 @@ public class TestIterators {
   }
 
   @Test
+  public void testSkipsReverse() {
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    final int[] data = takeSortedAndDistinct(source, 45000, Integer::compareUnsigned);
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(data);
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getReverseIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+    pii = bitmap.getReverseIntIterator();
+    for (int i = data.length - 2; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i + 1]);
+      pii.next();
+      assertEquals(data[i], pii.peekNext());
+    }
+    bitmap.getReverseIntIterator().advanceIfNeeded(-1); // should not crash
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOfAnArrayContainer() {
+    // the second container is array-backed and every value it holds is above the bound
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(500, 65536 + 1000, 65536 + 2000);
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    pii.advanceIfNeeded(65536 + 700);
+
+    assertEquals(500, pii.peekNext());
+    assertEquals(500, pii.next());
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOfABitmapContainer() {
+    // a single container, bitmap-backed, whose only value at or below the bound sits in word 0
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(5);
+    for (int value = 5000; value <= 9200; value++) { // past the array/bitmap threshold
+      bitmap.add(value);
+    }
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    pii.advanceIfNeeded(4000);
+
+    assertTrue(bitmap.contains(pii.peekNext()));
+    assertEquals(5, pii.peekNext());
+    assertEquals(5, pii.next());
+  }
+
+  @Test
+  public void testSkipReverseBelowEveryValueOnDirectBuffer() throws IOException {
+    MutableRoaringBitmap mutable = new MutableRoaringBitmap();
+    mutable.add(5); // container 0, bitmap-backed once past the threshold
+    for (int value = 5000; value <= 9200; value++) {
+      mutable.add(value);
+    }
+    mutable.add(65536 + 1000); // container 1, array-backed
+    mutable.add(65536 + 2000);
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    mutable.serialize(dos);
+    dos.close();
+    byte[] serialized = bos.toByteArray();
+    // a direct buffer is not array-backed, so the Mappeable cursors are used
+    ByteBuffer direct = ByteBuffer.allocateDirect(serialized.length);
+    direct.put(serialized);
+    direct.position(0);
+    ImmutableRoaringBitmap bitmap = new ImmutableRoaringBitmap(direct);
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+
+    pii.advanceIfNeeded(65536 + 700); // inside container 1, below every value it holds
+    assertEquals(9200, pii.peekNext());
+
+    pii.advanceIfNeeded(4000); // inside container 0, the only match sits in word 0
+    assertTrue(bitmap.contains(pii.peekNext()));
+    assertEquals(5, pii.peekNext());
+  }
+
+  @Test
+  public void testSkipsReverseImmutable() throws IOException {
+    final Random source = new Random(0xcb000a2b9b5bdfb6L);
+    final int[] data = takeSortedAndDistinct(source, 45000, Integer::compareUnsigned);
+    MutableRoaringBitmap mutable = MutableRoaringBitmap.bitmapOf(data);
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(bos);
+    mutable.serialize(dos);
+    dos.close();
+    ImmutableRoaringBitmap bitmap = new ImmutableRoaringBitmap(ByteBuffer.wrap(bos.toByteArray()));
+
+    PeekableIntIterator pii = bitmap.getReverseIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.peekNext());
+    }
+    pii = bitmap.getReverseIntIterator();
+    for (int i = data.length - 1; i >= 0; --i) {
+      pii.advanceIfNeeded(data[i]);
+      assertEquals(data[i], pii.next());
+    }
+  }
+
+  @Test
   public void testSkipsSignedIterator() {
     final Random source = new Random(0xcb000a2b9b5bdfb6L);
     final int[] data = takeSortedAndDistinct(source, 45000, Integer::compare);
@@ -290,6 +398,44 @@ public class TestIterators {
   }
 
   @Test
+  public void testSkipsDenseReverse() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    int N = 100000;
+    for (int i = 0; i < N; ++i) {
+      bitmap.add(2 * i);
+    }
+    for (int i = N - 1; i >= 0; --i) {
+      PeekableIntIterator pii = bitmap.getReverseIntIterator();
+      pii.advanceIfNeeded(2 * i);
+      assertEquals(2 * i, pii.peekNext());
+      assertEquals(2 * i, pii.next());
+    }
+  }
+
+  @Test
+  public void testSkipsMultipleContainersReverse() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    int n = 1000;
+    int numHighPoints = 10;
+    for (int h = 0; h < numHighPoints; ++h) {
+      int base = h << 16;
+      for (int i = 0; i < n; ++i) {
+        bitmap.add(2 * i + base);
+      }
+    }
+    for (int h = 0; h < numHighPoints; ++h) {
+      int base = h << 16;
+      for (int i = n - 1; i >= 0; --i) {
+        PeekableIntIterator pii = bitmap.getReverseIntIterator();
+        int expected = 2 * i + base;
+        pii.advanceIfNeeded(expected);
+        assertEquals(expected, pii.peekNext());
+        assertEquals(expected, pii.next());
+      }
+    }
+  }
+
+  @Test
   public void testIndexIterator4() throws Exception {
     MutableRoaringBitmap b = new MutableRoaringBitmap();
     for (int i = 0; i < 4096; i++) {
@@ -316,9 +462,29 @@ public class TestIterators {
   }
 
   @Test
+  public void testSkipsRunReverse() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(4L, 100000L);
+    bitmap.runOptimize();
+    for (int i = 99999; i >= 4; --i) {
+      PeekableIntIterator pii = bitmap.getReverseIntIterator();
+      pii.advanceIfNeeded(i);
+      assertEquals(i, pii.peekNext());
+      assertEquals(i, pii.next());
+    }
+  }
+
+  @Test
   public void testEmptySkips() {
     MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
     PeekableIntIterator it = bitmap.getIntIterator();
+    it.advanceIfNeeded(0);
+  }
+
+  @Test
+  public void testEmptySkipsReverse() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    PeekableIntIterator it = bitmap.getReverseIntIterator();
     it.advanceIfNeeded(0);
   }
 

@@ -1,8 +1,16 @@
+import java.time.Duration
+
 plugins {
     id("net.researchgate.release") version "2.8.1"
     id("com.github.ben-manes.versions") version "0.38.0"
     id("maven-publish")
     id("com.diffplug.spotless") version "6.25.0"
+    id("signing")
+    id("com.gradleup.nmcp.aggregation") version "1.4.3"
+}
+
+repositories {
+    mavenCentral()
 }
 
 
@@ -14,7 +22,7 @@ subprojects {
     // used in per-subproject dependencies
     @Suppress("UNUSED_VARIABLE") val deps by extra {
         mapOf(
-                "jupiter" to "5.6.1",
+                "jupiter" to "5.12.2",
                 "guava" to "20.0",
                 "commons-lang" to "3.4"
         )
@@ -27,6 +35,11 @@ subprojects {
     }
 
     group = "org.roaringbitmap"
+
+    // Gradle 9+ no longer bundles the JUnit Platform launcher on the test classpath.
+    dependencies {
+        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher:1.12.2")
+    }
 
     tasks {
         withType<JavaCompile> {
@@ -81,6 +94,9 @@ subprojects {
 subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach { project ->
     project.run {
         apply(plugin = "maven-publish")
+        if (rootProject.providers.gradleProperty("signingKey").isPresent) {
+            apply(plugin = "signing")
+        }
         configure<JavaPluginExtension> {
             withSourcesJar()
             withJavadocJar()
@@ -90,7 +106,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
             publications {
                 register<MavenPublication>("sonatype") {
                     groupId = project.group.toString()
-                    artifactId = project.name
+                    artifactId = if (project.name == "roaringbitmap") "RoaringBitmap" else project.name
                     version = project.version.toString()
 
                     from(components["java"])
@@ -98,7 +114,7 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                     // requirements for maven central
                     // https://central.sonatype.org/pages/requirements.html
                     pom {
-                        name.set("${project.group}:${project.name}")
+                        name.set("$groupId:$artifactId")
                         description.set("Roaring bitmaps are compressed bitmaps (also called bitsets) which tend to outperform conventional compressed bitmaps such as WAH or Concise.")
                         url.set("https://github.com/RoaringBitmap/RoaringBitmap")
                         issueManagement {
@@ -129,6 +145,17 @@ subprojects.filter { listOf("roaringbitmap", "bsi").contains(it.name) }.forEach 
                             url.set("https://github.com/RoaringBitmap/RoaringBitmap")
                         }
                     }
+                }
+            }
+
+            val signingKey = rootProject.providers.gradleProperty("signingKey")
+            if (signingKey.isPresent) {
+                signing {
+                    useInMemoryPgpKeys(
+                        rootProject.providers.gradleProperty("signingKey").orNull,
+                        rootProject.providers.gradleProperty("signingPassword").orNull
+                    )
+                    sign(publishing.publications["sonatype"])
                 }
             }
 
@@ -165,3 +192,18 @@ release {
     tagTemplate = "\$version"
 }
 	
+
+nmcpAggregation {
+  allowDuplicateProjectNames.set(true)
+  centralPortal {
+    username = providers.gradleProperty("sonatypeUsername")
+    password = providers.gradleProperty("sonatypePassword")
+    publishingType = providers.environmentVariable("CI")
+      .map { "AUTOMATIC" }
+      .orElse("USER_MANAGED")
+    publishingTimeout = Duration.ofMinutes(120)
+    validationTimeout = Duration.ofMinutes(120)
+    publicationName = "${project.name}-$version"
+  }
+  publishAllProjectsProbablyBreakingProjectIsolation()
+}

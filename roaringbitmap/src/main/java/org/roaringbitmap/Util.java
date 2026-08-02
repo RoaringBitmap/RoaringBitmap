@@ -183,16 +183,15 @@ public final class Util {
 
   /**
    * Find the largest integer smaller than pos such that array[pos]&lt;= max. If none can be found,
-   * return length. Based on code by O. Kaser.
+   * return 0. Based on code by O. Kaser.
    *
    * @param array array to search within
    * @param pos starting position of the search
-   * @param length length of the array to search
    * @param max maximum value
-   * @return x less than pos such that array[pos] is at least as small as max, pos is is equal to
-   *         0 if it is not possible.
+   * @return x less than pos such that array[pos] is at least as small as max, 0 if it is not
+   *     possible.
    */
-  public static int reverseUntil(char[] array, int pos, int length, char max) {
+  public static int reverseUntil(char[] array, int pos, char max) {
     int lower = pos - 1;
 
     // special handling for a possibly common sequential case

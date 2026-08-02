@@ -6,6 +6,7 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
@@ -88,6 +89,19 @@ public class TestIntIteratorFlyweight {
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight();
     reverseIter.wrap(bitmap);
 
+    BufferReverseIntIteratorFlyweight reverseIter2 = new BufferReverseIntIteratorFlyweight(bitmap);
+    PeekableIntIterator rj = bitmap.getReverseIntIterator();
+    for (int k = data.length - 1; k >= 0; k -= 3) {
+      reverseIter2.advanceIfNeeded(data[k]);
+      reverseIter2.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      assertEquals(data[k], rj.peekNext());
+      assertEquals(data[k], reverseIter2.peekNext());
+    }
+    new BufferReverseIntIteratorFlyweight(bitmap).advanceIfNeeded(-1);
+    bitmap.getReverseIntIterator().advanceIfNeeded(-1); // should not crash
+
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
 
@@ -120,6 +134,19 @@ public class TestIntIteratorFlyweight {
     }
 
     BufferReverseIntIteratorFlyweight reverseIter = new BufferReverseIntIteratorFlyweight(bitmap);
+    assertEquals(data[data.length - 1], reverseIter.peekNext());
+    assertEquals(data[data.length - 1], reverseIter.peekNext());
+
+    BufferReverseIntIteratorFlyweight reverseIter2 = new BufferReverseIntIteratorFlyweight(bitmap);
+    PeekableIntIterator rj = bitmap.getReverseIntIterator();
+    for (int k = data.length - 1; k >= 0; k -= 3) {
+      reverseIter2.advanceIfNeeded(data[k]);
+      reverseIter2.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      rj.advanceIfNeeded(data[k]);
+      assertEquals(data[k], rj.peekNext());
+      assertEquals(data[k], reverseIter2.peekNext());
+    }
 
     final List<Integer> intIteratorCopy = asList(iter);
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
@@ -209,5 +236,38 @@ public class TestIntIteratorFlyweight {
     final List<Integer> reverseIntIteratorCopy = asList(reverseIter);
     assertEquals(ImmutableList.of(1, 2, 3), intIteratorCopy);
     assertEquals(ImmutableList.of(3, 2, 1), reverseIntIteratorCopy);
+  }
+
+  /** Two array-backed containers holding different low bits, so both use the same cached cursor. */
+  private static MutableRoaringBitmap twoArrayContainers() {
+    return MutableRoaringBitmap.bitmapOf(10, 20, 30, 65536 + 40, 65536 + 50, 65536 + 60);
+  }
+
+  @Test
+  public void testCloneIsIndependentAcrossContainers() {
+    MutableRoaringBitmap bitmap = twoArrayContainers();
+    BufferIntIteratorFlyweight origin = new BufferIntIteratorFlyweight(bitmap);
+
+    PeekableIntIterator fork = origin.clone();
+    fork.next();
+    fork.next();
+    fork.next(); // the fork moves on to the second container
+
+    assertTrue(bitmap.contains(origin.peekNext()));
+    assertEquals(10, origin.next());
+  }
+
+  @Test
+  public void testReverseCloneIsIndependentAcrossContainers() {
+    MutableRoaringBitmap bitmap = twoArrayContainers();
+    BufferReverseIntIteratorFlyweight origin = new BufferReverseIntIteratorFlyweight(bitmap);
+
+    PeekableIntIterator fork = origin.clone();
+    fork.next();
+    fork.next();
+    fork.next(); // the fork moves on to the first container
+
+    assertTrue(bitmap.contains(origin.peekNext()));
+    assertEquals(65536 + 60, origin.next());
   }
 }
