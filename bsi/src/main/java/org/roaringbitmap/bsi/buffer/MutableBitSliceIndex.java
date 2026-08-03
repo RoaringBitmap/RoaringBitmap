@@ -10,6 +10,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -64,12 +65,12 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
     if (ebM.isEmpty()) {
       this.minValue = minValue;
       this.maxValue = maxValue;
-      grow(Integer.toBinaryString(maxValue).length());
+      grow(Integer.SIZE - Integer.numberOfLeadingZeros(maxValue));
     } else if (this.minValue > minValue) {
       this.minValue = minValue;
     } else if (this.maxValue < maxValue) {
       this.maxValue = maxValue;
-      grow(Integer.toBinaryString(maxValue).length());
+      grow(Integer.SIZE - Integer.numberOfLeadingZeros(maxValue));
     }
   }
 
@@ -85,17 +86,10 @@ public class MutableBitSliceIndex extends BitSliceIndexBase implements BitmapSli
       return;
     }
 
-    MutableRoaringBitmap[] newBA = new MutableRoaringBitmap[newBitDepth];
-
-    if (oldBitDepth != 0) {
-      System.arraycopy(this.bA, 0, newBA, 0, oldBitDepth);
-    }
+    MutableRoaringBitmap[] newBA = Arrays.copyOf((MutableRoaringBitmap[]) this.bA, newBitDepth);
 
     for (int i = newBitDepth - 1; i >= oldBitDepth; i--) {
       newBA[i] = new MutableRoaringBitmap();
-      if (this.runOptimized) {
-        newBA[i].runOptimize();
-      }
     }
     this.bA = newBA;
   }
