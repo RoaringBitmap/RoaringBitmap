@@ -1565,6 +1565,14 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public int rank(char lowbits) {
+    // rank(Character.MAX_VALUE) is the full cardinality (see MappeableContainer.rank javadoc).
+    // Avoid scanning all 1024 words when the cached cardinality is available.
+    if (lowbits == Character.MAX_VALUE) {
+      if (cardinality < 0) {
+        computeCardinality();
+      }
+      return cardinality;
+    }
     int leftover = (lowbits + 1) & 63;
     int answer = 0;
     if (BufferUtil.isBackedBySimpleArray(this.bitmap)) {

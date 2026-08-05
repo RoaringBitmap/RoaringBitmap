@@ -338,4 +338,68 @@ public class TestMappeableRunContainer {
     container.orInto(bits);
     assertEquals(-1L, bits[0]);
   }
+
+  @Test
+  public void rankOfMaxEqualsCardinality() {
+    MappeableArrayContainer ac = new MappeableArrayContainer();
+    for (int i = 0; i < 100; i++) {
+      ac.add((char) (i * 17));
+    }
+    assertEquals(ac.getCardinality(), ac.rank(Character.MAX_VALUE));
+    ac.add(Character.MAX_VALUE);
+    assertEquals(ac.getCardinality(), ac.rank(Character.MAX_VALUE));
+
+    MappeableBitmapContainer bc = new MappeableBitmapContainer();
+    for (int i = 0; i < 5000; i++) {
+      bc.add((char) (i * 3));
+    }
+    assertEquals(bc.getCardinality(), bc.rank(Character.MAX_VALUE));
+    bc.add(Character.MAX_VALUE);
+    assertEquals(bc.getCardinality(), bc.rank(Character.MAX_VALUE));
+    assertEquals(0, new MappeableBitmapContainer().rank(Character.MAX_VALUE));
+
+    // lazy OR leaves cardinality invalid (-1)
+    MappeableBitmapContainer lazy = new MappeableBitmapContainer();
+    lazy.iadd(0, 10000);
+    MappeableArrayContainer other = new MappeableArrayContainer();
+    other.add((char) 20000);
+    other.add(Character.MAX_VALUE);
+    lazy.ilazyor(other);
+    assertTrue(lazy.cardinality < 0, "precondition: lazy or invalidates cardinality");
+    int expectedCard = lazy.rank((char) 0xFFFE) + 1;
+    assertEquals(expectedCard, lazy.rank(Character.MAX_VALUE));
+    assertTrue(lazy.cardinality >= 0);
+    assertEquals(lazy.getCardinality(), lazy.rank(Character.MAX_VALUE));
+
+    MappeableRunContainer rc = new MappeableRunContainer();
+    rc.iadd(0, 100);
+    rc.iadd(1000, 1100);
+    rc.iadd(60000, 65536);
+    assertEquals(rc.getCardinality(), rc.rank(Character.MAX_VALUE));
+
+    assertEquals(0, new MappeableArrayContainer().rank(Character.MAX_VALUE));
+    assertEquals(0, new MappeableRunContainer().rank(Character.MAX_VALUE));
+  }
+
+  @Test
+  public void rangeCardinalityFullContainer() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int i = 0; i < 100; i++) {
+      rb.add(i * 3);
+    }
+    rb.add(1L << 16, (1L << 16) + 40000);
+    rb.add(2L << 16, (2L << 16) + 65536);
+
+    MappeableContainerPointer p = rb.getContainerPointer();
+    while (p.getContainer() != null) {
+      long key = p.key() & 0xFFFFL;
+      long start = key << 16;
+      long end = start + (1L << 16);
+      assertEquals(
+          p.getCardinality(),
+          rb.rangeCardinality(start, end),
+          "full-container range for key " + key);
+      p.advance();
+    }
+  }
 }
