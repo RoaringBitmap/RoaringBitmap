@@ -2,6 +2,7 @@ package org.roaringbitmap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -200,6 +201,92 @@ public class TestRankIteratorsOfContainers {
     while (iterator.hasNext()) {
       assertEquals((iterator.peekNext()) + 1, iterator.peekNextRank());
       iterator.next();
+    }
+  }
+
+  /**
+   * rank(Character.MAX_VALUE) must equal getCardinality() for every container type. This is the
+   * path used by rangeCardinality when a query ends on a container boundary (issue #844).
+   */
+  @Test
+  public void rankOfMaxEqualsCardinality() {
+    Random rnd = new Random(42);
+
+    ArrayContainer ac = new ArrayContainer();
+    fillRandom(ac, rnd);
+    assertEquals(ac.getCardinality(), ac.rank(Character.MAX_VALUE));
+    ac.add(Character.MAX_VALUE);
+    assertEquals(ac.getCardinality(), ac.rank(Character.MAX_VALUE));
+
+    BitmapContainer bc = new BitmapContainer();
+    fillRandom(bc, rnd);
+    assertEquals(bc.getCardinality(), bc.rank(Character.MAX_VALUE));
+    bc.add(Character.MAX_VALUE);
+    assertEquals(bc.getCardinality(), bc.rank(Character.MAX_VALUE));
+
+    // empty bitmap container
+    assertEquals(0, new BitmapContainer().rank(Character.MAX_VALUE));
+
+    // nearly full / full bitmap
+    BitmapContainer almostFull = new BitmapContainer();
+    fillRange(almostFull, 0, 65535);
+    assertEquals(almostFull.getCardinality(), almostFull.rank(Character.MAX_VALUE));
+    BitmapContainer full = new BitmapContainer();
+    fillRange(full, 0, 65536);
+    assertEquals(full.getCardinality(), full.rank(Character.MAX_VALUE));
+    assertEquals(65536, full.rank(Character.MAX_VALUE));
+
+    // lazy OR leaves cardinality invalid (-1); rank(MAX) must still be correct
+    BitmapContainer lazy = new BitmapContainer();
+    fillRange(lazy, 0, 10000);
+    ArrayContainer other = new ArrayContainer();
+    other.add((char) 20000);
+    other.add(Character.MAX_VALUE);
+    lazy.ilazyor(other);
+    assertTrue(lazy.cardinality < 0, "precondition: lazy or invalidates cardinality");
+    int expectedCard = lazy.rank((char) 0xFFFE) + 1; // 0xFFFE path does not repair card
+    assertEquals(expectedCard, lazy.rank(Character.MAX_VALUE));
+    // after rank(MAX), cardinality should have been repaired
+    assertTrue(lazy.cardinality >= 0);
+    assertEquals(lazy.getCardinality(), lazy.rank(Character.MAX_VALUE));
+
+    RunContainer rc = new RunContainer();
+    fillRandom(rc, rnd);
+    assertEquals(rc.getCardinality(), rc.rank(Character.MAX_VALUE));
+    fillRange(rc, 60000, 65536);
+    assertEquals(rc.getCardinality(), rc.rank(Character.MAX_VALUE));
+
+    // empty / single-point containers
+    assertEquals(0, new ArrayContainer().rank(Character.MAX_VALUE));
+    assertEquals(0, new RunContainer().rank(Character.MAX_VALUE));
+    ArrayContainer single = new ArrayContainer();
+    single.add(Character.MAX_VALUE);
+    assertEquals(1, single.rank(Character.MAX_VALUE));
+  }
+
+  /** Full-container rangeCardinality must match getCardinality (issue #844). */
+  @Test
+  public void rangeCardinalityFullContainer() {
+    RoaringBitmap rb = new RoaringBitmap();
+    // one sparse container (array)
+    for (int i = 0; i < 100; i++) {
+      rb.add(i * 3);
+    }
+    // one dense container (bitmap)
+    rb.add(1L << 16, (1L << 16) + 40000);
+    // one run-friendly container
+    rb.add(2L << 16, (2L << 16) + 65536);
+
+    ContainerPointer p = rb.getContainerPointer();
+    while (p.getContainer() != null) {
+      long key = p.key() & 0xFFFFL;
+      long start = key << 16;
+      long end = start + (1L << 16);
+      assertEquals(
+          p.getContainer().getCardinality(),
+          rb.rangeCardinality(start, end),
+          "full-container range for key " + key);
+      p.advance();
     }
   }
 }

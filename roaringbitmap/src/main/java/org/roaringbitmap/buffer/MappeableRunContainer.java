@@ -1957,6 +1957,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public int rank(char lowbits) {
+    // rank(Character.MAX_VALUE) is the full cardinality (see MappeableContainer.rank javadoc).
+    if (lowbits == Character.MAX_VALUE) {
+      return getCardinality();
+    }
     int answer = 0;
     for (int k = 0; k < this.nbrruns; ++k) {
       int value = (getValue(k));

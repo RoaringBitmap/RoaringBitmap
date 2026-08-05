@@ -1057,6 +1057,10 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public int rank(char lowbits) {
+    // rank(Character.MAX_VALUE) is the full cardinality (see Container.rank javadoc).
+    if (lowbits == Character.MAX_VALUE) {
+      return cardinality;
+    }
     int answer = Util.unsignedBinarySearch(content, 0, cardinality, lowbits);
     if (answer >= 0) {
       return answer + 1;

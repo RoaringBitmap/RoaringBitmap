@@ -1335,6 +1335,10 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public int rank(char lowbits) {
+    // rank(Character.MAX_VALUE) is the full cardinality (see MappeableContainer.rank javadoc).
+    if (lowbits == Character.MAX_VALUE) {
+      return cardinality;
+    }
     int answer = BufferUtil.unsignedBinarySearch(content, 0, cardinality, lowbits);
     if (answer >= 0) {
       return answer + 1;

@@ -1155,6 +1155,14 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int rank(char lowbits) {
+    // rank(Character.MAX_VALUE) is the full cardinality (see Container.rank javadoc).
+    // Avoid scanning all 1024 words when the cached cardinality is available.
+    if (lowbits == Character.MAX_VALUE) {
+      if (cardinality < 0) {
+        computeCardinality();
+      }
+      return cardinality;
+    }
     int leftover = (lowbits + 1) & 63;
     int answer = 0;
     for (int k = 0; k < (lowbits + 1) >>> 6; ++k) {
