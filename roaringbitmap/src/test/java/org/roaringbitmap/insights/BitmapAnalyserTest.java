@@ -25,7 +25,12 @@ public class BitmapAnalyserTest {
     }
     BitmapStatistics result = BitmapAnalyser.analyse(rb);
     BitmapStatistics expected =
-        new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(1, 6), 1, 1);
+        new BitmapStatistics(
+            new BitmapStatistics.ArrayContainersStats(1, 6),
+            new BitmapStatistics.RunContainersStats(
+                1, 10000, new int[] {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}),
+            1,
+            1);
     assertEquals(expected, result);
   }
 
