@@ -3,8 +3,10 @@ package org.roaringbitmap.longlong;
 import org.roaringbitmap.ArrayContainer;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.Container;
+import org.roaringbitmap.ContainerPointer;
 import org.roaringbitmap.PeekableCharIterator;
 import org.roaringbitmap.RelativeRangeConsumer;
+import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RunContainer;
 import org.roaringbitmap.Util;
 import org.roaringbitmap.art.ContainerIterator;
@@ -19,7 +21,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -866,6 +867,119 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       }
     }
     return hasChanged;
+  }
+
+  /**
+   * Serialize this bitmap using the portable 64-bit format.
+   *
+   * <p>See the format specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations.
+   *
+   * @param out the DataOutput stream
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public void serializePortable(DataOutput out) throws IOException {
+    long bucketCount = portableBucketCount();
+    if (bucketCount > LongUtils.MAX_UNSIGNED_INT) {
+      throw new IOException("Too many portable serialization buckets: " + bucketCount);
+    }
+    out.writeLong(Long.reverseBytes(bucketCount));
+
+    LeafNodeIterator iterator = highLowContainer.highKeyLeafNodeIterator(false);
+    while (iterator.hasNext()) {
+      long high32 = iterator.peekNext().getKey() >>> 16;
+      out.writeInt(Integer.reverseBytes((int) high32));
+      nextPortableBucket(iterator, high32).serialize(out);
+    }
+  }
+
+  /**
+   * Deserialize this bitmap from the portable 64-bit format.
+   *
+   * <p>See the format specification at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations.
+   *
+   * @param in the DataInput stream
+   * @throws IOException Signals that an I/O exception has occurred or the input violates the
+   *     portable format.
+   */
+  public void deserializePortable(DataInput in) throws IOException {
+    long bucketCount = Long.reverseBytes(in.readLong());
+    if (bucketCount < 0 || bucketCount > LongUtils.MAX_UNSIGNED_INT) {
+      throw new IOException("Invalid portable serialization bucket count");
+    }
+
+    HighLowContainer deserialized = new HighLowContainer();
+    long previousHigh32 = -1;
+    for (long bucket = 0; bucket < bucketCount; bucket++) {
+      long high32 = Integer.toUnsignedLong(Integer.reverseBytes(in.readInt()));
+      if (high32 <= previousHigh32) {
+        throw new IOException("Portable serialization bucket keys are not strictly increasing");
+      }
+      previousHigh32 = high32;
+
+      RoaringBitmap lowBitmap = new RoaringBitmap();
+      lowBitmap.deserialize(in);
+      ContainerPointer pointer = lowBitmap.getContainerPointer();
+      int previousKey = -1;
+      while (pointer.getContainer() != null) {
+        int key = pointer.key();
+        if (key <= previousKey) {
+          throw new IOException(
+              "Portable serialization container keys are not strictly increasing");
+        }
+        previousKey = key;
+
+        Container container = pointer.getContainer();
+        if (container.isEmpty()) {
+          pointer.advance();
+          continue;
+        }
+        long value = (high32 << 32) | ((long) pointer.key() << 16);
+        deserialized.put(LongUtils.highPart(value), container);
+        pointer.advance();
+      }
+    }
+    highLowContainer = deserialized;
+  }
+
+  /**
+   * Report the number of bytes required to serialize this bitmap in the portable 64-bit format.
+   *
+   * @return the size in bytes
+   */
+  public long portableSerializedSizeInBytes() {
+    long size = 8;
+    LeafNodeIterator iterator = highLowContainer.highKeyLeafNodeIterator(false);
+    while (iterator.hasNext()) {
+      long high32 = iterator.peekNext().getKey() >>> 16;
+      size += 4 + nextPortableBucket(iterator, high32).serializedSizeInBytes();
+    }
+    return size;
+  }
+
+  private long portableBucketCount() {
+    long bucketCount = 0;
+    long previousHigh32 = -1;
+    LeafNodeIterator iterator = highLowContainer.highKeyLeafNodeIterator(false);
+    while (iterator.hasNext()) {
+      long high32 = iterator.next().getKey() >>> 16;
+      if (high32 != previousHigh32) {
+        bucketCount++;
+        previousHigh32 = high32;
+      }
+    }
+    return bucketCount;
+  }
+
+  private RoaringBitmap nextPortableBucket(LeafNodeIterator iterator, long high32) {
+    // Serialization is read-only, so the temporary bitmap can borrow the ART's containers.
+    RoaringBitmap bitmap = new RoaringBitmap();
+    while (iterator.hasNext() && iterator.peekNext().getKey() >>> 16 == high32) {
+      LeafNode leaf = iterator.next();
+      bitmap.append((char) leaf.getKey(), highLowContainer.getContainer(leaf.getContainerIdx()));
+    }
+    return bitmap;
   }
 
   /**
