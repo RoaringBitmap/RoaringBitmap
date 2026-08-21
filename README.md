@@ -546,12 +546,7 @@ The newer `Roaring64Bitmap` approach relies on the ART data structure to hold th
     b1.and(bitmap2);
 ```
 
-The serialization of 64-bit Roaring bitmaps is specified: see
-https://github.com/RoaringBitmap/RoaringFormatSpec#extention-for-64-bit-implementations
-
-However, it is implemented only by `Roaring64NavigableMap`, by switching:
-
-    Roaring64NavigableMap.SERIALIZATION_MODE = Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
+Both 64-bit implementations support the [portable format](https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations): `Roaring64Bitmap` through `serializePortable` and `deserializePortable`, and `Roaring64NavigableMap` through `SERIALIZATION_MODE_PORTABLE`.
 
 Range Bitmaps
 -------------

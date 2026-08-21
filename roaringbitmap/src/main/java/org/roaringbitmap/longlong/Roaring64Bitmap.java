@@ -870,13 +870,14 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
-   * Serialize this bitmap using the portable 64-bit format.
+   * Serializes this bitmap in the portable 64-bit format.
    *
-   * <p>See the format specification at
-   * https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations.
+   * <p>The format is specified at
+   * https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations. Call
+   * {@link #runOptimize} first for better compression.
    *
-   * @param out the DataOutput stream
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @param out the output stream
+   * @throws IOException if the bitmap cannot be written
    */
   public void serializePortable(DataOutput out) throws IOException {
     long bucketCount = portableBucketCount();
@@ -894,14 +895,13 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
-   * Deserialize this bitmap from the portable 64-bit format.
+   * Deserializes this bitmap from the portable 64-bit format.
    *
-   * <p>See the format specification at
-   * https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations.
+   * <p>Bucket count and key order are checked; container contents are not. The bitmap is unchanged
+   * if reading fails.
    *
-   * @param in the DataInput stream
-   * @throws IOException Signals that an I/O exception has occurred or the input violates the
-   *     portable format.
+   * @param in the input stream
+   * @throws IOException if the input cannot be read or violates the portable format
    */
   public void deserializePortable(DataInput in) throws IOException {
     long bucketCount = Long.reverseBytes(in.readLong());
@@ -914,7 +914,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     for (long bucket = 0; bucket < bucketCount; bucket++) {
       long high32 = Integer.toUnsignedLong(Integer.reverseBytes(in.readInt()));
       if (high32 <= previousHigh32) {
-        throw new IOException("Portable serialization bucket keys are not strictly increasing");
+        throw new IOException("Bucket keys must be strictly increasing");
       }
       previousHigh32 = high32;
 
@@ -925,29 +925,22 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
       while (pointer.getContainer() != null) {
         int key = pointer.key();
         if (key <= previousKey) {
-          throw new IOException(
-              "Portable serialization container keys are not strictly increasing");
+          throw new IOException("Container keys must be strictly increasing");
         }
         previousKey = key;
 
         Container container = pointer.getContainer();
-        if (container.isEmpty()) {
-          pointer.advance();
-          continue;
+        if (!container.isEmpty()) {
+          long value = (high32 << 32) | ((long) key << 16);
+          deserialized.put(LongUtils.highPart(value), container);
         }
-        long value = (high32 << 32) | ((long) pointer.key() << 16);
-        deserialized.put(LongUtils.highPart(value), container);
         pointer.advance();
       }
     }
     highLowContainer = deserialized;
   }
 
-  /**
-   * Report the number of bytes required to serialize this bitmap in the portable 64-bit format.
-   *
-   * @return the size in bytes
-   */
+  /** Returns the portable serialized size in bytes. */
   public long portableSerializedSizeInBytes() {
     long size = 8;
     LeafNodeIterator iterator = highLowContainer.highKeyLeafNodeIterator(false);
@@ -973,7 +966,7 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   private RoaringBitmap nextPortableBucket(LeafNodeIterator iterator, long high32) {
-    // Serialization is read-only, so the temporary bitmap can borrow the ART's containers.
+    // Safe because serialize() does not mutate containers.
     RoaringBitmap bitmap = new RoaringBitmap();
     while (iterator.hasNext() && iterator.peekNext().getKey() >>> 16 == high32) {
       LeafNode leaf = iterator.next();
