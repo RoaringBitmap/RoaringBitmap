@@ -245,6 +245,36 @@ public class TestMappeableRunContainer {
   }
 
   @Test
+  public void andNotArrayKeepsRunContainerForRunFriendlyResult() {
+    // Issue #512: andNot on a large contiguous run minus a sparse array must
+    // yield a compact MappeableRunContainer, not an inflated bitmap. This
+    // exercises the branch (this.cardinality > DEFAULT_MAX_SIZE and
+    // x.cardinality >= 32) that previously materialised a bitmap.
+    MappeableRunContainer rc = new MappeableRunContainer();
+    rc.iadd(0, 40000);
+    MappeableArrayContainer ac = new MappeableArrayContainer();
+    for (int i = 0; i < 40000; i += 125) {
+      ac = (MappeableArrayContainer) ac.add((char) i);
+    }
+    assertTrue(ac.getCardinality() >= 32);
+    assertTrue(rc.getCardinality() > MappeableArrayContainer.DEFAULT_MAX_SIZE);
+
+    MappeableContainer result = rc.andNot(ac);
+
+    MappeableContainer expected = rc.clone();
+    for (int i = 0; i < 40000; i += 125) {
+      expected = expected.remove((char) i);
+    }
+    assertEquals(expected, result);
+    assertTrue(
+        result instanceof MappeableRunContainer,
+        "expected MappeableRunContainer, got " + result.getClass().getSimpleName());
+    assertTrue(
+        result.getArraySizeInBytes() < new MappeableBitmapContainer().getArraySizeInBytes(),
+        "run form should be more compact than a bitmap container");
+  }
+
+  @Test
   public void testRangeCardinality3() {
     MappeableBitmapContainer bc =
         TestMappeableBitmapContainer.generateContainer((char) 100, (char) 10000, 5);
