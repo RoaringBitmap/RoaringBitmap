@@ -521,6 +521,26 @@ public class RoaringBitSetTest {
   }
 
   @Test
+  public void testPreviousSetBit() {
+    RoaringBitSet rb = new RoaringBitSet();
+    java.util.BitSet jb = new java.util.BitSet();
+    for (int b : new int[] {5, 100, 200}) {
+      rb.set(b);
+      jb.set(b);
+    }
+
+    // java.util.BitSet contract: previousSetBit(-1) returns -1
+    Assertions.assertEquals(-1, rb.previousSetBit(-1));
+
+    for (int i = -1; i <= 260; i++) {
+      Assertions.assertEquals(
+          jb.previousSetBit(i), rb.previousSetBit(i), "mismatch at fromIndex=" + i);
+    }
+
+    Assertions.assertEquals(-1, new RoaringBitSet().previousSetBit(-1));
+  }
+
+  @Test
   public void testNextClearBit() {
     int failCount = 0;
 
