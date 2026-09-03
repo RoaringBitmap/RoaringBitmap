@@ -801,6 +801,15 @@ public abstract class Container
     if (x instanceof ArrayContainer) {
       return or((ArrayContainer) x);
     } else if (x instanceof BitmapContainer) {
+      if (this instanceof BitmapContainer) {
+        BitmapContainer value1 = (BitmapContainer) this;
+        BitmapContainer value2 = (BitmapContainer) x;
+        if (value1.cardinality >= 0
+            && value2.cardinality >= 0
+            && (long) value1.cardinality + value2.cardinality < BitmapContainer.MAX_CAPACITY) {
+          return value1.orWithoutCopy(value2);
+        }
+      }
       return or((BitmapContainer) x);
     }
     return or((RunContainer) x);
