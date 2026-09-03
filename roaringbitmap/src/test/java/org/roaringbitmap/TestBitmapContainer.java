@@ -142,7 +142,7 @@ public class TestBitmapContainer {
     BitmapContainer left = new BitmapContainer(leftWords, 3);
     BitmapContainer right = new BitmapContainer(rightWords, 1);
 
-    Container result = BitmapContainer.orWithoutCopyIfNotFull(left, right);
+    Container result = left.orWithoutCopy(right);
 
     assertTrue(result instanceof BitmapContainer);
     BitmapContainer resultBitmap = (BitmapContainer) result;
@@ -161,8 +161,7 @@ public class TestBitmapContainer {
     long[] longRightWords = {0x2L, 0x4L};
     BitmapContainer shortLeft = new BitmapContainer(shortLeftWords, 1);
     BitmapContainer longRight = new BitmapContainer(longRightWords, 2);
-    BitmapContainer ignoredTailResult =
-        (BitmapContainer) BitmapContainer.orWithoutCopyIfNotFull(shortLeft, longRight);
+    BitmapContainer ignoredTailResult = (BitmapContainer) shortLeft.orWithoutCopy(longRight);
 
     assertArrayEquals(new long[] {0x3L}, ignoredTailResult.bitmap);
     assertEquals(2, ignoredTailResult.getCardinality());
@@ -171,15 +170,13 @@ public class TestBitmapContainer {
 
     BitmapContainer lazyLeft = new BitmapContainer(new long[] {0x1L}, -1);
     BitmapContainer lazyRight = new BitmapContainer(new long[] {0x2L}, -1);
-    BitmapContainer lazyResult =
-        (BitmapContainer) BitmapContainer.orWithoutCopyIfNotFull(lazyLeft, lazyRight);
+    BitmapContainer lazyResult = (BitmapContainer) ((Container) lazyLeft).or(lazyRight);
     assertArrayEquals(new long[] {0x3L}, lazyResult.bitmap);
     assertEquals(2, lazyResult.getCardinality());
 
     BitmapContainer equalLeft = new BitmapContainer(new long[] {0x1L, 0x10L}, 2);
     BitmapContainer equalRight = new BitmapContainer(new long[] {0x2L, 0x20L}, 2);
-    BitmapContainer equalResult =
-        (BitmapContainer) BitmapContainer.orWithoutCopyIfNotFull(equalLeft, equalRight);
+    BitmapContainer equalResult = (BitmapContainer) equalLeft.orWithoutCopy(equalRight);
     assertArrayEquals(new long[] {0x3L, 0x30L}, equalResult.bitmap);
     assertEquals(4, equalResult.getCardinality());
   }
@@ -189,7 +186,7 @@ public class TestBitmapContainer {
     BitmapContainer left = new BitmapContainer(0, 1 << 15);
     BitmapContainer right = new BitmapContainer(1 << 15, 1 << 16);
 
-    Container result = BitmapContainer.orWithoutCopyIfNotFull(left, right);
+    Container result = ((Container) left).or(right);
 
     assertTrue(result instanceof RunContainer);
     assertEquals(1 << 16, result.getCardinality());

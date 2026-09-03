@@ -1101,24 +1101,10 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container or(final BitmapContainer value2) {
-    BitmapContainer value1 = this.clone();
-    return value1.ior(value2);
+    return orWithoutCopy(value2);
   }
 
-  static Container orWithoutCopyIfNotFull(final Container value1, final Container value2) {
-    if (value1 instanceof BitmapContainer && value2 instanceof BitmapContainer) {
-      final BitmapContainer bitmap1 = (BitmapContainer) value1;
-      final BitmapContainer bitmap2 = (BitmapContainer) value2;
-      if (bitmap1.cardinality >= 0
-          && bitmap2.cardinality >= 0
-          && (long) bitmap1.cardinality + bitmap2.cardinality < MAX_CAPACITY) {
-        return bitmap1.orWithoutCopy(bitmap2);
-      }
-    }
-    return value1.or(value2);
-  }
-
-  private Container orWithoutCopy(final BitmapContainer value2) {
+  Container orWithoutCopy(final BitmapContainer value2) {
     final long[] answerBitmap = new long[bitmap.length];
     final int commonLength = Math.min(bitmap.length, value2.bitmap.length);
     int newCardinality = 0;

@@ -902,9 +902,9 @@ public class RoaringBitmap
         if (s1 == s2) {
           answer.highLowContainer.append(
               s1,
-              BitmapContainer.orWithoutCopyIfNotFull(
-                  x1.highLowContainer.getContainerAtIndex(pos1),
-                  x2.highLowContainer.getContainerAtIndex(pos2)));
+              x1.highLowContainer
+                  .getContainerAtIndex(pos1)
+                  .or(x2.highLowContainer.getContainerAtIndex(pos2)));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
