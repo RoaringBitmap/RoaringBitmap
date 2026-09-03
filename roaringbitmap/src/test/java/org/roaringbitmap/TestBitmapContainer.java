@@ -159,14 +159,20 @@ public class TestBitmapContainer {
 
     long[] shortLeftWords = {0x1L};
     long[] longRightWords = {0x2L, 0x4L};
-    BitmapContainer shortLeft = new BitmapContainer(shortLeftWords, -1);
-    BitmapContainer longRight = new BitmapContainer(longRightWords, -1);
+    BitmapContainer shortLeft = new BitmapContainer(shortLeftWords, 1);
+    BitmapContainer longRight = new BitmapContainer(longRightWords, 2);
     BitmapContainer ignoredTailResult = (BitmapContainer) ((Container) shortLeft).or(longRight);
 
     assertArrayEquals(new long[] {0x3L}, ignoredTailResult.bitmap);
     assertEquals(2, ignoredTailResult.getCardinality());
     assertArrayEquals(new long[] {0x1L}, shortLeft.bitmap);
     assertArrayEquals(new long[] {0x2L, 0x4L}, longRight.bitmap);
+
+    BitmapContainer lazyLeft = new BitmapContainer(new long[] {0x1L}, -1);
+    BitmapContainer lazyRight = new BitmapContainer(new long[] {0x2L}, -1);
+    BitmapContainer lazyResult = (BitmapContainer) ((Container) lazyLeft).or(lazyRight);
+    assertArrayEquals(new long[] {0x3L}, lazyResult.bitmap);
+    assertEquals(2, lazyResult.getCardinality());
 
     BitmapContainer equalLeft = new BitmapContainer(new long[] {0x1L, 0x10L}, 2);
     BitmapContainer equalRight = new BitmapContainer(new long[] {0x2L, 0x20L}, 2);
