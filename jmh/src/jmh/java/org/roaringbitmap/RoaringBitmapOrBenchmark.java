@@ -10,7 +10,7 @@ import org.openjdk.jmh.annotations.State;
 @State(Scope.Benchmark)
 public class RoaringBitmapOrBenchmark {
 
-  @Param({"1", "16", "64"})
+  @Param({"1", "16", "64", "256"})
   int matchingContainers;
 
   @Param({"0.1", "0.5"})
