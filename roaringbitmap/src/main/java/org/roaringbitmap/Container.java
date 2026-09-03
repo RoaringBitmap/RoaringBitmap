@@ -801,13 +801,9 @@ public abstract class Container
     if (x instanceof ArrayContainer) {
       return or((ArrayContainer) x);
     } else if (x instanceof BitmapContainer) {
-      return orBitmap((BitmapContainer) x);
+      return or((BitmapContainer) x);
     }
     return or((RunContainer) x);
-  }
-
-  Container orBitmap(BitmapContainer x) {
-    return or(x);
   }
 
   /**
