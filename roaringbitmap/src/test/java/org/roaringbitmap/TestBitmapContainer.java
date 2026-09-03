@@ -179,6 +179,17 @@ public class TestBitmapContainer {
     BitmapContainer equalResult = (BitmapContainer) equalLeft.orWithoutCopy(equalRight);
     assertArrayEquals(new long[] {0x3L, 0x30L}, equalResult.bitmap);
     assertEquals(4, equalResult.getCardinality());
+
+    RoaringBitmap publicResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {equalLeft}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {equalRight}, 1)));
+    BitmapContainer publicResultContainer =
+        (BitmapContainer) publicResult.highLowContainer.getContainerAtIndex(0);
+    assertArrayEquals(new long[] {0x3L, 0x30L}, publicResultContainer.bitmap);
+    assertEquals(4, publicResultContainer.getCardinality());
+    assertNotSame(equalLeft.bitmap, publicResultContainer.bitmap);
+    assertNotSame(equalRight.bitmap, publicResultContainer.bitmap);
   }
 
   @Test

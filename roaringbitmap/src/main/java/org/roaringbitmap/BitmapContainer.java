@@ -1101,22 +1101,31 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public Container or(final BitmapContainer value2) {
-    return orWithoutCopy(value2);
+    BitmapContainer value1 = this.clone();
+    return value1.ior(value2);
   }
 
   Container orWithoutCopy(final BitmapContainer value2) {
     final long[] answerBitmap = new long[bitmap.length];
     final int commonLength = Math.min(bitmap.length, value2.bitmap.length);
     int newCardinality = 0;
+    long anyIntersection = 0;
     for (int k = 0; k < commonLength; ++k) {
-      final long word = bitmap[k] | value2.bitmap[k];
+      final long leftWord = bitmap[k];
+      final long rightWord = value2.bitmap[k];
+      final long word = leftWord | rightWord;
       answerBitmap[k] = word;
-      newCardinality += Long.bitCount(word);
+      anyIntersection |= leftWord & rightWord;
     }
     for (int k = commonLength; k < bitmap.length; ++k) {
-      final long word = bitmap[k];
-      answerBitmap[k] = word;
-      newCardinality += Long.bitCount(word);
+      answerBitmap[k] = bitmap[k];
+    }
+    if (anyIntersection == 0 && bitmap.length == value2.bitmap.length) {
+      newCardinality = cardinality + value2.cardinality;
+    } else {
+      for (int k = 0; k < bitmap.length; ++k) {
+        newCardinality += Long.bitCount(answerBitmap[k]);
+      }
     }
     if (newCardinality == MAX_CAPACITY) {
       return RunContainer.full();

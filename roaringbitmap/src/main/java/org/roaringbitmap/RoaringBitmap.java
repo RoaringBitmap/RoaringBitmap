@@ -890,6 +890,9 @@ public class RoaringBitmap
    * @see FastAggregation#horizontal_or(RoaringBitmap...)
    */
   public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
+    if (canUseBitmapOrFastPath(x1, x2)) {
+      return orBitmapContainers(x1, x2);
+    }
     final RoaringBitmap answer = new RoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
@@ -905,6 +908,93 @@ public class RoaringBitmap
               x1.highLowContainer
                   .getContainerAtIndex(pos1)
                   .or(x2.highLowContainer.getContainerAtIndex(pos2)));
+          pos1++;
+          pos2++;
+          if ((pos1 == length1) || (pos2 == length2)) {
+            break main;
+          }
+          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        } else if (s1 < s2) {
+          answer.highLowContainer.appendCopy(x1.highLowContainer, pos1);
+          pos1++;
+          if (pos1 == length1) {
+            break main;
+          }
+          s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+        } else {
+          answer.highLowContainer.appendCopy(x2.highLowContainer, pos2);
+          pos2++;
+          if (pos2 == length2) {
+            break main;
+          }
+          s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+        }
+      }
+    }
+    if (pos1 == length1) {
+      answer.highLowContainer.appendCopy(x2.highLowContainer, pos2, length2);
+    } else if (pos2 == length2) {
+      answer.highLowContainer.appendCopy(x1.highLowContainer, pos1, length1);
+    }
+    return answer;
+  }
+
+  private static boolean canUseBitmapOrFastPath(final RoaringBitmap x1, final RoaringBitmap x2) {
+    final int length1 = x1.highLowContainer.size();
+    final int length2 = x2.highLowContainer.size();
+    if (length1 == 0
+        || length2 == 0
+        || x1.highLowContainer.getKeyAtIndex(0) != x2.highLowContainer.getKeyAtIndex(0)) {
+      return false;
+    }
+    int pos1 = 0;
+    int pos2 = 0;
+    while (pos1 < length1 && pos2 < length2) {
+      final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+      if (s1 == s2) {
+        final Container container1 = x1.highLowContainer.getContainerAtIndex(pos1);
+        final Container container2 = x2.highLowContainer.getContainerAtIndex(pos2);
+        if (!(container1 instanceof BitmapContainer) || !(container2 instanceof BitmapContainer)) {
+          return false;
+        }
+        final BitmapContainer bitmap1 = (BitmapContainer) container1;
+        final BitmapContainer bitmap2 = (BitmapContainer) container2;
+        if (bitmap1.cardinality < 0
+            || bitmap2.cardinality < 0
+            || (long) bitmap1.cardinality + bitmap2.cardinality >= BitmapContainer.MAX_CAPACITY) {
+          return false;
+        }
+        pos1++;
+        pos2++;
+      } else if (s1 < s2) {
+        pos1++;
+      } else {
+        pos2++;
+      }
+    }
+    return true;
+  }
+
+  private static RoaringBitmap orBitmapContainers(final RoaringBitmap x1, final RoaringBitmap x2) {
+    final RoaringBitmap answer = new RoaringBitmap();
+    int pos1 = 0;
+    int pos2 = 0;
+    final int length1 = x1.highLowContainer.size();
+    final int length2 = x2.highLowContainer.size();
+    main:
+    if (pos1 < length1 && pos2 < length2) {
+      char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
+      char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
+
+      while (true) {
+        if (s1 == s2) {
+          final BitmapContainer bitmap1 =
+              (BitmapContainer) x1.highLowContainer.getContainerAtIndex(pos1);
+          final BitmapContainer bitmap2 =
+              (BitmapContainer) x2.highLowContainer.getContainerAtIndex(pos2);
+          answer.highLowContainer.append(s1, bitmap1.orWithoutCopy(bitmap2));
           pos1++;
           pos2++;
           if ((pos1 == length1) || (pos2 == length2)) {
