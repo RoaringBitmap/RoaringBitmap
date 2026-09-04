@@ -168,6 +168,15 @@ public class TestBitmapContainer {
     assertArrayEquals(new long[] {0x1L}, shortLeft.bitmap);
     assertArrayEquals(new long[] {0x2L, 0x4L}, longRight.bitmap);
 
+    RoaringBitmap publicUnequalResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {shortLeft}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {longRight}, 1)));
+    BitmapContainer publicUnequalResultBitmap =
+        (BitmapContainer) publicUnequalResult.highLowContainer.getContainerAtIndex(0);
+    assertArrayEquals(new long[] {0x3L}, publicUnequalResultBitmap.bitmap);
+    assertEquals(2, publicUnequalResultBitmap.getCardinality());
+
     BitmapContainer lazyLeft = new BitmapContainer(new long[] {0x1L}, -1);
     BitmapContainer lazyRight = new BitmapContainer(new long[] {0x2L}, -1);
     BitmapContainer lazyResult = (BitmapContainer) ((Container) lazyLeft).or(lazyRight);
