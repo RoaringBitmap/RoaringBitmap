@@ -890,14 +890,12 @@ public class RoaringBitmap
    * @see FastAggregation#horizontal_or(RoaringBitmap...)
    */
   public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
-    if (x1.highLowContainer.size() == 1
-        && x2.highLowContainer.size() == 1
-        && canUseBitmapOrFastPath(x1, x2)) {
-      return orBitmapContainers(x1, x2);
-    }
     final RoaringBitmap answer = new RoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
+    if (length1 == 1 && length2 == 1 && canUseBitmapOrFastPath(x1, x2)) {
+      return orBitmapContainers(x1, x2);
+    }
     main:
     if (pos1 < length1 && pos2 < length2) {
       char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
