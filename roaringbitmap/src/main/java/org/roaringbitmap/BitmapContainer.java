@@ -1102,7 +1102,7 @@ public final class BitmapContainer extends Container implements Cloneable {
   @Override
   public Container or(final Container value2) {
     if (value2 instanceof BitmapContainer) {
-      return orWithoutCopyIfNotFull((BitmapContainer) value2);
+      return orWithoutCopyIfPossible((BitmapContainer) value2);
     }
     return super.or(value2);
   }
@@ -1113,13 +1113,29 @@ public final class BitmapContainer extends Container implements Cloneable {
     return value1.ior(value2);
   }
 
-  private Container orWithoutCopyIfNotFull(final BitmapContainer value2) {
-    if (cardinality >= 0
-        && value2.cardinality >= 0
-        && (long) cardinality + value2.cardinality < MAX_CAPACITY) {
-      return orWithoutCopy(value2);
+  private Container orWithoutCopyIfPossible(final BitmapContainer value2) {
+    if (cardinality >= 0 && value2.cardinality >= 0) {
+      final long cardinalitySum = (long) cardinality + value2.cardinality;
+      if (cardinalitySum < MAX_CAPACITY) {
+        return orWithoutCopy(value2);
+      }
+      if (cardinalitySum == MAX_CAPACITY
+          && bitmap.length == MAX_CAPACITY_LONG
+          && value2.bitmap.length == MAX_CAPACITY_LONG
+          && isDisjoint(value2)) {
+        return RunContainer.full();
+      }
     }
     return or(value2);
+  }
+
+  private boolean isDisjoint(final BitmapContainer value2) {
+    for (int k = 0; k < MAX_CAPACITY_LONG; ++k) {
+      if ((bitmap[k] & value2.bitmap[k]) != 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Container orWithoutCopy(final BitmapContainer value2) {
