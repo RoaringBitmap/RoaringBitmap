@@ -203,6 +203,18 @@ public class TestBitmapContainer {
     assertEquals(1 << 16, result.getCardinality());
     assertEquals(1 << 15, left.getCardinality());
     assertEquals(1 << 15, right.getCardinality());
+
+    RoaringBitmap publicResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {left}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {right}, 1)));
+    assertTrue(publicResult.highLowContainer.getContainerAtIndex(0) instanceof RunContainer);
+
+    BitmapContainer overlapLeft = new BitmapContainer(0, 40000);
+    BitmapContainer overlapRight = new BitmapContainer(20000, 45536);
+    Container overlapResult = ((Container) overlapLeft).or(overlapRight);
+    assertTrue(overlapResult instanceof BitmapContainer);
+    assertEquals(45536, overlapResult.getCardinality());
   }
 
   @Test
