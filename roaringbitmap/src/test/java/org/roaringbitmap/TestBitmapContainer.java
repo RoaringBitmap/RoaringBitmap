@@ -202,6 +202,36 @@ public class TestBitmapContainer {
   }
 
   @Test
+  public void testPublicBitmapORSpecializationForMultipleContainers() {
+    BitmapContainer left0 = new BitmapContainer(0, 5000);
+    BitmapContainer left1 = new BitmapContainer(0, 5000);
+    BitmapContainer right0 = new BitmapContainer(6000, 7000);
+    BitmapContainer right1 = new BitmapContainer(6000, 7000);
+    long[] left0Before = left0.bitmap.clone();
+    long[] right0Before = right0.bitmap.clone();
+
+    RoaringBitmap result =
+        RoaringBitmap.or(
+            new RoaringBitmap(
+                new RoaringArray(new char[] {0, 1}, new Container[] {left0, left1}, 2)),
+            new RoaringBitmap(
+                new RoaringArray(new char[] {0, 1}, new Container[] {right0, right1}, 2)));
+
+    assertEquals(12000, result.getCardinality());
+    for (int i = 0; i < 2; ++i) {
+      Container resultContainer = result.highLowContainer.getContainerAtIndex(i);
+      assertTrue(resultContainer instanceof BitmapContainer);
+      assertEquals(6000, resultContainer.getCardinality());
+    }
+    assertArrayEquals(left0Before, left0.bitmap);
+    assertArrayEquals(right0Before, right0.bitmap);
+    assertNotSame(
+        left0.bitmap, ((BitmapContainer) result.highLowContainer.getContainerAtIndex(0)).bitmap);
+    assertNotSame(
+        right0.bitmap, ((BitmapContainer) result.highLowContainer.getContainerAtIndex(0)).bitmap);
+  }
+
+  @Test
   public void testBitmapBitmapORReturnsFullRunContainer() {
     BitmapContainer left = new BitmapContainer(0, 1 << 15);
     BitmapContainer right = new BitmapContainer(1 << 15, 1 << 16);

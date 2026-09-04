@@ -1106,26 +1106,44 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   Container orWithoutCopy(final BitmapContainer value2) {
-    final long[] answerBitmap = new long[bitmap.length];
     final int commonLength = Math.min(bitmap.length, value2.bitmap.length);
-    int newCardinality = 0;
+    final long[] answerBitmap;
     long anyIntersection = 0;
-    for (int k = 0; k < commonLength; ++k) {
-      final long leftWord = bitmap[k];
-      final long rightWord = value2.bitmap[k];
-      final long word = leftWord | rightWord;
-      answerBitmap[k] = word;
-      anyIntersection |= leftWord & rightWord;
+    if (bitmap.length == value2.bitmap.length
+        && cardinality >= 0
+        && value2.cardinality >= 0
+        && value2.cardinality * 4 < cardinality) {
+      answerBitmap = Arrays.copyOf(bitmap, bitmap.length);
+      for (int k = 0; k < commonLength; ++k) {
+        final long rightWord = value2.bitmap[k];
+        if (rightWord != 0) {
+          final long leftWord = answerBitmap[k];
+          answerBitmap[k] = leftWord | rightWord;
+          anyIntersection |= leftWord & rightWord;
+        }
+      }
+    } else {
+      answerBitmap = new long[bitmap.length];
+      for (int k = 0; k < commonLength; ++k) {
+        final long leftWord = bitmap[k];
+        final long rightWord = value2.bitmap[k];
+        final long word = leftWord | rightWord;
+        answerBitmap[k] = word;
+        anyIntersection |= leftWord & rightWord;
+      }
+      for (int k = commonLength; k < bitmap.length; ++k) {
+        answerBitmap[k] = bitmap[k];
+      }
     }
-    for (int k = commonLength; k < bitmap.length; ++k) {
-      answerBitmap[k] = bitmap[k];
-    }
+    final int newCardinality;
     if (anyIntersection == 0 && bitmap.length == value2.bitmap.length) {
       newCardinality = cardinality + value2.cardinality;
     } else {
+      int computedCardinality = 0;
       for (int k = 0; k < bitmap.length; ++k) {
-        newCardinality += Long.bitCount(answerBitmap[k]);
+        computedCardinality += Long.bitCount(answerBitmap[k]);
       }
+      newCardinality = computedCardinality;
     }
     if (newCardinality == MAX_CAPACITY) {
       return RunContainer.full();
