@@ -978,7 +978,7 @@ public class RoaringBitmap
   }
 
   private static RoaringBitmap orBitmapContainers(final RoaringBitmap x1, final RoaringBitmap x2) {
-    final RoaringBitmap answer = new RoaringBitmap();
+    final RoaringBitmap answer = new RoaringBitmap(1);
     int pos1 = 0;
     int pos2 = 0;
     final int length1 = x1.highLowContainer.size();
