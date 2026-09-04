@@ -890,37 +890,14 @@ public class RoaringBitmap
    * @see FastAggregation#horizontal_or(RoaringBitmap...)
    */
   public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
-    final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
-    if (length1 == 0
-        || length2 == 0
-        || x1.highLowContainer.getKeyAtIndex(0) != x2.highLowContainer.getKeyAtIndex(0)) {
-      return orBaseline(x1, x2, null, null);
-    }
-    final Container firstContainer1 = x1.highLowContainer.getContainerAtIndex(0);
-    final Container firstContainer2 = x2.highLowContainer.getContainerAtIndex(0);
-    if (!canUseBitmapOrPair(firstContainer1, firstContainer2)) {
-      return orBaseline(x1, x2, firstContainer1, firstContainer2);
-    }
-    if (canUseBitmapOrFastPathAfterFirst(x1, x2)) {
+    if (x1.highLowContainer.size() == 1
+        && x2.highLowContainer.size() == 1
+        && canUseBitmapOrFastPath(x1, x2)) {
       return orBitmapContainers(x1, x2);
     }
-    return orBaseline(x1, x2, firstContainer1, firstContainer2);
-  }
-
-  private static RoaringBitmap orBaseline(
-      final RoaringBitmap x1,
-      final RoaringBitmap x2,
-      final Container firstContainer1,
-      final Container firstContainer2) {
     final RoaringBitmap answer = new RoaringBitmap();
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
-    if (firstContainer1 != null) {
-      answer.highLowContainer.append(
-          x1.highLowContainer.getKeyAtIndex(0), firstContainer1.or(firstContainer2));
-      pos1 = 1;
-      pos2 = 1;
-    }
     main:
     if (pos1 < length1 && pos2 < length2) {
       char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
@@ -965,31 +942,30 @@ public class RoaringBitmap
     return answer;
   }
 
-  private static boolean canUseBitmapOrPair(
-      final Container container1, final Container container2) {
-    if (!(container1 instanceof BitmapContainer) || !(container2 instanceof BitmapContainer)) {
-      return false;
-    }
-    final BitmapContainer bitmap1 = (BitmapContainer) container1;
-    final BitmapContainer bitmap2 = (BitmapContainer) container2;
-    return bitmap1.cardinality >= 0
-        && bitmap2.cardinality >= 0
-        && (long) bitmap1.cardinality + bitmap2.cardinality < BitmapContainer.MAX_CAPACITY;
-  }
-
-  private static boolean canUseBitmapOrFastPathAfterFirst(
-      final RoaringBitmap x1, final RoaringBitmap x2) {
+  private static boolean canUseBitmapOrFastPath(final RoaringBitmap x1, final RoaringBitmap x2) {
     final int length1 = x1.highLowContainer.size();
     final int length2 = x2.highLowContainer.size();
-    int pos1 = 1;
-    int pos2 = 1;
+    if (length1 == 0
+        || length2 == 0
+        || x1.highLowContainer.getKeyAtIndex(0) != x2.highLowContainer.getKeyAtIndex(0)) {
+      return false;
+    }
+    int pos1 = 0;
+    int pos2 = 0;
     while (pos1 < length1 && pos2 < length2) {
       final char s1 = x1.highLowContainer.getKeyAtIndex(pos1);
       final char s2 = x2.highLowContainer.getKeyAtIndex(pos2);
       if (s1 == s2) {
         final Container container1 = x1.highLowContainer.getContainerAtIndex(pos1);
         final Container container2 = x2.highLowContainer.getContainerAtIndex(pos2);
-        if (!canUseBitmapOrPair(container1, container2)) {
+        if (!(container1 instanceof BitmapContainer) || !(container2 instanceof BitmapContainer)) {
+          return false;
+        }
+        final BitmapContainer bitmap1 = (BitmapContainer) container1;
+        final BitmapContainer bitmap2 = (BitmapContainer) container2;
+        if (bitmap1.cardinality < 0
+            || bitmap2.cardinality < 0
+            || (long) bitmap1.cardinality + bitmap2.cardinality >= BitmapContainer.MAX_CAPACITY) {
           return false;
         }
         pos1++;
