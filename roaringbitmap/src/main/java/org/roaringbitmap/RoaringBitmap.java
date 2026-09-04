@@ -892,7 +892,7 @@ public class RoaringBitmap
   public static RoaringBitmap or(final RoaringBitmap x1, final RoaringBitmap x2) {
     int pos1 = 0, pos2 = 0;
     final int length1 = x1.highLowContainer.size(), length2 = x2.highLowContainer.size();
-    if (length1 == length2 && length1 > 0 && canUseBitmapOrFastPath(x1, x2)) {
+    if (length1 == 1 && length2 == 1 && canUseBitmapOrFastPath(x1, x2)) {
       return orBitmapContainers(x1, x2);
     }
     final RoaringBitmap answer = new RoaringBitmap();
