@@ -411,7 +411,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         this.highLowContainer.put(high, containerClone2);
       } else {
         Container freshOne = containerWithIndex.getContainer().ixor(container);
-        this.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+        if (freshOne.isEmpty()) {
+          // an emptied container must not stay registered: it would break first()/last()
+          this.highLowContainer.remove(high);
+        } else {
+          this.highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+        }
       }
     }
   }
@@ -445,7 +450,9 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
         Container container1 = x1.highLowContainer.getContainer(containerIdx1);
         Container container2 = x2.highLowContainer.getContainer(containerIdx2);
         Container xorResult = container1.xor(container2);
-        result.highLowContainer.put(highKey1, xorResult);
+        if (!xorResult.isEmpty()) {
+          result.highLowContainer.put(highKey1, xorResult);
+        }
 
         highKey1 = it1.hasNext() ? it1.next() : null;
         highKey2 = it2.hasNext() ? it2.next() : null;
@@ -1282,7 +1289,12 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     } else {
       char low = LongUtils.lowPart(x);
       Container freshOne = containerWithIndex.getContainer().flip(low);
-      highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+      if (freshOne.isEmpty()) {
+        // an emptied container must not stay registered: it would break first()/last()
+        highLowContainer.remove(high);
+      } else {
+        highLowContainer.replaceContainer(containerWithIndex.getContainerIdx(), freshOne);
+      }
     }
   }
 
