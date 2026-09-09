@@ -982,6 +982,80 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testXorEmptiesFirstBucket() {
+    Roaring64Bitmap rechecked = newDefaultCtor();
+    rechecked.addLong(0L);
+    rechecked.addLong(65536L);
+
+    Roaring64Bitmap processed = newDefaultCtor();
+    processed.addLong(0L);
+
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(rechecked, processed);
+    rechecked.xor(processed);
+
+    assertFalse(rechecked.isEmpty());
+    assertEquals(1, rechecked.getLongCardinality());
+    assertEquals(65536L, rechecked.first());
+    assertEquals(65536L, rechecked.last());
+
+    assertFalse(xorNotInPlace.isEmpty());
+    assertEquals(1, xorNotInPlace.getLongCardinality());
+    assertEquals(65536L, xorNotInPlace.first());
+    assertEquals(65536L, xorNotInPlace.last());
+  }
+
+  @Test
+  public void testXorEmptiesLastBucket() {
+    Roaring64Bitmap rechecked = newDefaultCtor();
+    rechecked.addLong(0L);
+    rechecked.addLong(65536L);
+
+    Roaring64Bitmap processed = newDefaultCtor();
+    processed.addLong(65536L);
+
+    Roaring64Bitmap xorNotInPlace = Roaring64Bitmap.xor(rechecked, processed);
+    rechecked.xor(processed);
+
+    assertFalse(rechecked.isEmpty());
+    assertEquals(1, rechecked.getLongCardinality());
+    assertEquals(0L, rechecked.first());
+    assertEquals(0L, rechecked.last());
+
+    assertFalse(xorNotInPlace.isEmpty());
+    assertEquals(1, xorNotInPlace.getLongCardinality());
+    assertEquals(0L, xorNotInPlace.first());
+    assertEquals(0L, xorNotInPlace.last());
+  }
+
+  @Test
+  public void testFlipEmptiesFirstBucket() {
+    Roaring64Bitmap bitmap = newDefaultCtor();
+    bitmap.addLong(0L);
+    bitmap.addLong(65536L);
+
+    bitmap.flip(0L);
+
+    assertFalse(bitmap.isEmpty());
+    assertEquals(1, bitmap.getLongCardinality());
+    assertEquals(65536L, bitmap.first());
+    assertEquals(65536L, bitmap.last());
+  }
+
+  @Test
+  public void testFlipEmptiesLastBucket() {
+    Roaring64Bitmap bitmap = newDefaultCtor();
+    bitmap.addLong(0L);
+    bitmap.addLong(65536L);
+
+    bitmap.flip(65536L);
+
+    assertFalse(bitmap.isEmpty());
+    assertEquals(1, bitmap.getLongCardinality());
+    assertEquals(0L, bitmap.first());
+    assertEquals(0L, bitmap.last());
+  }
+
+  @Test
   public void testAndSingleBucket() {
     Roaring64Bitmap left = newDefaultCtor();
     Roaring64Bitmap right = newDefaultCtor();
