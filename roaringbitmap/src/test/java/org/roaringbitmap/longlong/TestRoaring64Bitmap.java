@@ -2839,4 +2839,16 @@ public class TestRoaring64Bitmap {
   public void testEmptyRoaring64BitmapClonesWithoutException() {
     assertEquals(new Roaring64Bitmap(), new Roaring64Bitmap().clone());
   }
+
+  @Test
+  public void testAndWithEmptyClearsBitmap() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.addLong(1L);
+    bitmap.addLong(1L << 40);
+
+    bitmap.and(new Roaring64Bitmap());
+
+    assertTrue(bitmap.isEmpty());
+    assertEquals(0, bitmap.getLongCardinality());
+  }
 }
