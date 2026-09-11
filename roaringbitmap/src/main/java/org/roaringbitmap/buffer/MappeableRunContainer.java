@@ -559,23 +559,12 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public MappeableContainer andNot(MappeableArrayContainer x) {
-    // when x is small, we guess that the result will still be a run container
-    final int arbitrary_threshold = 32; // this is arbitrary
-    if (x.getCardinality() < arbitrary_threshold) {
-      return lazyandNot(x).toEfficientContainer();
-    }
-    // otherwise we generate either an array or bitmap container
-    final int card = getCardinality();
-    if (card <= MappeableArrayContainer.DEFAULT_MAX_SIZE) {
-      // if the cardinality is small, we construct the solution in place
-      MappeableArrayContainer ac = new MappeableArrayContainer(card);
-      ac.cardinality =
-          org.roaringbitmap.Util.unsignedDifference(
-              this.getCharIterator(), x.getCharIterator(), ac.content.array());
-      return ac;
-    }
-    // otherwise, we generate a bitmap
-    return toBitmapOrArrayContainer(card).iandNot(x);
+    // Compute the difference as a run container, then downgrade to whichever
+    // representation (run/array/bitmap) is the most compact. Materialising a
+    // bitmap up front for larger x (as was done previously) inflates results
+    // that remain naturally run-friendly, e.g. a contiguous range minus a
+    // sparse set. See issue #512.
+    return lazyandNot(x).toEfficientContainer();
   }
 
   @Override
