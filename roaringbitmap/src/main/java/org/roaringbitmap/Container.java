@@ -213,6 +213,13 @@ public abstract class Container
   public abstract boolean isFull();
 
   /**
+   * Computes the union of this container with the bits present in the array,
+   * modifying the array.
+   * @param bits a 1024 element array to be interpreted as a bit set
+   */
+  public abstract void orInto(long[] bits);
+
+  /**
    * Checks whether the contain contains the provided value
    *
    * @param x value to check

@@ -16,6 +16,12 @@ public interface ContainerPointer extends Comparable<ContainerPointer>, Cloneabl
   void advance();
 
   /**
+   * Advance to the key
+   * @param key the key to advance to
+   */
+  boolean advanceUntil(char key);
+
+  /**
    * Create a copy
    *
    * @return return a clone of this pointer
@@ -58,4 +64,10 @@ public interface ContainerPointer extends Comparable<ContainerPointer>, Cloneabl
    * @return the key
    */
   char key();
+
+  /**
+   * Check whether it safe to advance
+   * @return whether it is safe to advance
+   */
+  boolean hasRemaining();
 }
