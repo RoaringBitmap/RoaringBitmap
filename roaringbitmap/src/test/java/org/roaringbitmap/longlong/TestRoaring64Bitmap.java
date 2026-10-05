@@ -27,6 +27,26 @@ import java.util.*;
 
 public class TestRoaring64Bitmap {
 
+  @ParameterizedTest
+  @ValueSource(longs = {0L, 1099511627776L, Long.MIN_VALUE})
+  public void testPortableRoundTripAfterRemoveChangesContainerType(long base) throws IOException {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    for (int i = 0; i < 4097; i++) {
+      bitmap.addLong(base + 2L * i);
+    }
+    bitmap.remove(base);
+    assertFalse(bitmap.contains(base));
+    assertEquals(4096, bitmap.getLongCardinality());
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    bitmap.serializePortable(new DataOutputStream(output));
+    Roaring64Bitmap restored = new Roaring64Bitmap();
+    restored.deserializePortable(
+        new DataInputStream(new ByteArrayInputStream(output.toByteArray())));
+
+    assertArrayEquals(bitmap.toArray(), restored.toArray());
+  }
+
   private Roaring64Bitmap newDefaultCtor() {
     return new Roaring64Bitmap();
   }
