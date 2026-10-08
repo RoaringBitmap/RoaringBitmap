@@ -449,6 +449,64 @@ public final class FastAggregation {
     return new RoaringBitmap(array);
   }
 
+  /**
+   * Computes the difference between the range [min, max) and the union of the given bitmaps, that
+   * is {@code [min, max) \ (bitmaps[0] | bitmaps[1] | ...)}. This is equivalent to, but more
+   * efficient than, materialising the range with {@link RoaringBitmap#add(long, long)} and calling
+   * {@link RoaringBitmap#andNot(RoaringBitmap)} once per bitmap: the contiguous range is never
+   * materialised as a whole and each 65536-wide chunk is processed once, reusing an intermediate
+   * container and skipping chunks that become empty. See issue #513.
+   *
+   * @param min beginning of the range (inclusive), in [0, 0xffffffff]
+   * @param max end of the range (exclusive), in [0, 0xffffffff + 1]
+   * @param bitmaps the bitmaps to subtract from the range
+   * @return a new bitmap containing the range minus the union of the bitmaps
+   */
+  public static RoaringBitmap rangeAndNot(long min, long max, RoaringBitmap... bitmaps) {
+    if (min < 0 || min > (1L << 32) - 1) {
+      throw new IllegalArgumentException("min=" + min + " should be in [0, 0xffffffff]");
+    }
+    if (max > (1L << 32) || max < 0) {
+      throw new IllegalArgumentException("max=" + max + " should be in [0, 0xffffffff + 1]");
+    }
+    if (min >= max) {
+      return new RoaringBitmap();
+    }
+    if (bitmaps.length == 0) {
+      return RoaringBitmap.bitmapOfRange(min, max);
+    }
+
+    final int hbStart = Util.highbits(min);
+    final int lbStart = Util.lowbitsAsInteger(min);
+    final int hbLast = Util.highbits(max - 1);
+    final int lbLast = Util.lowbitsAsInteger(max - 1);
+
+    RoaringArray answer = new RoaringArray(hbLast - hbStart + 1);
+    for (int hb = hbStart; hb <= hbLast; ++hb) {
+      // the range restricted to this chunk, which may be partial at the boundaries
+      final int containerStart = (hb == hbStart) ? lbStart : 0;
+      final int containerLast = (hb == hbLast) ? lbLast : Util.maxLowBitAsInteger();
+      Container tmp = Container.rangeOfOnes(containerStart, containerLast + 1);
+
+      for (RoaringBitmap bitmap : bitmaps) {
+        int index = bitmap.highLowContainer.getIndex((char) hb);
+        if (index < 0) {
+          continue;
+        }
+        tmp = tmp.iandNot(bitmap.highLowContainer.getContainerAtIndex(index));
+        if (tmp.isEmpty()) {
+          break;
+        }
+      }
+      if (!tmp.isEmpty()) {
+        // tmp starts as a fresh rangeOfOnes and is only ever mutated in place or replaced by
+        // iandNot, so it never aliases an input container: no defensive copy is needed.
+        answer.append((char) hb, tmp);
+      }
+    }
+    return new RoaringBitmap(answer);
+  }
+
   private static int workShyAndCardinality(RoaringBitmap... bitmaps) {
     long[] words = new long[1024];
     char[] keys = Util.intersectKeys(words, bitmaps);

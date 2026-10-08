@@ -290,4 +290,76 @@ public class TestFastAggregation {
       assertEquals(or.getCardinality(), orCardinality);
     }
   }
+
+  /** Reference implementation from issue #513: materialise the range, then subtract one by one. */
+  private static RoaringBitmap naiveRangeAndNot(long min, long max, RoaringBitmap... bitmaps) {
+    RoaringBitmap result = new RoaringBitmap();
+    result.add(min, max);
+    for (RoaringBitmap bitmap : bitmaps) {
+      result.andNot(bitmap);
+    }
+    return result;
+  }
+
+  @MethodSource("bitmaps")
+  @ParameterizedTest(name = "testRangeAndNotMatchesNaive")
+  public void testRangeAndNotMatchesNaive(List<RoaringBitmap> list) {
+    RoaringBitmap[] bitmaps = list.toArray(new RoaringBitmap[0]);
+    long[] ranges = {0, 1, 100, 1L << 16, (1L << 16) + 3, 5L << 16, 1_000_000, 3_000_000};
+    for (int length = 0; length <= bitmaps.length; length++) {
+      RoaringBitmap[] subset = Arrays.copyOf(bitmaps, length);
+      for (int i = 0; i < ranges.length; i++) {
+        for (int j = i + 1; j < ranges.length; j++) {
+          long min = ranges[i];
+          long max = ranges[j];
+          assertEquals(
+              naiveRangeAndNot(min, max, subset),
+              FastAggregation.rangeAndNot(min, max, subset),
+              "min=" + min + " max=" + max + " n=" + length);
+        }
+      }
+    }
+  }
+
+  @Test
+  public void rangeAndNotEmptyRange() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(1, 2, 3);
+    assertTrue(FastAggregation.rangeAndNot(10, 10, bitmap).isEmpty());
+    assertTrue(FastAggregation.rangeAndNot(10, 5, bitmap).isEmpty());
+  }
+
+  @Test
+  public void rangeAndNotNoBitmaps() {
+    assertEquals(RoaringBitmap.bitmapOfRange(7, 5_000_000), FastAggregation.rangeAndNot(7, 5_000_000));
+  }
+
+  @Test
+  public void rangeAndNotSingleChunkPartialBoundaries() {
+    RoaringBitmap toRemove = RoaringBitmap.bitmapOf(150, 151, 900);
+    assertEquals(
+        naiveRangeAndNot(100, 1000, toRemove), FastAggregation.rangeAndNot(100, 1000, toRemove));
+  }
+
+  @Test
+  public void rangeAndNotUnalignedBoundaryChunks() {
+    RoaringBitmap toRemove = RoaringBitmap.bitmapOf(5, (1 << 16) + 10, (2 << 16) + 20, (3 << 16) + 30);
+    long min = 3;
+    long max = (3L << 16) + 100;
+    assertEquals(naiveRangeAndNot(min, max, toRemove), FastAggregation.rangeAndNot(min, max, toRemove));
+  }
+
+  @Test
+  public void rangeAndNotFullChunkErased() {
+    // an interior chunk [1<<16, 2<<16) is entirely removed, so it must be dropped from the result
+    RoaringBitmap toRemove = new RoaringBitmap();
+    toRemove.add(1L << 16, 2L << 16);
+    long min = 0;
+    long max = 3L << 16;
+    RoaringBitmap result = FastAggregation.rangeAndNot(min, max, toRemove);
+    assertEquals(naiveRangeAndNot(min, max, toRemove), result);
+    assertFalse(result.contains(1 << 16));
+    assertFalse(result.contains((2 << 16) - 1));
+    assertTrue(result.contains(0));
+    assertTrue(result.contains(2 << 16));
+  }
 }
