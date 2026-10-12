@@ -721,7 +721,7 @@ This work was supported by NSERC grant number 26143.
 
 
 
-[maven img]:https://maven-badges.herokuapp.com/maven-central/org.roaringbitmap/RoaringBitmap/badge.svg
+[maven img]:https://img.shields.io/maven-central/v/org.roaringbitmap/RoaringBitmap
 [maven]:http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.roaringbitmap%22%20
 
 [license]:LICENSE-2.0.txt
