@@ -1086,6 +1086,10 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     if (x2 == this) {
       return;
     }
+    if (x2.isEmpty()) {
+      clear();
+      return;
+    }
     boolean firstBucket = true;
 
     Iterator<Entry<Integer, BitmapDataProvider>> thisIterator = highToBitmap.entrySet().iterator();

@@ -2331,19 +2331,31 @@ public class TestRoaring64NavigableMap {
   // https://github.com/RoaringBitmap/RoaringBitmap/issues/828
   @Test
   public void testOr_negativeInt_sortedHighs_signedLongsTrue() {
-      Roaring64NavigableMap a = newDefaultCtor();
-      a.add(-1L);  // upper 32 bits = 0xFFFFFFFF (-1 as signed int)
+    Roaring64NavigableMap a = newDefaultCtor();
+    a.add(-1L);  // upper 32 bits = 0xFFFFFFFF (-1 as signed int)
 
-      Roaring64NavigableMap b = newDefaultCtor();
-      b.add(0L);   // upper 32 bits = 0x00000000
-      b.add(1L);
+    Roaring64NavigableMap b = newDefaultCtor();
+    b.add(0L);   // upper 32 bits = 0x00000000
+    b.add(1L);
 
-      Roaring64NavigableMap dst = newDefaultCtor();
-      dst.or(a);
-      dst.or(b);
+    Roaring64NavigableMap dst = newDefaultCtor();
+    dst.or(a);
+    dst.or(b);
 
-      Assertions.assertEquals(dst.getLongCardinality(), 3);
+    Assertions.assertEquals(dst.getLongCardinality(), 3);
   }
 
+  @Test
+  public void testAndWithEmptyClearsBitmap() {
+    Roaring64NavigableMap bitmap = newDefaultCtor();
+    bitmap.addLong(1L);
+    bitmap.addLong(1L << 40);
+
+    bitmap.and(newDefaultCtor());
+
+    assertTrue(bitmap.isEmpty());
+    assertEquals(0, bitmap.getLongCardinality());
+    assertTrue(bitmap.getHighToBitmap().isEmpty());
+  }
 
 }
