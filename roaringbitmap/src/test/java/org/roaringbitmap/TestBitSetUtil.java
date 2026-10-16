@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,11 +32,17 @@ public class TestBitSetUtil {
     assertEquals(bitset, BitSetUtil.bitsetOf(bitmap), "bitsetOf doesn't match");
     assertEquals(
         bitset, BitSetUtil.bitsetOfWithoutCopy(bitmap), "bitsetOfWithoutCopy doesn't match");
+    assertArrayEquals(
+        bitset.toByteArray(), BitSetUtil.toByteArray(bitmap), "toByteArray bytes don't match");
     assertEquals(
         bitset, BitSet.valueOf(BitSetUtil.toByteArray(bitmap)), "toByteArray doesn't match");
 
     RoaringBitmap runBitmap = bitmap.clone();
     runBitmap.runOptimize();
+    assertArrayEquals(
+        bitset.toByteArray(),
+        BitSetUtil.toByteArray(runBitmap),
+        "toByteArray bytes don't match for run optimized bitmap");
     assertEquals(
         bitset, BitSetUtil.bitsetOf(runBitmap), "bitsetOf doesn't match for run optimized bitmap");
   }
@@ -145,6 +152,20 @@ public class TestBitSetUtil {
     bitset.set(10000000);
     final RoaringBitmap bitmap = BitSetUtil.bitmapOf(bitset);
     assertEqualBitsets(bitset, bitmap);
+  }
+
+  @Test
+  public void testLastValueAtByteBoundaries() {
+    for (int value :
+        new int[] {0, 1, 7, 8, 9, 55, 56, 63, 64, 65, 127, 128, 65535, 65536, 65543, 65544}) {
+      final BitSet single = new BitSet();
+      single.set(value);
+      assertEqualBitsets(single, RoaringBitmap.bitmapOf(value));
+
+      final BitSet range = new BitSet();
+      range.set(0, value + 1);
+      assertEqualBitsets(range, RoaringBitmap.bitmapOfRange(0, value + 1));
+    }
   }
 
   /*

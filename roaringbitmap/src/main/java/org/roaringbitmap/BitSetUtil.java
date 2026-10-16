@@ -52,9 +52,17 @@ public class BitSetUtil {
    */
   public static byte[] toByteArray(RoaringBitmap bitmap) {
     long[] words = toLongArray(bitmap);
+    if (words.length == 0) {
+      return new byte[0];
+    }
     ByteBuffer buffer =
-        ByteBuffer.allocate(words.length * Long.SIZE).order(ByteOrder.LITTLE_ENDIAN);
-    buffer.asLongBuffer().put(words);
+        ByteBuffer.allocate(bitmap.last() / Byte.SIZE + 1).order(ByteOrder.LITTLE_ENDIAN);
+    int fullWords = buffer.capacity() / Long.BYTES;
+    buffer.asLongBuffer().put(words, 0, fullWords);
+    buffer.position(fullWords * Long.BYTES);
+    for (int shift = 0; buffer.hasRemaining(); shift += Byte.SIZE) {
+      buffer.put((byte) (words[fullWords] >>> shift));
+    }
     return buffer.array();
   }
 
