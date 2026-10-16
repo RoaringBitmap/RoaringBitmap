@@ -3,6 +3,7 @@ package org.roaringbitmap;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
@@ -799,6 +800,19 @@ public class RoaringBitSetTest {
       checkSanity(b1, b2, b3, b4, b5, b6);
     }
     Assertions.assertEquals(failCount, 0);
+  }
+
+  @Test
+  public void testToByteArrayMatchesBitSet() {
+    Assertions.assertArrayEquals(new BitSet().toByteArray(), new RoaringBitSet().toByteArray());
+    for (int value : new int[] {0, 7, 8, 63, 64, 127, 128, 65536}) {
+      BitSet expected = new BitSet();
+      expected.set(value);
+      RoaringBitSet actual = new RoaringBitSet();
+      actual.set(value);
+      Assertions.assertArrayEquals(
+          expected.toByteArray(), actual.toByteArray(), "toByteArray for " + value);
+    }
   }
 
   private static void checkSanity(RoaringBitSet... sets) {

@@ -4,6 +4,8 @@ import static java.lang.Long.numberOfTrailingZeros;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.LongBuffer;
+import java.util.Arrays;
 import java.util.BitSet;
 
 /***
@@ -51,11 +53,50 @@ public class BitSetUtil {
    * See {@link BitSet#toByteArray()}.
    */
   public static byte[] toByteArray(RoaringBitmap bitmap) {
-    long[] words = toLongArray(bitmap);
-    ByteBuffer buffer =
-        ByteBuffer.allocate(words.length * Long.SIZE).order(ByteOrder.LITTLE_ENDIAN);
-    buffer.asLongBuffer().put(words);
-    return buffer.array();
+    if (bitmap.isEmpty()) {
+      return new byte[0];
+    }
+    int last = bitmap.last();
+    if (last < 0) {
+      throw new IllegalArgumentException("bitmap has negative bits set");
+    }
+    // write each container directly into the output, avoiding an intermediate long[]
+    byte[] bytes = new byte[last / Byte.SIZE + 1];
+    LongBuffer longs = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asLongBuffer();
+    long[] scratch = null;
+    RoaringArray highLowContainer = bitmap.highLowContainer;
+    for (int i = 0; i < highLowContainer.size(); i++) {
+      int byteOffset = highLowContainer.getKeyAtIndex(i) * (BLOCK_LENGTH * Long.BYTES);
+      Container container = highLowContainer.getContainerAtIndex(i);
+      if (container instanceof ArrayContainer) {
+        ArrayContainer ac = (ArrayContainer) container;
+        for (int k = 0; k < ac.cardinality; k++) {
+          char x = ac.content[k];
+          bytes[byteOffset + (x >>> 3)] |= (byte) (1 << (x & 7));
+        }
+        continue;
+      }
+      long[] words;
+      if (container instanceof BitmapContainer) {
+        words = ((BitmapContainer) container).bitmap;
+      } else {
+        if (scratch == null) {
+          scratch = new long[BLOCK_LENGTH];
+        } else {
+          Arrays.fill(scratch, 0L);
+        }
+        container.copyBitmapTo(scratch, 0);
+        words = scratch;
+      }
+      int length = Math.min(BLOCK_LENGTH * Long.BYTES, bytes.length - byteOffset);
+      int fullWords = length / Long.BYTES;
+      longs.position(byteOffset / Long.BYTES);
+      longs.put(words, 0, fullWords);
+      for (int b = fullWords * Long.BYTES, shift = 0; b < length; b++, shift += Byte.SIZE) {
+        bytes[byteOffset + b] = (byte) (words[fullWords] >>> shift);
+      }
+    }
+    return bytes;
   }
 
   /**
