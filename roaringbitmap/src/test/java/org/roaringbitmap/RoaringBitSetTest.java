@@ -14,6 +14,19 @@ public class RoaringBitSetTest {
   private static Random generator = new Random();
 
   @Test
+  public void testToLongArrayMatchesBitSet() {
+    Assertions.assertArrayEquals(new BitSet().toLongArray(), new RoaringBitSet().toLongArray());
+    for (int value : new int[] {0, 1, 63, 64, 127, 128, 65536}) {
+      BitSet expected = new BitSet();
+      expected.set(value);
+      RoaringBitSet actual = new RoaringBitSet();
+      actual.set(value);
+      Assertions.assertArrayEquals(
+          expected.toLongArray(), actual.toLongArray(), "toLongArray for " + value);
+    }
+  }
+
+  @Test
   public void testSetGetClearFlip() {
     int failCount = 0;
 

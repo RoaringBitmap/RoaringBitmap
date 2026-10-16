@@ -113,10 +113,7 @@ public class BitSetUtil {
     if (last < 0) {
       throw new IllegalArgumentException("bitmap has negative bits set");
     }
-    int lastBit = Math.max(last, Long.SIZE);
-    int remainder = lastBit % Long.SIZE;
-    int numBits = remainder > 0 ? lastBit - remainder : lastBit;
-    int wordsInUse = numBits / Long.SIZE + 1;
+    int wordsInUse = last / Long.SIZE + 1;
     long[] words = new long[wordsInUse];
 
     ContainerPointer pointer = bitmap.getContainerPointer();
