@@ -1100,6 +1100,13 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public void orInto(long[] bits) {
+    for (int i = 0; i < bitmap.length; i++) {
+      bits[i] |= bitmap[i];
+    }
+  }
+
+  @Override
   public Container or(final BitmapContainer value2) {
     BitmapContainer value1 = this.clone();
     return value1.ior(value2);
