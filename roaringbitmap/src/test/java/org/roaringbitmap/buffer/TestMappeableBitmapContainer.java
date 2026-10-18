@@ -1203,4 +1203,20 @@ public class TestMappeableBitmapContainer {
   private static int lower16Bits(int x) {
     return ((char) x);
   }
+
+  @Test
+  public void andWithArraySizesResultByCardinality() {
+    MappeableArrayContainer array = new MappeableArrayContainer(1024);
+    array.add((char) 1);
+    array.add((char) 100);
+    array.add((char) 1000);
+    MappeableBitmapContainer bitmap = new MappeableBitmapContainer();
+    bitmap.add((char) 1);
+    bitmap.add((char) 1000);
+    MappeableArrayContainer result = bitmap.and(array);
+    assertEquals(2, result.getCardinality());
+    assertTrue(result.contains((char) 1));
+    assertTrue(result.contains((char) 1000));
+    assertEquals(array.getCardinality(), result.content.limit());
+  }
 }

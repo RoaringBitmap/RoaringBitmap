@@ -238,7 +238,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public ArrayContainer andNot(BitmapContainer value2) {
-    final ArrayContainer answer = new ArrayContainer(content.length);
+    final ArrayContainer answer = new ArrayContainer(cardinality);
     int pos = 0;
     for (int k = 0; k < cardinality; ++k) {
       char val = this.content[k];

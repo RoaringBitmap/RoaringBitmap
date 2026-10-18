@@ -158,7 +158,7 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
   @Override
   public MappeableArrayContainer and(final MappeableArrayContainer value2) {
 
-    final MappeableArrayContainer answer = new MappeableArrayContainer(value2.content.limit());
+    final MappeableArrayContainer answer = new MappeableArrayContainer(value2.cardinality);
     if (!BufferUtil.isBackedBySimpleArray(answer.content)) {
       throw new RuntimeException("Should not happen. Internal bug.");
     }
