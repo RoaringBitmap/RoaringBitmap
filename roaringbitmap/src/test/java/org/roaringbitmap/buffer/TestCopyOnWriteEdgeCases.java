@@ -435,7 +435,7 @@ public class TestCopyOnWriteEdgeCases {
     writes.put("remove(long, long)", b -> b.remove(KEY4 + 200L, KEY4 + 400L));
     writes.put("remove(long, long) in a run container", b -> b.remove((long) KEY2, KEY2 + 10L));
     writes.put("flip(long, long)", b -> b.flip((long) KEY4, KEY4 + 100L));
-    writes.put("add(int...)", b -> b.add(KEY4 + 1, KEY4 + 3));
+    writes.put("add(int...)", b -> b.add(new int[] {KEY4 + 1, KEY4 + 3}));
     writes.put("addN", b -> b.addN(new int[] {KEY4 + 1, KEY4 + 3}, 0, 2));
     writes.put("checkedAdd", b -> b.checkedAdd(KEY4 + 1));
     writes.put("checkedRemove", b -> b.checkedRemove(KEY4 + 2));
