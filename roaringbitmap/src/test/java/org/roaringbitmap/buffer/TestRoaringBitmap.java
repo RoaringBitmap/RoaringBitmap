@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -1200,6 +1201,39 @@ public class TestRoaringBitmap {
     assertTrue(rbm1.hashCode() == rbm2.hashCode());
     rbm2 = rbm1.clone();
     assertTrue(rbm1.hashCode() == rbm2.hashCode());
+  }
+
+  @Test
+  public void testHashDoesNotDependOnTheEncoding() {
+    MutableRoaringBitmap byValues = new MutableRoaringBitmap(); // an array and a bitmap container
+    for (int i = 0; i < 100; i++) {
+      byValues.add(i);
+    }
+    for (int i = 100_000; i < 110_000; i++) {
+      byValues.add(i);
+    }
+    MutableRoaringBitmap byRanges = new MutableRoaringBitmap(); // two run containers
+    byRanges.add(0L, 100L);
+    byRanges.add(100_000L, 110_000L);
+    assertFalse(byValues.hasRunCompression());
+    assertTrue(byRanges.hasRunCompression());
+    MutableRoaringBitmap optimized = byValues.clone();
+    optimized.runOptimize();
+    for (ImmutableRoaringBitmap other :
+        Arrays.asList(byRanges, optimized, mapped(byValues), mapped(byRanges))) {
+      assertEquals(byValues, other);
+      assertEquals(byValues.hashCode(), other.hashCode());
+    }
+    Set<ImmutableRoaringBitmap> set = new HashSet<>();
+    set.add(byValues);
+    assertTrue(set.contains(mapped(byRanges)));
+  }
+
+  private static ImmutableRoaringBitmap mapped(MutableRoaringBitmap bitmap) {
+    ByteBuffer buffer = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+    bitmap.serialize(buffer);
+    buffer.flip();
+    return new ImmutableRoaringBitmap(buffer);
   }
 
   @Test

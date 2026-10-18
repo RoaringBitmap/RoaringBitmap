@@ -267,6 +267,19 @@ public class TestRoaring64NavigableMap {
   }
 
   @Test
+  public void testHashCodeDoesNotDependOnTheEncoding() {
+    long base = 5_000_000_000L;
+    Roaring64NavigableMap byValues = newDefaultCtor(); // an array container
+    for (long i = 0; i < 100; i++) {
+      byValues.addLong(base + i);
+    }
+    Roaring64NavigableMap byRange = newDefaultCtor(); // a run container
+    byRange.addRange(base, base + 100);
+    assertEquals(byValues, byRange);
+    assertEquals(byValues.hashCode(), byRange.hashCode());
+  }
+
+  @Test
   public void testAddOneSelect2() {
     assertThrows(
         IllegalArgumentException.class,
@@ -2331,19 +2344,17 @@ public class TestRoaring64NavigableMap {
   // https://github.com/RoaringBitmap/RoaringBitmap/issues/828
   @Test
   public void testOr_negativeInt_sortedHighs_signedLongsTrue() {
-      Roaring64NavigableMap a = newDefaultCtor();
-      a.add(-1L);  // upper 32 bits = 0xFFFFFFFF (-1 as signed int)
+    Roaring64NavigableMap a = newDefaultCtor();
+    a.add(-1L); // upper 32 bits = 0xFFFFFFFF (-1 as signed int)
 
-      Roaring64NavigableMap b = newDefaultCtor();
-      b.add(0L);   // upper 32 bits = 0x00000000
-      b.add(1L);
+    Roaring64NavigableMap b = newDefaultCtor();
+    b.add(0L); // upper 32 bits = 0x00000000
+    b.add(1L);
 
-      Roaring64NavigableMap dst = newDefaultCtor();
-      dst.or(a);
-      dst.or(b);
+    Roaring64NavigableMap dst = newDefaultCtor();
+    dst.or(a);
+    dst.or(b);
 
-      Assertions.assertEquals(dst.getLongCardinality(), 3);
+    Assertions.assertEquals(dst.getLongCardinality(), 3);
   }
-
-
 }

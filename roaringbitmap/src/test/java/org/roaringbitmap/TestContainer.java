@@ -21,6 +21,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -1340,5 +1342,119 @@ public class TestContainer {
     ValidationRangeConsumer consumer = ValidationRangeConsumer.validate(expected);
     container.forAllInRange(start, end, consumer);
     assertEquals(expected.length, consumer.getNumberOfValuesConsumed());
+  }
+
+  @Test
+  public void hashCodeDoesNotDependOnTheEncoding() {
+    for (BitSet values : hashCodeTestSets()) {
+      Container run = runContainer(values);
+      Container bitmap = bitmapContainer(values);
+      assertEquals(run, bitmap);
+      assertEquals(run.hashCode(), bitmap.hashCode());
+      if (values.cardinality() <= ArrayContainer.DEFAULT_MAX_SIZE) {
+        Container array = arrayContainer(values);
+        assertEquals(run, array);
+        assertEquals(run.hashCode(), array.hashCode());
+      }
+    }
+  }
+
+  @Test
+  public void hashCodeDependsOnEveryValue() {
+    // array and run containers used to hash only their last seven values or run bounds, and
+    // bitmap containers did not see the words that have all their bits set
+    Set<Integer> arrays = new HashSet<>();
+    Set<Integer> runs = new HashSet<>();
+    Set<Integer> bitmaps = new HashSet<>();
+    for (int i = 0; i < 900; i++) {
+      arrays.add(
+          arrayContainer(values(i, 20_000, 20_001, 20_002, 20_003, 20_004, 20_005, 20_006))
+              .hashCode());
+      BitSet firstRunDiffers = ranges(1_000, 1_050, 1_100, 1_150, 1_200, 1_250, 1_300, 1_350);
+      firstRunDiffers.set(i);
+      runs.add(runContainer(firstRunDiffers).hashCode());
+      bitmaps.add(bitmapContainer(ranges(64 * i, 64 * i + 6_400)).hashCode());
+    }
+    // 900 different containers of each kind: a good hash function leaves few collisions, if any
+    assertTrue(arrays.size() > 890);
+    assertTrue(runs.size() > 890);
+    assertTrue(bitmaps.size() > 890);
+  }
+
+  private static List<BitSet> hashCodeTestSets() {
+    Random random = new Random(1234);
+    BitSet allButOne = ranges(0, 65_536);
+    allButOne.clear(40_000);
+    BitSet alternating = new BitSet();
+    for (int i = 0; i < 20_000; i += 2) {
+      alternating.set(i);
+    }
+    BitSet sparse = new BitSet();
+    for (int i = 0; i < 100; i++) {
+      sparse.set(random.nextInt(65_536));
+    }
+    BitSet dense = new BitSet();
+    for (int i = 0; i < 30_000; i++) {
+      dense.set(random.nextInt(65_536));
+    }
+    BitSet manyRuns = new BitSet();
+    for (int i = 0; i < 500; i++) {
+      int start = random.nextInt(65_000);
+      manyRuns.set(start, start + 1 + random.nextInt(500));
+    }
+    return Arrays.asList(
+        values(0, 63, 64, 65_535),
+        ranges(60, 70, 100, 300), // runs across word boundaries
+        ranges(1, 3, 5, 9, 62, 66), // runs sharing a word
+        ranges(0, 65_536),
+        allButOne,
+        alternating,
+        sparse,
+        dense,
+        manyRuns);
+  }
+
+  private static BitSet values(int... values) {
+    BitSet set = new BitSet();
+    for (int value : values) {
+      set.set(value);
+    }
+    return set;
+  }
+
+  // the values in [bounds[0], bounds[1]), [bounds[2], bounds[3]), ...
+  private static BitSet ranges(int... bounds) {
+    BitSet set = new BitSet();
+    for (int i = 0; i < bounds.length; i += 2) {
+      set.set(bounds[i], bounds[i + 1]);
+    }
+    return set;
+  }
+
+  private static ArrayContainer arrayContainer(BitSet values) {
+    char[] content = new char[values.cardinality()];
+    int i = 0;
+    for (int value = values.nextSetBit(0); value >= 0; value = values.nextSetBit(value + 1)) {
+      content[i++] = (char) value;
+    }
+    return new ArrayContainer(content);
+  }
+
+  private static BitmapContainer bitmapContainer(BitSet values) {
+    return new BitmapContainer(Arrays.copyOf(values.toLongArray(), 1024), values.cardinality());
+  }
+
+  private static RunContainer runContainer(BitSet values) {
+    char[] valuesLengths = new char[2 * values.cardinality()];
+    int runs = 0;
+    int start = values.nextSetBit(0);
+    while (start >= 0) {
+      int end = values.nextClearBit(start);
+      valuesLengths[2 * runs] = (char) start;
+      valuesLengths[2 * runs + 1] = (char) (end - start - 1);
+      ++runs;
+      start = values.nextSetBit(end);
+    }
+    return new RunContainer(valuesLengths, runs);
   }
 }

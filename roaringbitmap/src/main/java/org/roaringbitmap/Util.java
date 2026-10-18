@@ -418,6 +418,56 @@ public final class Util {
     return answer;
   }
 
+  // HASH_WORD_WEIGHTS[i] is 31^i; FULL_WORDS_HASH[i] is the sum of hashWord(k, ~0L) for k < i
+  private static final int[] HASH_WORD_WEIGHTS = new int[1024];
+  private static final int[] FULL_WORDS_HASH = new int[1025];
+
+  static {
+    int weight = 1;
+    for (int i = 0; i < HASH_WORD_WEIGHTS.length; i++) {
+      HASH_WORD_WEIGHTS[i] = weight;
+      FULL_WORDS_HASH[i + 1] = FULL_WORDS_HASH[i] + mixWord(~0L) * weight;
+      weight *= 31;
+    }
+  }
+
+  /**
+   * Contribution of one word to the hash code of a container. The hash code of a container is the
+   * sum of this over the 1024 words of its bitmap form, and an empty word contributes 0, so a
+   * container may skip the words it does not occupy. Array, bitmap and run containers holding the
+   * same values therefore have the same hash code, whatever their encoding.
+   *
+   * @param wordIndex index of the word, from 0 to 1023
+   * @param word the bits of the values 64 * wordIndex to 64 * wordIndex + 63
+   * @return the contribution of the word to the hash code of the container
+   */
+  public static int hashWord(int wordIndex, long word) {
+    return mixWord(word) * HASH_WORD_WEIGHTS[wordIndex];
+  }
+
+  /**
+   * Sum of {@link #hashWord(int, long)} over the words fromWordIndex, fromWordIndex+1,...,
+   * toWordIndex-1 with all their bits set, in constant time.
+   *
+   * @param fromWordIndex first word (inclusive)
+   * @param toWordIndex last word (exclusive)
+   * @return the contribution of these full words to the hash code of a container
+   */
+  public static int hashFullWords(int fromWordIndex, int toWordIndex) {
+    return FULL_WORDS_HASH[toWordIndex] - FULL_WORDS_HASH[fromWordIndex];
+  }
+
+  // the 64-bit finalizer of MurmurHash3: it maps 0 to 0, and unlike Long.hashCode, it does not
+  // map a full word to 0 as well
+  private static int mixWord(long word) {
+    word ^= word >>> 33;
+    word *= 0xff51afd7ed558ccdL;
+    word ^= word >>> 33;
+    word *= 0xc4ceb9fe1a85ec53L;
+    word ^= word >>> 33;
+    return (int) word;
+  }
+
   protected static char highbits(int x) {
     return (char) (x >>> 16);
   }
