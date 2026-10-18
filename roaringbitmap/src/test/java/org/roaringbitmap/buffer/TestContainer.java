@@ -955,7 +955,7 @@ public class TestContainer {
   // the values in [bounds[0], bounds[1]), [bounds[2], bounds[3]), ...
   private static BitSet ranges(int... bounds) {
     BitSet set = new BitSet();
-    for (int i = 0; i < bounds.length; i += 2) {
+    for (int i = 0; i + 1 < bounds.length; i += 2) {
       set.set(bounds[i], bounds[i + 1]);
     }
     return set;
