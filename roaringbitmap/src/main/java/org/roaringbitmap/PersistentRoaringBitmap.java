@@ -20,37 +20,58 @@ import java.util.Iterator;
  * RoaringBitmap#serialize(DataOutput)} writes for the same containers.
  *
  * <pre>{@code
- * PersistentRoaringBitmap original = PersistentRoaringBitmap.bitmapOfRange(0, 1_000_000);
- * PersistentRoaringBitmap copy = original.clone(); // copies no container
- * copy.remove(5); // copies the container of 5 first: original still holds 5
+ * PersistentRoaringBitmap small = PersistentRoaringBitmap.bitmapOf(1, 2, 3);
+ * PersistentRoaringBitmap large = PersistentRoaringBitmap.bitmapOfRange(1_000_000, 2_000_000);
+ * PersistentRoaringBitmap union = PersistentRoaringBitmap.or(small, large); // copies no container
+ * union.add(4); // copies the container of {1, 2, 3} first: small still holds {1, 2, 3}
  * }</pre>
  *
- * <p><b>Sharing.</b> {@link #clone()} puts every container into the copy instead of copying it.
- * A container that more than one bitmap may hold is copied just before the first write to it
- * (copy-on-write), so a write to one bitmap is never observable through another. Sharing is never
- * visible in the values, in {@link #equals(Object)} or in {@link #hashCode()}. {@link #limit(int)}
- * and the static operations still copy, as {@link RoaringBitmap} does.
+ * <p><b>Sharing.</b> {@link #clone()}, {@link #limit(int)} and the static {@link #or}, {@link
+ * #xor}, {@link #andNot} and {@link #and} put containers that pass through unchanged into their
+ * result, where {@link RoaringBitmap} copies them. A container that more than one bitmap may hold is
+ * copied just before the first write to it (copy-on-write), so a write to one bitmap is never
+ * observable through another. Sharing is never visible in the values, in {@link #equals(Object)}
+ * or in {@link #hashCode()}. It can be visible in the container encodings, and so in the serialized
+ * bytes: as with {@link RoaringBitmap}, encodings depend on history, and here also on what is
+ * shared. For example, {@link #or} keeps a full bitmap container that both operands hold as it is,
+ * where computing the union would have turned it into a run.
  *
- * <p><b>Cost model.</b> {@link #clone()} copies only the arrays holding the containers, O(number
- * of containers), and marks both sides as lending all their containers. The first write to either
- * side afterwards costs O(number of containers) once, and every container it then writes is
- * copied once. If both sides write to every container, about twice as many containers are copied
- * as by a deep copy. {@link #fromBitmap(RoaringBitmap)} and {@link #toRoaringBitmap()} deep-copy.
+ * <p><b>Cost model.</b>
+ *
+ * <ul>
+ *   <li>A sharing operation is one linear merge over the keys, plus the container operations for
+ *       keys present in both operands. Containers that pass through, and a container both operands
+ *       hold under the same key, are not copied.
+ *   <li>An operand that lends a container is marked as a whole, not per container. Its first write
+ *       afterwards costs O(number of containers) once, and every container it then writes is copied
+ *       once, whether it was lent or not. A bitmap that alternates between being an operand and
+ *       being written pays this on every write phase, even when nobody keeps the result.
+ *   <li>{@link #clone()} copies only the arrays holding the containers, O(number of containers).
+ *       If both sides later write to every container, each side copies each container once, so
+ *       about twice as many containers are copied as by a deep copy. It pays off when at least one
+ *       side writes to only part of the key space.
+ *   <li>{@link #fromBitmap(RoaringBitmap)} and {@link #toRoaringBitmap()} deep-copy.
+ * </ul>
+ *
+ * The class pays off when bitmaps mostly stay inside it, are mostly read after they are produced
+ * (versions, snapshots, query results), and the operands of set operations share few keys. A plain
+ * {@link RoaringBitmap} remains the better choice for a bitmap that is written heavily while it also
+ * serves as an operand, and for one-off operations on plain bitmaps.
  *
  * <p><b>Thread safety.</b> As with {@link RoaringBitmap}, a bitmap is not thread-safe for writes
  * and is safe for concurrent reads, with one precise addition:
  *
  * <ol>
  *   <li>Any number of threads may perform non-mutating operations on the same bitmap concurrently,
- *       provided no thread mutates it meanwhile. Non-mutating operations are the reads and {@link
- *       #clone()}.
- *   <li>{@link #clone()} writes nothing but one flag of the bitmap, which records that it lent its
- *       containers. It only ever sets the flag, and it writes no container.
- *   <li>Every mutation of a bitmap must happen-after every earlier operation that read or cloned
- *       it, and every later read by another thread must happen-after the mutation: the ordinary
- *       Java rules for conflicting accesses. Then the owner sees every flag a reader set. Breaking
- *       this rule costs more than with {@link RoaringBitmap}: bitmaps that share containers with
- *       the mutated one may then observe the write too.
+ *       provided no thread mutates it meanwhile. Non-mutating operations are the reads, {@link
+ *       #clone()}, {@link #limit(int)} and using the bitmap as an operand of a static operation.
+ *   <li>A non-mutating operation writes nothing but one flag of its operands, which records that
+ *       they lent containers. It only ever sets the flag, and it writes no container.
+ *   <li>Every mutation of a bitmap must happen-after every earlier operation that read it, used it
+ *       as an operand or cloned it, and every later read by another thread must happen-after the
+ *       mutation: the ordinary Java rules for conflicting accesses. Then the owner sees every flag
+ *       a reader set. Breaking this rule costs more than with {@link RoaringBitmap}: bitmaps that
+ *       share containers with the mutated one may then observe the write too.
  *   <li>A bitmap handed to another thread must be safely published.
  * </ol>
  *
@@ -73,14 +94,19 @@ import java.util.Iterator;
 public final class PersistentRoaringBitmap
     implements ImmutableBitmapDataProvider, BitmapDataProvider, Iterable<Integer>, Cloneable {
 
+  private static final int OR = 0;
+  private static final int AND = 1;
+  private static final int XOR = 2;
+  private static final int ANDNOT = 3;
+
   /*
    * Ownership. A slot is shared if lent || shared[slot], and owned otherwise.
    *
    * - An owned slot is the only reference to its container anywhere, so it may be written in place.
    *   A container held by several slots, of this or other bitmaps, is shared at every one of them.
    *   Two distinct attached containers never share a backing array.
-   * - Only the owner writes shared[] and clears lent. clone() only ever sets its source's lent to
-   *   true.
+   * - Only the owner writes shared[] and clears lent. A non-mutating operation only ever sets its
+   *   operands' lent to true.
    * - shared.length >= size, and shared[i] is false for i >= size.
    * - Containers enter only freshly created or deep-copied, and leave only deep-copied. Neither the
    *   delegate nor its arrays are handed out, except to the read-only iterators.
@@ -197,18 +223,25 @@ public final class PersistentRoaringBitmap
   }
 
   /**
-   * Bitwise OR (union). Neither bitmap is written.
+   * Bitwise OR (union). The containers of keys that only one operand holds, and a container that
+   * both operands hold under the same key, are put into the result without copying.
+   *
+   * <p>The values of the operands do not change, but an operand that lends a container to the
+   * result is marked so that its next write to a container copies that container first. This is
+   * the only write to an operand (see the thread-safety section of the class documentation).
    *
    * @param x1 first bitmap
    * @param x2 other bitmap
    * @return a new bitmap with the union of the values
    */
   public static PersistentRoaringBitmap or(PersistentRoaringBitmap x1, PersistentRoaringBitmap x2) {
-    return new PersistentRoaringBitmap(RoaringBitmap.or(x1.view, x2.view).highLowContainer);
+    return merge(x1, x2, OR);
   }
 
   /**
-   * Bitwise AND (intersection). Neither bitmap is written.
+   * Bitwise AND (intersection). A container that both operands hold under the same key is put into
+   * the result without copying. Other containers of the result are computed, and the operands are
+   * not written, unless they are the same bitmap: {@code and(x, x)} is {@code x.clone()}.
    *
    * @param x1 first bitmap
    * @param x2 other bitmap
@@ -216,11 +249,12 @@ public final class PersistentRoaringBitmap
    */
   public static PersistentRoaringBitmap and(
       PersistentRoaringBitmap x1, PersistentRoaringBitmap x2) {
-    return new PersistentRoaringBitmap(RoaringBitmap.and(x1.view, x2.view).highLowContainer);
+    return merge(x1, x2, AND);
   }
 
   /**
-   * Bitwise XOR (symmetric difference). Neither bitmap is written.
+   * Bitwise XOR (symmetric difference). The containers of keys that only one operand holds are put
+   * into the result without copying. Operands are marked as for {@link #or}.
    *
    * @param x1 first bitmap
    * @param x2 other bitmap
@@ -228,11 +262,13 @@ public final class PersistentRoaringBitmap
    */
   public static PersistentRoaringBitmap xor(
       PersistentRoaringBitmap x1, PersistentRoaringBitmap x2) {
-    return new PersistentRoaringBitmap(RoaringBitmap.xor(x1.view, x2.view).highLowContainer);
+    return merge(x1, x2, XOR);
   }
 
   /**
-   * Bitwise ANDNOT (difference). Neither bitmap is written.
+   * Bitwise ANDNOT (difference). The containers of {@code x1} whose keys {@code x2} does not hold
+   * are put into the result without copying. {@code x1} is marked as for {@link #or}, and {@code
+   * x2} is not written.
    *
    * @param x1 first bitmap
    * @param x2 other bitmap
@@ -240,7 +276,122 @@ public final class PersistentRoaringBitmap
    */
   public static PersistentRoaringBitmap andNot(
       PersistentRoaringBitmap x1, PersistentRoaringBitmap x2) {
-    return new PersistentRoaringBitmap(RoaringBitmap.andNot(x1.view, x2.view).highLowContainer);
+    return merge(x1, x2, ANDNOT);
+  }
+
+  /**
+   * One linear merge for the four operations. A container whose key only one operand holds, a
+   * container both operands hold under the same key, and a container operation that returns one of
+   * its arguments are borrowed: the result slot is shared and the operand that supplied the
+   * container is marked as lending. No container method is called with the same container twice.
+   */
+  private static PersistentRoaringBitmap merge(
+      PersistentRoaringBitmap x1, PersistentRoaringBitmap x2, int op) {
+    if (x1 == x2) {
+      return op == OR || op == AND ? x1.clone() : new PersistentRoaringBitmap();
+    }
+    final RoaringArray a1 = x1.view.highLowContainer;
+    final RoaringArray a2 = x2.view.highLowContainer;
+    final int length1 = a1.size;
+    final int length2 = a2.size;
+    final boolean keep1 = op != AND; // keys only x1 holds reach the result
+    final boolean keep2 = op == OR || op == XOR; // keys only x2 holds reach the result
+    final int capacity =
+        op == AND ? Math.min(length1, length2) : keep2 ? length1 + length2 : length1;
+    final char[] keys = new char[capacity];
+    final Container[] values = new Container[capacity];
+    final boolean[] flags = new boolean[capacity];
+    int size = 0;
+    boolean lend1 = false;
+    boolean lend2 = false;
+    int pos1 = 0;
+    int pos2 = 0;
+    while (pos1 < length1 && pos2 < length2) {
+      final char s1 = a1.keys[pos1];
+      final char s2 = a2.keys[pos2];
+      if (s1 < s2) {
+        if (keep1) {
+          keys[size] = s1;
+          values[size] = a1.values[pos1++];
+          flags[size++] = true;
+          lend1 = true;
+        } else {
+          pos1 = a1.advanceUntil(s2, pos1);
+        }
+      } else if (s1 > s2) {
+        if (keep2) {
+          keys[size] = s2;
+          values[size] = a2.values[pos2++];
+          flags[size++] = true;
+          lend2 = true;
+        } else {
+          pos2 = a2.advanceUntil(s1, pos2);
+        }
+      } else {
+        final Container c1 = a1.values[pos1++];
+        final Container c2 = a2.values[pos2++];
+        final Container c;
+        if (c1 == c2) {
+          // held by both operands, so shared in both already: decided without a container call
+          if (op == XOR || op == ANDNOT) {
+            continue;
+          }
+          c = c1;
+          flags[size] = true;
+        } else {
+          c = combine(c1, c2, op);
+          if (c.isEmpty()) {
+            continue;
+          }
+          if (c == c1) {
+            flags[size] = true;
+            lend1 = true;
+          } else if (c == c2) {
+            flags[size] = true;
+            lend2 = true;
+          }
+        }
+        keys[size] = s1;
+        values[size++] = c;
+      }
+    }
+    if (keep1 && pos1 < length1) {
+      size = borrowTail(a1, pos1, keys, values, flags, size);
+      lend1 = true;
+    }
+    if (keep2 && pos2 < length2) {
+      size = borrowTail(a2, pos2, keys, values, flags, size);
+      lend2 = true;
+    }
+    if (lend1) {
+      x1.lent = true;
+    }
+    if (lend2) {
+      x2.lent = true;
+    }
+    return new PersistentRoaringBitmap(new RoaringArray(keys, values, size), flags, false);
+  }
+
+  private static Container combine(Container c1, Container c2, int op) {
+    switch (op) {
+      case OR:
+        return c1.or(c2);
+      case AND:
+        return c1.and(c2);
+      case XOR:
+        return c1.xor(c2);
+      default:
+        return c1.andNot(c2);
+    }
+  }
+
+  private static int borrowTail(
+      RoaringArray from, int pos, char[] keys, Container[] values, boolean[] flags, int size) {
+    int count = from.size - pos;
+    System.arraycopy(from.keys, pos, keys, size, count);
+    System.arraycopy(from.values, pos, values, size, count);
+    Arrays.fill(flags, size, size + count, true);
+    return size + count;
   }
 
   /**
@@ -300,8 +451,9 @@ public final class PersistentRoaringBitmap
 
   /**
    * Returns a bitmap with the smallest {@code maxcardinality} values of this one, or all of them
-   * if there are fewer, copying the containers. A non-positive {@code maxcardinality} gives an
-   * empty bitmap.
+   * if there are fewer. Containers that the result takes whole are shared, as by {@link #clone()},
+   * and the last, partial container is copied. A non-positive {@code maxcardinality} gives an empty
+   * bitmap.
    *
    * @param maxcardinality the maximal cardinality of the result
    * @return a new bitmap with at most {@code maxcardinality} values
@@ -323,13 +475,15 @@ public final class PersistentRoaringBitmap
     int size = partial ? whole + 1 : whole;
     char[] keys = Arrays.copyOf(array.keys, size);
     Container[] values = Arrays.copyOf(array.values, size);
-    for (int i = 0; i < whole; i++) {
-      values[i] = values[i].clone();
-    }
+    boolean[] flags = new boolean[size];
+    Arrays.fill(flags, 0, whole, true);
     if (partial) {
       values[whole] = values[whole].limit(remaining); // 0 < remaining < its cardinality
     }
-    return new PersistentRoaringBitmap(new RoaringArray(keys, values, size));
+    if (whole > 0) {
+      lent = true;
+    }
+    return new PersistentRoaringBitmap(new RoaringArray(keys, values, size), flags, false);
   }
 
   /** Set the value to "true", whether it already appears or not. */

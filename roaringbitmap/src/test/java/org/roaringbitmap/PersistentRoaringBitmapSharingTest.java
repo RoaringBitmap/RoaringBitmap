@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -196,19 +197,54 @@ public class PersistentRoaringBitmapSharingTest {
   static final List<Sharing> SHARINGS =
       Arrays.asList(
           new Sharing("clone", x -> list(x[0], x[0].clone())),
+          new Sharing("limit", x -> list(x[0], x[0].limit(65_536 + 6_000 + 3))),
+          new Sharing("or", x -> list(x[0], x[1], PersistentRoaringBitmap.or(x[0], x[1]))),
+          new Sharing("xor", x -> list(x[0], x[1], PersistentRoaringBitmap.xor(x[0], x[1]))),
+          new Sharing("andNot", x -> list(x[0], x[1], PersistentRoaringBitmap.andNot(x[0], x[1]))),
+          new Sharing("and", x -> list(x[0], x[1], PersistentRoaringBitmap.and(x[0], x[1]))),
+          new Sharing("or, same instances", x -> identical(x[0], PersistentRoaringBitmap::or)),
+          new Sharing("and, same instances", x -> identical(x[0], PersistentRoaringBitmap::and)),
+          new Sharing("xor, same instances", x -> identical(x[0], PersistentRoaringBitmap::xor)),
           new Sharing(
-              "clone of a clone",
-              x -> {
-                PersistentRoaringBitmap copy = x[0].clone();
-                return list(x[0], copy, copy.clone());
-              }),
+              "andNot, same instances", x -> identical(x[0], PersistentRoaringBitmap::andNot)),
+          new Sharing("or(x, x)", x -> list(x[0], PersistentRoaringBitmap.or(x[0], x[0]))),
+          new Sharing("and(x, x)", x -> list(x[0], PersistentRoaringBitmap.and(x[0], x[0]))),
+          new Sharing("xor(x, x)", x -> list(x[0], PersistentRoaringBitmap.xor(x[0], x[0]))),
+          new Sharing("andNot(x, x)", x -> list(x[0], PersistentRoaringBitmap.andNot(x[0], x[0]))),
+          new Sharing("versions", x -> versions(x[0], x[1])),
           new Sharing(
-              "clone, then a write",
+              "chain",
               x -> {
-                PersistentRoaringBitmap copy = x[0].clone();
-                copy.add(7);
-                return list(x[0], copy, copy.clone());
+                PersistentRoaringBitmap ab = PersistentRoaringBitmap.or(x[0], x[1]);
+                PersistentRoaringBitmap c = x[0].limit(10);
+                return list(x[0], x[1], c, ab, PersistentRoaringBitmap.or(ab, c));
               }));
+
+  interface Operation {
+    PersistentRoaringBitmap apply(PersistentRoaringBitmap x1, PersistentRoaringBitmap x2);
+  }
+
+  /** Operands that hold the same container instances under the same keys. */
+  static List<PersistentRoaringBitmap> identical(PersistentRoaringBitmap x, Operation op) {
+    PersistentRoaringBitmap copy = x.clone();
+    return list(x, copy, op.apply(x, copy), op.apply(copy, x));
+  }
+
+  /** Versions derived from each other: some keys share instances, others differ. */
+  static List<PersistentRoaringBitmap> versions(
+      PersistentRoaringBitmap x, PersistentRoaringBitmap y) {
+    PersistentRoaringBitmap next = x.clone();
+    next.add(7);
+    next.remove((3L << 16) + 200, (3L << 16) + 300);
+    return list(
+        x,
+        next,
+        PersistentRoaringBitmap.or(x, next),
+        PersistentRoaringBitmap.and(x, next),
+        PersistentRoaringBitmap.xor(x, next),
+        PersistentRoaringBitmap.andNot(next, x),
+        PersistentRoaringBitmap.or(PersistentRoaringBitmap.and(x, next), y));
+  }
 
   private static List<Model> models(List<PersistentRoaringBitmap> bitmaps) {
     List<Model> models = new ArrayList<>();
@@ -216,6 +252,29 @@ public class PersistentRoaringBitmapSharingTest {
       models.add(Model.of(bitmap));
     }
     return models;
+  }
+
+  @Test
+  public void sharingOperationsComputeTheRightValues() {
+    Model a = Model.of(a());
+    Model b = Model.of(b());
+    assertValues(a.or(b), PersistentRoaringBitmap.or(a(), b()), "or");
+    assertValues(a.xor(b), PersistentRoaringBitmap.xor(a(), b()), "xor");
+    assertValues(a.andNot(b), PersistentRoaringBitmap.andNot(a(), b()), "andNot");
+    assertValues(b.andNot(a), PersistentRoaringBitmap.andNot(b(), a()), "andNot");
+    assertValues(a.and(b), PersistentRoaringBitmap.and(a(), b()), "and");
+    assertEquals(a.and(b).cardinality(), PersistentRoaringBitmap.andCardinality(a(), b()));
+    assertEquals(a.or(b).cardinality(), PersistentRoaringBitmap.orCardinality(a(), b()));
+    assertEquals(a.xor(b).cardinality(), PersistentRoaringBitmap.xorCardinality(a(), b()));
+    assertEquals(a.andNot(b).cardinality(), PersistentRoaringBitmap.andNotCardinality(a(), b()));
+    assertTrue(PersistentRoaringBitmap.intersects(a(), b()));
+    PersistentRoaringBitmap empty = new PersistentRoaringBitmap();
+    assertValues(a, PersistentRoaringBitmap.or(a(), empty), "or empty");
+    assertValues(a, PersistentRoaringBitmap.or(empty, a()), "or empty");
+    assertValues(Model.EMPTY, PersistentRoaringBitmap.and(a(), empty), "and empty");
+    assertValues(a, PersistentRoaringBitmap.andNot(a(), empty), "andNot empty");
+    assertValues(Model.EMPTY, PersistentRoaringBitmap.andNot(empty, a()), "andNot empty");
+    assertValues(a, PersistentRoaringBitmap.xor(empty, a()), "xor empty");
   }
 
   @Test
@@ -255,6 +314,77 @@ public class PersistentRoaringBitmapSharingTest {
   }
 
   @Test
+  public void passThroughContainersAreShared() {
+    PersistentRoaringBitmap a = a();
+    PersistentRoaringBitmap b = b();
+    PersistentRoaringBitmap union = PersistentRoaringBitmap.or(a, b);
+    assertSame(container(a, 0), container(union, 0));
+    assertSame(container(a, 5), container(union, 5));
+    assertSame(container(b, 2), container(union, 2));
+    assertSame(container(b, 6), container(union, 6));
+    assertNotSame(container(a, 1), container(union, 1));
+    assertTrue(lent(a));
+    assertTrue(lent(b));
+    assertFalse(lent(union));
+
+    PersistentRoaringBitmap c = a();
+    PersistentRoaringBitmap d = b();
+    PersistentRoaringBitmap difference = PersistentRoaringBitmap.andNot(c, d);
+    assertSame(container(c, 0), container(difference, 0));
+    assertTrue(lent(c));
+    assertFalse(lent(d));
+
+    PersistentRoaringBitmap e = a();
+    PersistentRoaringBitmap f = b();
+    PersistentRoaringBitmap intersection = PersistentRoaringBitmap.and(e, f);
+    assertFalse(lent(e), "and writes nothing to its operands");
+    assertFalse(lent(f), "and writes nothing to its operands");
+    assertOwnership(list(e, f, intersection));
+  }
+
+  @Test
+  public void identicalInstancesAreDecidedWithoutCopying() {
+    PersistentRoaringBitmap x = a();
+    PersistentRoaringBitmap y = x.clone();
+    for (PersistentRoaringBitmap same :
+        new PersistentRoaringBitmap[] {
+          PersistentRoaringBitmap.or(x, y), PersistentRoaringBitmap.and(x, y)
+        }) {
+      RoaringArray array = containers(same);
+      for (int i = 0; i < array.size; i++) {
+        assertSame(containers(x).values[i], array.values[i]);
+        assertTrue(isShared(same, i));
+      }
+    }
+    assertTrue(PersistentRoaringBitmap.xor(x, y).isEmpty());
+    assertTrue(PersistentRoaringBitmap.andNot(x, y).isEmpty());
+    // and(x, y) reuses instances that are already shared on both sides: no operand is written
+    PersistentRoaringBitmap z = a();
+    PersistentRoaringBitmap version = PersistentRoaringBitmap.or(z, new PersistentRoaringBitmap());
+    z.add(7); // z owns its key-0 container again, the other keys stay shared with version
+    boolean[] before = flags(z).clone();
+    PersistentRoaringBitmap common = PersistentRoaringBitmap.and(z, version);
+    assertFalse(lent(z));
+    assertTrue(Arrays.equals(before, flags(z)));
+    assertSame(container(z, 5), container(common, 5));
+    assertOwnership(list(z, version, common));
+  }
+
+  @Test
+  public void selfOperations() {
+    PersistentRoaringBitmap x = a();
+    PersistentRoaringBitmap union = PersistentRoaringBitmap.or(x, x);
+    assertEquals(x, union);
+    assertTrue(lent(x));
+    PersistentRoaringBitmap y = a();
+    assertTrue(PersistentRoaringBitmap.xor(y, y).isEmpty());
+    assertTrue(PersistentRoaringBitmap.andNot(y, y).isEmpty());
+    assertFalse(lent(y));
+    assertEquals(y, PersistentRoaringBitmap.and(y, y));
+    assertOwnership(list(x, union, y));
+  }
+
+  @Test
   public void cloneSharesEveryContainer() {
     PersistentRoaringBitmap x = a();
     PersistentRoaringBitmap copy = x.clone();
@@ -267,6 +397,74 @@ public class PersistentRoaringBitmapSharingTest {
     }
     assertTrue(lent(x));
     assertTrue(lent(copy));
+  }
+
+  @Test
+  public void limitSharesWholeContainers() {
+    PersistentRoaringBitmap x = a();
+    PersistentRoaringBitmap limited = x.limit(PersistentRoaringBitmapTest.SPARSE.length + 10);
+    assertSame(container(x, 0), container(limited, 0));
+    assertNotSame(container(x, 1), container(limited, 1));
+    assertEquals(10, container(limited, 1).getCardinality());
+    assertTrue(lent(x));
+    assertTrue(isShared(limited, 0));
+    assertFalse(isShared(limited, 1));
+    PersistentRoaringBitmap partialOnly = a().limit(3);
+    assertFalse(isShared(partialOnly, 0));
+  }
+
+  @Test
+  public void epochs() {
+    PersistentRoaringBitmap x = a();
+    Model model = Model.of(x);
+    PersistentRoaringBitmap first = x.clone();
+    x.add(7); // first epoch ends: x unlends and copies the key-0 container
+    PersistentRoaringBitmap second = PersistentRoaringBitmap.or(x, new PersistentRoaringBitmap());
+    assertTrue(lent(x));
+    x.add(8); // second epoch: copies the key-0 container again
+    x.remove(5L << 16, 6L << 16); // whole-container removal while shared
+    x.trim();
+    PersistentRoaringBitmap third = x.clone();
+    x.add(100L << 16, 102L << 16); // inserts keys
+    x.clear();
+    x.add(9);
+    deserialize(third, PersistentRoaringBitmap.bitmapOf(1, 2));
+    assertValues(model, first, "first");
+    assertValues(model.add(7), second, "second");
+    assertValues(Model.of(1, 2), third, "third");
+    assertValues(Model.of(9), x, "x");
+    assertOwnership(list(x, first, second, third));
+  }
+
+  @Test
+  public void mixedFlagsGrowthAndThresholds() {
+    PersistentRoaringBitmap x = a();
+    PersistentRoaringBitmap y = b();
+    PersistentRoaringBitmap union = PersistentRoaringBitmap.or(x, y); // per-slot flags, mixed
+    union.trim(); // no spare capacity left
+    PersistentRoaringBitmap copy = union.clone(); // and lent on top
+    Model model = Model.of(union);
+    // inserts many keys, so the container arrays grow and the flags must grow with them
+    union.add((7L << 16) + 5, (40L << 16) + 5);
+    model = model.or(Model.range((7L << 16) + 5, (40L << 16) + 5));
+    assertValues(model, union, "grown");
+    assertOwnership(list(x, y, union, copy));
+
+    // array to bitmap and back, on a shared container
+    PersistentRoaringBitmap full = new PersistentRoaringBitmap();
+    for (int i = 0; i < 4_096; i++) {
+      full.add(2 * i);
+    }
+    PersistentRoaringBitmap before = full.clone();
+    full.add(1);
+    assertTrue(container(full, 0) instanceof BitmapContainer);
+    assertTrue(container(before, 0) instanceof ArrayContainer);
+    PersistentRoaringBitmap after = full.clone();
+    full.remove(1);
+    assertTrue(container(full, 0) instanceof ArrayContainer);
+    assertEquals(4_097, after.getCardinality());
+    assertEquals(4_096, before.getCardinality());
+    assertOwnership(list(full, before, after));
   }
 
   @Test
@@ -286,7 +484,7 @@ public class PersistentRoaringBitmapSharingTest {
             removeRange(0x8001L << 16, UNIVERSE),
             removeRange(9, 3));
     for (Write write : noOps) {
-      for (int state = 0; state < 3; state++) {
+      for (int state = 0; state < 4; state++) {
         PersistentRoaringBitmap x = a();
         PersistentRoaringBitmap other = null; // keeps the co-owner reachable
         if (state == 1) {
@@ -332,15 +530,12 @@ public class PersistentRoaringBitmapSharingTest {
     for (Write write : WRITES) {
       for (int state = 0; state < 2; state++) {
         PersistentRoaringBitmap x = a();
-        PersistentRoaringBitmap holder = x.clone();
-        if (state == 1) {
-          holder.add(7); // the holder's write turns lent into per-slot flags
-          holder.remove(7);
-        }
+        PersistentRoaringBitmap holder =
+            state == 0 ? x.clone() : PersistentRoaringBitmap.or(x, new PersistentRoaringBitmap());
         Map<Container, PersistentRoaringBitmapChecks.Storage> storage = snapshot(holder);
         Model model = Model.of(holder);
         write.write.accept(x);
-        String name = write.name + (state == 0 ? " after clone" : " after clone and write");
+        String name = write.name + (state == 0 ? " after clone" : " after or");
         assertUnchanged(storage, name);
         assertValues(model, holder, name);
         assertOwnership(list(x, holder));
@@ -394,7 +589,7 @@ public class PersistentRoaringBitmapSharingTest {
     assertOwnership(list(x, copy));
   }
 
-  // the container methods that copy-on-write relies on
+  // T4: the container methods that sharing relies on
 
   /** One container of each type, plus a full run, in a fresh copy each time. */
   static List<Container> shapes() {
@@ -408,6 +603,48 @@ public class PersistentRoaringBitmapSharingTest {
         container(y, 1).clone(), // array overlapping the bitmap
         container(y, 3).clone(), // bitmap overlapping the run
         container(y, 0x8000).clone()); // run
+  }
+
+  interface ContainerOperation {
+    Container apply(Container c1, Container c2);
+  }
+
+  @Test
+  public void outOfPlaceOperationsReturnFreshContainers() {
+    Map<String, ContainerOperation> operations = new java.util.LinkedHashMap<>();
+    operations.put("and", Container::and);
+    operations.put("or", Container::or);
+    operations.put("xor", Container::xor);
+    operations.put("andNot", Container::andNot);
+    operations.put("not", (c1, c2) -> c1.not(10, 30_000));
+    operations.put("limit", (c1, c2) -> c1.limit(100));
+    operations.put("add", (c1, c2) -> c1.add(50, 7_000));
+    operations.put("remove", (c1, c2) -> c1.remove(50, 7_000));
+    operations.put("clone", (c1, c2) -> c1.clone());
+    int shapes = shapes().size();
+    for (Map.Entry<String, ContainerOperation> operation : operations.entrySet()) {
+      for (int i = 0; i < shapes; i++) {
+        for (int j = 0; j < shapes; j++) {
+          List<Container> containers = shapes();
+          Container c1 = containers.get(i);
+          Container c2 = containers.get(j);
+          PersistentRoaringBitmapChecks.Storage before1 = storage(c1);
+          PersistentRoaringBitmapChecks.Storage before2 = storage(c2);
+          Container result = operation.getValue().apply(c1, c2);
+          String name = operation.getKey() + " of shapes " + i + " and " + j;
+          assertNotSame(c1, result, name);
+          assertNotSame(c2, result, name);
+          assertNotSame(backingArray(c1), backingArray(result), name);
+          assertNotSame(backingArray(c2), backingArray(result), name);
+          assertEquals(before1, storage(c1), name);
+          assertEquals(before2, storage(c2), name);
+          result = result.iadd(0, 65_536).iremove(0, 65_536); // scribble over the result
+          assertTrue(result.isEmpty() || result.getCardinality() >= 0);
+          assertEquals(before1, storage(c1), name);
+          assertEquals(before2, storage(c2), name);
+        }
+      }
+    }
   }
 
   @Test
@@ -463,5 +700,103 @@ public class PersistentRoaringBitmapSharingTest {
       Container grown = call.apply(bitmap);
       assertTrue(grown == bitmap || !arrays.containsKey(backingArray(grown)));
     }
+  }
+
+  // T8: concurrent non-mutating operations, then a mutation by the owner
+
+  /**
+   * Readers share containers concurrently, the owner writes after joining them, and every result
+   * keeps its values. The operands start owned, so the readers' own lending is what protects the
+   * results; the second epoch starts after the owner's write has made a container owned again.
+   */
+  @Test
+  public void concurrentSharingThenOwnerWrites() throws InterruptedException {
+    for (int phase = 0; phase < 10; phase++) {
+      PersistentRoaringBitmap x = a();
+      PersistentRoaringBitmap y = b();
+      // versions that share containers, which and() reuses without writing either of them
+      PersistentRoaringBitmap older = a();
+      PersistentRoaringBitmap newer =
+          PersistentRoaringBitmap.or(older, new PersistentRoaringBitmap());
+      newer.add(7);
+      Model mx = Model.of(x);
+      Model my = Model.of(y);
+      List<PersistentRoaringBitmap> results = new ArrayList<>();
+      List<Model> expected = new ArrayList<>();
+      for (int epoch = 0; epoch < 2; epoch++) {
+        assertFalse(lent(x), "x starts owned");
+        assertFalse(lent(y), "y starts owned");
+        for (List<PersistentRoaringBitmap> mine : readConcurrently(x, y, older, newer)) {
+          for (int i = 0; i < mine.size(); i += 6) {
+            results.addAll(mine.subList(i, i + 6));
+            expected.add(mx.or(my));
+            expected.add(mx.xor(my));
+            expected.add(mx.andNot(my));
+            expected.add(Model.of(older).and(Model.of(newer)));
+            expected.add(mx);
+            expected.add(my.limit(100 + i / 6));
+          }
+        }
+        assertTrue(lent(x) && lent(y), "the readers lent the operands' containers");
+        // the owner writes after joining every reader: key 0 in both, owned after epoch 0
+        x.add(7 + epoch);
+        y.add(7 + epoch);
+        mx = mx.add(7 + epoch);
+        my = my.add(7 + epoch);
+        for (int i = 0; i < results.size(); i++) {
+          assertValues(expected.get(i), results.get(i), "result " + i + ", epoch " + epoch);
+        }
+      }
+      Write write = WRITES.get(phase % WRITES.size());
+      write.write.accept(x);
+      write.write.accept(y);
+      for (int i = 0; i < results.size(); i++) {
+        assertValues(expected.get(i), results.get(i), "result " + i + " after " + write.name);
+      }
+      assertValues(write.model.apply(mx), x, "x");
+      assertValues(write.model.apply(my), y, "y");
+    }
+  }
+
+  private static List<List<PersistentRoaringBitmap>> readConcurrently(
+      PersistentRoaringBitmap x,
+      PersistentRoaringBitmap y,
+      PersistentRoaringBitmap older,
+      PersistentRoaringBitmap newer)
+      throws InterruptedException {
+    final int threads = 4;
+    final List<List<PersistentRoaringBitmap>> results = new ArrayList<>();
+    final AtomicReference<Throwable> failure = new AtomicReference<>();
+    final long cardinality = x.getLongCardinality();
+    Thread[] workers = new Thread[threads];
+    for (int t = 0; t < threads; t++) {
+      final List<PersistentRoaringBitmap> mine = new ArrayList<>();
+      results.add(mine);
+      workers[t] =
+          new Thread(
+              () -> {
+                try {
+                  for (int i = 0; i < 25; i++) {
+                    mine.add(PersistentRoaringBitmap.or(x, y));
+                    mine.add(PersistentRoaringBitmap.xor(x, y));
+                    mine.add(PersistentRoaringBitmap.andNot(x, y));
+                    mine.add(PersistentRoaringBitmap.and(newer, older));
+                    mine.add(x.clone());
+                    mine.add(y.limit(100 + i));
+                    assertEquals(cardinality, x.getLongCardinality());
+                  }
+                } catch (Throwable e) {
+                  failure.compareAndSet(null, e);
+                }
+              });
+      workers[t].start();
+    }
+    for (Thread worker : workers) {
+      worker.join();
+    }
+    if (failure.get() != null) {
+      throw new AssertionError(failure.get());
+    }
+    return results;
   }
 }

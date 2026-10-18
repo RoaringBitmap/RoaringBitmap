@@ -47,6 +47,8 @@ public class PersistentRoaringBitmapContainmentTest {
    * list, or to the code behind any of these members, needs that reviewed again.
    */
   private static final String[] REVIEWED = {
+    "Container.and:(Lorg/roaringbitmap/Container;)Lorg/roaringbitmap/Container;",
+    "Container.andNot:(Lorg/roaringbitmap/Container;)Lorg/roaringbitmap/Container;",
     "Container.clone:()Lorg/roaringbitmap/Container;",
     "Container.first:()I",
     "Container.getCardinality:()I",
@@ -55,12 +57,15 @@ public class PersistentRoaringBitmapContainmentTest {
     "Container.limit:(I)Lorg/roaringbitmap/Container;",
     "Container.nextAbsentValue:(C)I",
     "Container.nextValue:(C)I",
+    "Container.or:(Lorg/roaringbitmap/Container;)Lorg/roaringbitmap/Container;",
     "Container.repairAfterLazy:()Lorg/roaringbitmap/Container;",
     "Container.runOptimize:()Lorg/roaringbitmap/Container;",
     "Container.trim:()V",
+    "Container.xor:(Lorg/roaringbitmap/Container;)Lorg/roaringbitmap/Container;",
     "RoaringArray.<init>:()V",
     "RoaringArray.<init>:(I)V",
     "RoaringArray.<init>:([C[Lorg/roaringbitmap/Container;I)V",
+    "RoaringArray.advanceUntil:(CI)I",
     "RoaringArray.append:(CLorg/roaringbitmap/Container;)V",
     "RoaringArray.getIndex:(C)I",
     "RoaringArray.keys:[C",
@@ -71,9 +76,7 @@ public class PersistentRoaringBitmapContainmentTest {
     "RoaringBitmap.<init>:(Lorg/roaringbitmap/RoaringArray;)V",
     "RoaringBitmap.add:(I)V",
     "RoaringBitmap.add:(JJ)V",
-    "RoaringBitmap.and:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.andCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
-    "RoaringBitmap.andNot:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.andNotCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
     "RoaringBitmap.bitmapOf:([I)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.bitmapOfRange:(JJ)Lorg/roaringbitmap/RoaringBitmap;",
@@ -104,7 +107,6 @@ public class PersistentRoaringBitmapContainmentTest {
     "RoaringBitmap.lastSigned:()I",
     "RoaringBitmap.nextAbsentValue:(I)J",
     "RoaringBitmap.nextValue:(I)J",
-    "RoaringBitmap.or:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.orCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
     "RoaringBitmap.previousAbsentValue:(I)J",
     "RoaringBitmap.previousValue:(I)J",
@@ -120,7 +122,6 @@ public class PersistentRoaringBitmapContainmentTest {
     "RoaringBitmap.toArray:()[I",
     "RoaringBitmap.toString:()Ljava/lang/String;",
     "RoaringBitmap.validate:()Ljava/lang/Boolean;",
-    "RoaringBitmap.xor:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.xorCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
     "RunContainer.full:()Lorg/roaringbitmap/RunContainer;"
   };
