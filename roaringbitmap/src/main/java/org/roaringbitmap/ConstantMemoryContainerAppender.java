@@ -127,7 +127,11 @@ public class ConstantMemoryContainerAppender<
   public void reset() {
     currentKey = 0;
     underlying = newUnderlying.get();
-    dirty = false;
+    if (dirty) {
+      // discard the values added since the last flush
+      Arrays.fill(bitmap, 0L);
+      dirty = false;
+    }
   }
 
   private Container chooseBestContainer() {
