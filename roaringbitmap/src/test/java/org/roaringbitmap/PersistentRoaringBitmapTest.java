@@ -335,6 +335,18 @@ public class PersistentRoaringBitmapTest {
   }
 
   @Test
+  public void addRangeTurnsEveryCoveredKeyIntoOneRun() {
+    PersistentRoaringBitmap bitmap = varied();
+    // covers keys 0 to 5: an array, a bitmap, an absent key, runs and a full run
+    bitmap.add(0, 6L << 16);
+    for (int key = 0; key <= 5; key++) {
+      Container c = container(bitmap, key);
+      assertTrue(c instanceof RunContainer && c.getCardinality() == 65_536, "key " + key);
+    }
+    assertValues(variedModel().or(Model.range(0, 6L << 16)), bitmap, "covered keys");
+  }
+
+  @Test
   public void invalidRangesThrowAndChangeNothing() {
     PersistentRoaringBitmap bitmap = varied();
     long[][] invalid = {{-1, 5}, {0, UNIVERSE + 1}, {UNIVERSE, UNIVERSE + 1}, {5, -1}};
@@ -445,6 +457,7 @@ public class PersistentRoaringBitmapTest {
     PersistentRoaringBitmap bitmap = varied();
     bitmap.trim();
     assertValues(variedModel(), bitmap, "trimmed");
+    assertEquals(bitmap.getContainerCount(), PersistentRoaringBitmapChecks.flags(bitmap).length);
     bitmap.add(70_000); // grows the trimmed arrays again
     assertValues(variedModel().add(70_000), bitmap, "trimmed, then added");
     bitmap.clear();

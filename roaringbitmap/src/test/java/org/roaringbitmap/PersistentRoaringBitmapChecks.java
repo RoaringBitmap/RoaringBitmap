@@ -7,19 +7,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Test support for {@link PersistentRoaringBitmap}: an independent model of the values, and checks
- * of the normal form, which read the bitmap's private fields by reflection.
+ * of the ownership invariants, which read the bitmap's private fields by reflection.
  */
 final class PersistentRoaringBitmapChecks {
 
   static final long UNIVERSE = 1L << 32;
 
   private static final Field VIEW = field(PersistentRoaringBitmap.class, "view");
+  private static final Field SHARED = field(PersistentRoaringBitmap.class, "shared");
+  private static final Field LENT = field(PersistentRoaringBitmap.class, "lent");
   private static final Field RUNS = field(RunContainer.class, "valueslength");
 
   private PersistentRoaringBitmapChecks() {}
@@ -44,6 +49,19 @@ final class PersistentRoaringBitmapChecks {
 
   static RoaringArray containers(PersistentRoaringBitmap bitmap) {
     return ((RoaringBitmap) get(VIEW, bitmap)).highLowContainer;
+  }
+
+  static boolean[] flags(PersistentRoaringBitmap bitmap) {
+    return (boolean[]) get(SHARED, bitmap);
+  }
+
+  static boolean lent(PersistentRoaringBitmap bitmap) {
+    return (Boolean) get(LENT, bitmap);
+  }
+
+  /** Whether the bitmap treats slot {@code i} as possibly held by another bitmap. */
+  static boolean isShared(PersistentRoaringBitmap bitmap, int i) {
+    return lent(bitmap) || flags(bitmap)[i];
   }
 
   static Container container(PersistentRoaringBitmap bitmap, int key) {
@@ -142,9 +160,14 @@ final class PersistentRoaringBitmapChecks {
     }
   }
 
-  /** Normal form of one bitmap. */
+  /** Normal form and flag shape of one bitmap. */
   static void assertStructure(PersistentRoaringBitmap bitmap) {
     RoaringArray array = containers(bitmap);
+    boolean[] flags = flags(bitmap);
+    assertTrue(flags.length >= array.size, "a flag for every slot");
+    for (int i = array.size; i < flags.length; i++) {
+      assertFalse(flags[i], "no flag set past the last slot");
+    }
     for (int i = 0; i < array.size; i++) {
       if (i > 0) {
         assertTrue(array.keys[i - 1] < array.keys[i], "keys strictly increase");
@@ -178,6 +201,30 @@ final class PersistentRoaringBitmapChecks {
         previousEnd = start + runs.getLength(k);
       }
       assertTrue(previousEnd <= 0xFFFF, "runs within the block");
+    }
+  }
+
+  /**
+   * Ownership across a pool of bitmaps: a container held by several slots is shared at each of
+   * them, and two distinct containers never share a backing array.
+   */
+  static void assertOwnership(Collection<PersistentRoaringBitmap> pool) {
+    Map<Container, List<Boolean>> holders = new IdentityHashMap<>();
+    Map<Object, Container> arrays = new IdentityHashMap<>();
+    for (PersistentRoaringBitmap bitmap : pool) {
+      assertStructure(bitmap);
+      RoaringArray array = containers(bitmap);
+      for (int i = 0; i < array.size; i++) {
+        Container container = array.values[i];
+        holders.computeIfAbsent(container, c -> new ArrayList<>()).add(isShared(bitmap, i));
+        Container other = arrays.put(backingArray(container), container);
+        assertTrue(other == null || other == container, "two containers share a backing array");
+      }
+    }
+    for (List<Boolean> attachments : holders.values()) {
+      if (attachments.size() > 1) {
+        assertFalse(attachments.contains(false), "a container held twice is shared everywhere");
+      }
     }
   }
 

@@ -12,17 +12,52 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * A 32-bit Roaring bitmap meant to share containers between its versions: a <a
+ * A 32-bit Roaring bitmap whose versions share containers: a <a
  * href="https://en.wikipedia.org/wiki/Persistent_data_structure">persistent data structure</a>.
- * "Persistent" does not mean "stored on disk": there is no new format, and {@link
- * #serialize(DataOutput)} writes exactly the bytes that {@link RoaringBitmap#serialize(DataOutput)}
- * writes for the same containers. This version shares nothing yet: every operation copies, as
- * {@link RoaringBitmap} does.
+ * Every version of a bitmap that a caller still holds stays valid and unchanged, whatever later
+ * happens to other versions that share its internals. "Persistent" does not mean "stored on disk":
+ * there is no new format, and {@link #serialize(DataOutput)} writes exactly the bytes that {@link
+ * RoaringBitmap#serialize(DataOutput)} writes for the same containers.
+ *
+ * <pre>{@code
+ * PersistentRoaringBitmap original = PersistentRoaringBitmap.bitmapOfRange(0, 1_000_000);
+ * PersistentRoaringBitmap copy = original.clone(); // copies no container
+ * copy.remove(5); // copies the container of 5 first: original still holds 5
+ * }</pre>
+ *
+ * <p><b>Sharing.</b> {@link #clone()} puts every container into the copy instead of copying it.
+ * A container that more than one bitmap may hold is copied just before the first write to it
+ * (copy-on-write), so a write to one bitmap is never observable through another. Sharing is never
+ * visible in the values, in {@link #equals(Object)} or in {@link #hashCode()}. {@link #limit(int)}
+ * and the static operations still copy, as {@link RoaringBitmap} does.
+ *
+ * <p><b>Cost model.</b> {@link #clone()} copies only the arrays holding the containers, O(number
+ * of containers), and marks both sides as lending all their containers. The first write to either
+ * side afterwards costs O(number of containers) once, and every container it then writes is
+ * copied once. If both sides write to every container, about twice as many containers are copied
+ * as by a deep copy. {@link #fromBitmap(RoaringBitmap)} and {@link #toRoaringBitmap()} deep-copy.
+ *
+ * <p><b>Thread safety.</b> As with {@link RoaringBitmap}, a bitmap is not thread-safe for writes
+ * and is safe for concurrent reads, with one precise addition:
+ *
+ * <ol>
+ *   <li>Any number of threads may perform non-mutating operations on the same bitmap concurrently,
+ *       provided no thread mutates it meanwhile. Non-mutating operations are the reads and {@link
+ *       #clone()}.
+ *   <li>{@link #clone()} writes nothing but one flag of the bitmap, which records that it lent its
+ *       containers. It only ever sets the flag, and it writes no container.
+ *   <li>Every mutation of a bitmap must happen-after every earlier operation that read or cloned
+ *       it, and every later read by another thread must happen-after the mutation: the ordinary
+ *       Java rules for conflicting accesses. Then the owner sees every flag a reader set. Breaking
+ *       this rule costs more than with {@link RoaringBitmap}: bitmaps that share containers with
+ *       the mutated one may then observe the write too.
+ *   <li>A bitmap handed to another thread must be safely published.
+ * </ol>
  *
  * <p><b>Interoperability.</b> This class is not a {@link RoaringBitmap} and cannot be passed to
  * APIs that expect one: {@link #fromBitmap(RoaringBitmap)} and {@link #toRoaringBitmap()} convert,
- * deep-copying every container. No method accepts or returns a container, so no code outside
- * this class can reach its containers.
+ * deep-copying every container. No method accepts or returns a container, so the containers of a
+ * persistent bitmap are never reachable from code that does not take part in copy-on-write.
  *
  * <p><b>Untrusted input.</b> As with {@link RoaringBitmap}, a bitmap deserialized from an
  * untrusted source must not be used until {@link #validate()} returns {@code true}. {@link
@@ -38,8 +73,34 @@ import java.util.Iterator;
 public final class PersistentRoaringBitmap
     implements ImmutableBitmapDataProvider, BitmapDataProvider, Iterable<Integer>, Cloneable {
 
+  /*
+   * Ownership. A slot is shared if lent || shared[slot], and owned otherwise.
+   *
+   * - An owned slot is the only reference to its container anywhere, so it may be written in place.
+   *   A container held by several slots, of this or other bitmaps, is shared at every one of them.
+   *   Two distinct attached containers never share a backing array.
+   * - Only the owner writes shared[] and clears lent. clone() only ever sets its source's lent to
+   *   true.
+   * - shared.length >= size, and shared[i] is false for i >= size.
+   * - Containers enter only freshly created or deep-copied, and leave only deep-copied. Neither the
+   *   delegate nor its arrays are handed out, except to the read-only iterators.
+   * - Attached containers are non-empty and not lazy, and an array container holds at most 4,096
+   *   values while a bitmap container holds more.
+   *
+   * Writes go through RoaringBitmap's own mutators: a pre-pass first makes owned exactly the slots
+   * that the mutator will write, and the flags are then realigned with the slots. This relies on
+   * add(int), remove(int), add(long, long) and remove(long, long) writing only the containers of the
+   * keys of their value or range, and remove(long, long) writing only the first and last of them.
+   */
+
   /** Holds the keys and the containers; private to this bitmap and never handed out. */
   private final RoaringBitmap view;
+
+  /** shared[i]: the container in slot i may also be held by another bitmap. */
+  private boolean[] shared;
+
+  /** Every container of this bitmap may also be held by another bitmap. */
+  private boolean lent;
 
   /** Creates an empty bitmap. */
   public PersistentRoaringBitmap() {
@@ -48,7 +109,13 @@ public final class PersistentRoaringBitmap
 
   /** Wraps containers that nothing else references. */
   private PersistentRoaringBitmap(RoaringArray containers) {
+    this(containers, new boolean[containers.keys.length], false);
+  }
+
+  private PersistentRoaringBitmap(RoaringArray containers, boolean[] shared, boolean lent) {
     this.view = new RoaringBitmap(containers);
+    this.shared = shared;
+    this.lent = lent;
   }
 
   /**
@@ -108,13 +175,25 @@ public final class PersistentRoaringBitmap
   }
 
   /**
-   * Returns a bitmap with the same values, deep-copying every container.
+   * Returns a bitmap with the same values that shares every container with this one. Only the
+   * arrays holding the containers are copied. Afterwards, the first write to a container, on either
+   * side, copies that container.
+   *
+   * <p>This is a non-mutating operation: it marks this bitmap as having lent its containers, and
+   * changes nothing else (see the thread-safety section of the class documentation).
    *
    * @return a new bitmap with the same values
    */
   @Override
   public PersistentRoaringBitmap clone() {
-    return new PersistentRoaringBitmap(view.clone().highLowContainer);
+    RoaringArray array = view.highLowContainer;
+    lent = true;
+    RoaringArray copy =
+        new RoaringArray(
+            Arrays.copyOf(array.keys, array.size),
+            Arrays.copyOf(array.values, array.size),
+            array.size);
+    return new PersistentRoaringBitmap(copy, new boolean[array.size], true);
   }
 
   /**
@@ -256,43 +335,132 @@ public final class PersistentRoaringBitmap
   /** Set the value to "true", whether it already appears or not. */
   @Override
   public void add(int x) {
-    view.add(x);
+    if (view.contains(x)) {
+      return;
+    }
+    RoaringArray array = view.highLowContainer;
+    int i = array.getIndex(Util.highbits(x));
+    unlend();
+    int size = array.size;
+    if (i >= 0) {
+      copyIfShared(i);
+      view.add(x);
+    } else {
+      view.add(x);
+      realignFlags(-i - 1, -i - 1, 1, size);
+    }
   }
 
   /**
-   * Adds all values in [rangeStart, rangeEnd).
+   * Adds all values in [rangeStart, rangeEnd). The containers of keys that the range covers
+   * entirely are replaced by a single run, without copying them first.
    *
    * @param rangeStart inclusive beginning of range, in [0, 0xffffffff]
    * @param rangeEnd exclusive ending of range, in [0, 0xffffffff + 1]
    */
   @Override
   public void add(long rangeStart, long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
+    if (rangeStart >= rangeEnd
+        || view.rangeCardinality(rangeStart, rangeEnd) == rangeEnd - rangeStart) {
+      return;
+    }
+    unlend();
+    RoaringArray array = view.highLowContainer;
+    int firstKey = Util.highbits(rangeStart);
+    int lastKey = Util.highbits(rangeEnd - 1);
+    int from = lowerBound(array, firstKey);
+    int to = lowerBound(array, lastKey + 1);
+    for (int i = from; i < to; i++) {
+      long keyStart = (long) array.keys[i] << 16;
+      if (rangeStart <= keyStart && keyStart + 0x10000 <= rangeEnd) {
+        array.values[i] = RunContainer.full();
+        shared[i] = false;
+      } else {
+        copyIfShared(i);
+      }
+    }
+    int size = array.size;
     view.add(rangeStart, rangeEnd);
+    realignFlags(from, to, lastKey - firstKey + 1, size);
   }
 
   /** If present, remove the value (effectively, set its bit to false). */
   @Override
   public void remove(int x) {
+    if (!view.contains(x)) {
+      return;
+    }
+    RoaringArray array = view.highLowContainer;
+    int i = array.getIndex(Util.highbits(x));
+    unlend();
+    copyIfShared(i);
+    int size = array.size;
     view.remove(x);
+    if (array.size < size) {
+      realignFlags(i, i + 1, 0, size);
+    }
   }
 
   /**
-   * Removes all values in [rangeStart, rangeEnd).
+   * Removes all values in [rangeStart, rangeEnd). A shared container that loses all its values is
+   * dropped without being copied.
    *
    * @param rangeStart inclusive beginning of range, in [0, 0xffffffff]
    * @param rangeEnd exclusive ending of range, in [0, 0xffffffff + 1]
    */
   public void remove(long rangeStart, long rangeEnd) {
+    rangeSanityCheck(rangeStart, rangeEnd);
+    if (rangeStart >= rangeEnd || !view.intersects(rangeStart, rangeEnd)) {
+      return;
+    }
+    unlend();
+    int firstKey = Util.highbits(rangeStart);
+    int lastKey = Util.highbits(rangeEnd - 1);
+    // RoaringBitmap.remove writes only the containers of the first and the last key
+    prepareRemoval(firstKey, rangeStart, rangeEnd);
+    if (lastKey != firstKey) {
+      prepareRemoval(lastKey, rangeStart, rangeEnd);
+    }
+    RoaringArray array = view.highLowContainer;
+    int from = lowerBound(array, firstKey);
+    int to = lowerBound(array, lastKey + 1);
+    int size = array.size;
     view.remove(rangeStart, rangeEnd);
-  }
-
-  /** Removes all values. */
-  public void clear() {
-    view.clear();
+    realignFlags(from, to, (to - from) - (size - array.size), size);
   }
 
   /**
-   * Uses a run-length encoding where it is more space efficient.
+   * Makes the slot of {@code key} owned before {@code remove(rangeStart, rangeEnd)} writes it: a
+   * shared container that the range empties is dropped, and any other shared one is copied.
+   */
+  private void prepareRemoval(int key, long rangeStart, long rangeEnd) {
+    RoaringArray array = view.highLowContainer;
+    int i = array.getIndex((char) key);
+    if (i < 0 || !shared[i]) {
+      return;
+    }
+    Container container = array.values[i];
+    long keyStart = (long) key << 16;
+    if (rangeStart <= keyStart + container.first() && keyStart + container.last() < rangeEnd) {
+      int size = array.size;
+      array.removeAtIndex(i);
+      realignFlags(i, i + 1, 0, size);
+    } else {
+      copyIfShared(i);
+    }
+  }
+
+  /** Removes all values, dropping every container without writing it. */
+  public void clear() {
+    view.highLowContainer = new RoaringArray();
+    shared = new boolean[view.highLowContainer.keys.length];
+    lent = false;
+  }
+
+  /**
+   * Uses a run-length encoding where it is more space efficient. Shared containers are replaced by
+   * converted copies; they are never converted in place.
    *
    * @return whether any container changed its encoding
    */
@@ -303,22 +471,35 @@ public final class PersistentRoaringBitmap
       Container container = array.values[i];
       Container optimized = container.runOptimize(); // a new container, or the same unchanged
       if (optimized != container) {
+        unlend();
         array.values[i] = optimized;
+        shared[i] = false;
         changed = true;
       }
     }
     return changed;
   }
 
-  /** Recovers allocated but unused memory. */
+  /** Recovers allocated but unused memory, in this bitmap's arrays and in its owned containers. */
   @Override
   public void trim() {
-    view.trim();
+    RoaringArray array = view.highLowContainer;
+    array.keys = Arrays.copyOf(array.keys, array.size);
+    array.values = Arrays.copyOf(array.values, array.size);
+    shared = Arrays.copyOf(shared, array.size);
+    if (!lent) {
+      for (int i = 0; i < array.size; i++) {
+        if (!shared[i]) {
+          array.values[i].trim();
+        }
+      }
+    }
   }
 
   /**
    * Deserializes a bitmap in the portable format, replacing the values of this one. If decoding
-   * throws, this bitmap keeps its previous values.
+   * throws, this bitmap keeps its previous values. Containers this bitmap shared are dropped
+   * without being written.
    *
    * <p>If the source is untrusted, use the bitmap only after {@link #validate()} returns {@code
    * true}.
@@ -330,12 +511,13 @@ public final class PersistentRoaringBitmap
   public void deserialize(DataInput in) throws IOException {
     RoaringBitmap decoded = new RoaringBitmap();
     decoded.deserialize(in);
-    view.highLowContainer = decoded.highLowContainer;
+    install(decoded.highLowContainer);
   }
 
   /**
    * Deserializes a bitmap in the portable format, replacing the values of this one. If decoding
-   * throws, this bitmap keeps its previous values. The position of the buffer is not changed.
+   * throws, this bitmap keeps its previous values. Containers this bitmap shared are dropped
+   * without being written. The position of the buffer is not changed.
    *
    * <p>If the source is untrusted, use the bitmap only after {@link #validate()} returns {@code
    * true}.
@@ -347,7 +529,55 @@ public final class PersistentRoaringBitmap
   public void deserialize(ByteBuffer bbf) throws IOException {
     RoaringBitmap decoded = new RoaringBitmap();
     decoded.deserialize(bbf);
-    view.highLowContainer = decoded.highLowContainer;
+    install(decoded.highLowContainer);
+  }
+
+  private void install(RoaringArray containers) {
+    view.highLowContainer = containers;
+    shared = new boolean[containers.keys.length];
+    lent = false;
+  }
+
+  /** Before a write that can make a slot owned: records lent in the per-slot flags. */
+  private void unlend() {
+    if (lent) {
+      Arrays.fill(shared, 0, view.highLowContainer.size, true);
+      lent = false;
+    }
+  }
+
+  /** Makes slot {@code i} owned by copying its container if it is shared. Requires !lent. */
+  private void copyIfShared(int i) {
+    if (shared[i]) {
+      RoaringArray array = view.highLowContainer;
+      array.values[i] = array.values[i].clone();
+      shared[i] = false;
+    }
+  }
+
+  /**
+   * Realigns the flags after the delegate replaced the slots [from, to) of an array of {@code
+   * oldSize} slots by {@code count} slots that it wrote or inserted, all owned.
+   */
+  private void realignFlags(int from, int to, int count, int oldSize) {
+    int newSize = view.highLowContainer.size;
+    if (shared.length < newSize) {
+      shared = Arrays.copyOf(shared, view.highLowContainer.keys.length);
+    }
+    System.arraycopy(shared, to, shared, from + count, oldSize - to);
+    Arrays.fill(shared, from, from + count, false);
+    if (newSize < oldSize) {
+      Arrays.fill(shared, newSize, oldSize, false);
+    }
+  }
+
+  /** The index of the first slot whose key is at least {@code key}. */
+  private static int lowerBound(RoaringArray array, int key) {
+    if (key > Util.maxLowBitAsInteger()) {
+      return array.size;
+    }
+    int i = array.getIndex((char) key);
+    return i >= 0 ? i : -i - 1;
   }
 
   /** The argument check of RoaringBitmap's range methods, which is private there. */
@@ -431,11 +661,19 @@ public final class PersistentRoaringBitmap
     return view.iterator();
   }
 
+  /**
+   * Estimate of the memory usage, counting every container as if this bitmap held it alone. It does
+   * not measure the heap retained by this bitmap: shared containers are counted in every holder.
+   */
   @Override
   public int getSizeInBytes() {
     return view.getSizeInBytes();
   }
 
+  /**
+   * Estimate of the memory usage, counting every container as if this bitmap held it alone. It does
+   * not measure the heap retained by this bitmap: shared containers are counted in every holder.
+   */
   @Override
   public long getLongSizeInBytes() {
     return view.getLongSizeInBytes();
@@ -559,8 +797,8 @@ public final class PersistentRoaringBitmap
   }
 
   /**
-   * Two persistent bitmaps are equal if they hold the same values, whatever their encodings. A
-   * persistent bitmap is never equal to a {@link RoaringBitmap}.
+   * Two persistent bitmaps are equal if they hold the same values, whatever their encodings and
+   * whatever they share. A persistent bitmap is never equal to a {@link RoaringBitmap}.
    */
   @Override
   public boolean equals(Object o) {

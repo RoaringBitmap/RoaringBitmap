@@ -9,7 +9,9 @@ import static org.roaringbitmap.PersistentRoaringBitmapChecks.assertUnchanged;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.assertValues;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.backingArray;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.containers;
+import static org.roaringbitmap.PersistentRoaringBitmapChecks.flags;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.instances;
+import static org.roaringbitmap.PersistentRoaringBitmapChecks.lent;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.snapshot;
 
 import org.roaringbitmap.PersistentRoaringBitmapChecks.Model;
@@ -49,16 +51,20 @@ public class PersistentRoaringBitmapContainmentTest {
     "Container.first:()I",
     "Container.getCardinality:()I",
     "Container.isEmpty:()Z",
+    "Container.last:()I",
     "Container.limit:(I)Lorg/roaringbitmap/Container;",
     "Container.nextAbsentValue:(C)I",
     "Container.nextValue:(C)I",
     "Container.repairAfterLazy:()Lorg/roaringbitmap/Container;",
     "Container.runOptimize:()Lorg/roaringbitmap/Container;",
+    "Container.trim:()V",
     "RoaringArray.<init>:()V",
     "RoaringArray.<init>:(I)V",
     "RoaringArray.<init>:([C[Lorg/roaringbitmap/Container;I)V",
     "RoaringArray.append:(CLorg/roaringbitmap/Container;)V",
+    "RoaringArray.getIndex:(C)I",
     "RoaringArray.keys:[C",
+    "RoaringArray.removeAtIndex:(I)V",
     "RoaringArray.size:I",
     "RoaringArray.values:[Lorg/roaringbitmap/Container;",
     "RoaringBitmap.<init>:()V",
@@ -71,7 +77,6 @@ public class PersistentRoaringBitmapContainmentTest {
     "RoaringBitmap.andNotCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
     "RoaringBitmap.bitmapOf:([I)Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.bitmapOfRange:(JJ)Lorg/roaringbitmap/RoaringBitmap;",
-    "RoaringBitmap.clear:()V",
     "RoaringBitmap.clone:()Lorg/roaringbitmap/RoaringBitmap;",
     "RoaringBitmap.contains:(I)Z",
     "RoaringBitmap.deserialize:(Ljava/io/DataInput;)V",
@@ -114,10 +119,10 @@ public class PersistentRoaringBitmapContainmentTest {
     "RoaringBitmap.serializedSizeInBytes:()I",
     "RoaringBitmap.toArray:()[I",
     "RoaringBitmap.toString:()Ljava/lang/String;",
-    "RoaringBitmap.trim:()V",
     "RoaringBitmap.validate:()Ljava/lang/Boolean;",
     "RoaringBitmap.xor:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)Lorg/roaringbitmap/RoaringBitmap;",
-    "RoaringBitmap.xorCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I"
+    "RoaringBitmap.xorCardinality:(Lorg/roaringbitmap/RoaringBitmap;Lorg/roaringbitmap/RoaringBitmap;)I",
+    "RunContainer.full:()Lorg/roaringbitmap/RunContainer;"
   };
 
   private static final Set<String> OWNERS =
@@ -253,12 +258,17 @@ public class PersistentRoaringBitmapContainmentTest {
   @Test
   public void readsWriteNothing() throws IOException {
     PersistentRoaringBitmap x = PersistentRoaringBitmapTest.varied();
-    PersistentRoaringBitmap y = PersistentRoaringBitmapTest.varied();
-    for (PersistentRoaringBitmap bitmap : new PersistentRoaringBitmap[] {x, y}) {
-      Map<Container, PersistentRoaringBitmapChecks.Storage> storage = snapshot(x, y);
+    PersistentRoaringBitmap y = PersistentRoaringBitmap.or(x, new PersistentRoaringBitmap());
+    PersistentRoaringBitmap z = x.clone();
+    for (PersistentRoaringBitmap bitmap : new PersistentRoaringBitmap[] {x, y, z}) {
+      Map<Container, PersistentRoaringBitmapChecks.Storage> storage = snapshot(x, y, z);
+      boolean[] flags = flags(bitmap).clone();
+      boolean wasLent = lent(bitmap);
       Container[] values = instances(bitmap);
       read(bitmap, y);
       assertUnchanged(storage, "reads");
+      assertTrue(Arrays.equals(flags, flags(bitmap)));
+      assertEquals(wasLent, lent(bitmap));
       assertSameInstances(values, bitmap, "reads");
     }
   }
