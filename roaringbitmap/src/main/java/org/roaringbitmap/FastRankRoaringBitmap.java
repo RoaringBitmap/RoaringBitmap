@@ -1,5 +1,9 @@
 package org.roaringbitmap;
 
+import java.io.DataInput;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -146,6 +150,76 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   public void xor(RoaringBitmap x2) {
     resetCache();
     super.xor(x2);
+  }
+
+  @Override
+  public void addN(final int[] dat, final int offset, final int n) {
+    resetCache();
+    super.addN(dat, offset, n);
+  }
+
+  @Override
+  public void orNot(final RoaringBitmap other, long rangeEnd) {
+    resetCache();
+    super.orNot(other, rangeEnd);
+  }
+
+  @Override
+  public void append(char key, Container container) {
+    resetCache();
+    super.append(key, container);
+  }
+
+  @Override
+  public void deserialize(DataInput in, byte[] buffer) throws IOException {
+    resetCache();
+    super.deserialize(in, buffer);
+  }
+
+  @Override
+  public void deserialize(DataInput in) throws IOException {
+    resetCache();
+    super.deserialize(in);
+  }
+
+  @Override
+  public void deserialize(ByteBuffer bbf) throws IOException {
+    resetCache();
+    super.deserialize(bbf);
+  }
+
+  @Override
+  public void readExternal(ObjectInput in) throws IOException {
+    resetCache();
+    super.readExternal(in);
+  }
+
+  @Override
+  protected void lazyor(final RoaringBitmap x2) {
+    resetCache();
+    super.lazyor(x2);
+  }
+
+  @Override
+  protected void naivelazyor(RoaringBitmap x2) {
+    resetCache();
+    super.naivelazyor(x2);
+  }
+
+  @Override
+  protected void repairAfterLazy() {
+    resetCache();
+    super.repairAfterLazy();
+  }
+
+  @Override
+  public RoaringBitmap clone() {
+    final FastRankRoaringBitmap x = (FastRankRoaringBitmap) super.clone();
+    // The clone needs its own cache: preComputeCardinalities rewrites the array in place
+    if (highToCumulatedCardinality != null) {
+      x.highToCumulatedCardinality = highToCumulatedCardinality.clone();
+    }
+    return x;
   }
 
   /**
