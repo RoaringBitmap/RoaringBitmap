@@ -5628,6 +5628,72 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void absentValuesWithKeysFromTwoToThe31() {
+    // values from 2^31 on have keys from 32,768 on, which are negative when shifted into an int
+    long twoToThe31 = 2_147_483_648L;
+    long end = 4_294_967_296L;
+    RoaringBitmap[] bitmaps = {
+      RoaringBitmap.bitmapOf((int) twoToThe31),
+      RoaringBitmap.bitmapOf((int) (twoToThe31 + 5)),
+      RoaringBitmap.bitmapOf(5, (int) (twoToThe31 + 5)),
+      RoaringBitmap.bitmapOfRange(twoToThe31 - 65_536, twoToThe31 + 65_536),
+      RoaringBitmap.bitmapOfRange(end - 65_536, end)
+    };
+    long[] probes = {
+      0,
+      5,
+      6,
+      65_535,
+      65_536,
+      twoToThe31 - 65_537,
+      twoToThe31 - 1,
+      twoToThe31,
+      twoToThe31 + 5,
+      twoToThe31 + 6,
+      twoToThe31 + 65_536,
+      end - 65_537,
+      end - 1
+    };
+    for (int i = 0; i < bitmaps.length; i++) {
+      RoaringBitmap bitmap = bitmaps[i];
+      for (long probe : probes) {
+        assertEquals(
+            nextAbsentByContains(bitmap, probe),
+            bitmap.nextAbsentValue((int) probe),
+            "bitmaps[" + i + "].nextAbsentValue(" + probe + ")");
+        assertEquals(
+            previousAbsentByContains(bitmap, probe),
+            bitmap.previousAbsentValue((int) probe),
+            "bitmaps[" + i + "].previousAbsentValue(" + probe + ")");
+      }
+    }
+  }
+
+  @Test
+  public void previousAbsentValueOfZeroWithTheLargestValuePresent() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOf(0, -1); // -1 is 4,294,967,295
+    assertEquals(-1L, bitmap.previousAbsentValue(0));
+  }
+
+  private static long nextAbsentByContains(RoaringBitmap bitmap, long fromValue) {
+    for (long value = fromValue; value < 4_294_967_296L; value++) {
+      if (!bitmap.contains((int) value)) {
+        return value;
+      }
+    }
+    return -1;
+  }
+
+  private static long previousAbsentByContains(RoaringBitmap bitmap, long fromValue) {
+    for (long value = fromValue; value >= 0; value--) {
+      if (!bitmap.contains((int) value)) {
+        return value;
+      }
+    }
+    return -1;
+  }
+
+  @Test
   public void testPreviousValue() {
     RoaringBitmap bitmap =
         SeededTestData.TestDataSet.testCase()
