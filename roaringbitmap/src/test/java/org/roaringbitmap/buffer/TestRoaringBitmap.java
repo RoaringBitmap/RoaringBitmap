@@ -2570,6 +2570,112 @@ public class TestRoaringBitmap {
     assertFalse(iterator.hasNext());
   }
 
+  private static MutableRoaringBitmap orNotAllWays(
+      MutableRoaringBitmap x1, MutableRoaringBitmap x2, long rangeEnd) {
+    MutableRoaringBitmap result = ImmutableRoaringBitmap.orNot(x1, x2, rangeEnd);
+    assertEquals(result, ImmutableRoaringBitmap.orNot(toMapped(x1), toMapped(x2), rangeEnd));
+    MutableRoaringBitmap inPlace = x1.clone();
+    inPlace.orNot(x2, rangeEnd);
+    assertEquals(result, inPlace);
+    inPlace = x1.clone();
+    inPlace.orNot(toMapped(x2), rangeEnd);
+    assertEquals(result, inPlace);
+    assertTrue(result.validate());
+    return result;
+  }
+
+  @Test
+  public void orNotExcludesValuesOfOtherBeyondRangeEnd() {
+    MutableRoaringBitmap expected = MutableRoaringBitmap.bitmapOfRange(0, 10);
+    expected.remove(5);
+    assertEquals(
+        expected,
+        orNotAllWays(new MutableRoaringBitmap(), MutableRoaringBitmap.bitmapOf(5, 100), 10));
+
+    expected = MutableRoaringBitmap.bitmapOfRange(0, 0x10000 + 10);
+    expected.remove(0x10000 + 5);
+    assertEquals(
+        expected,
+        orNotAllWays(
+            MutableRoaringBitmap.bitmapOf(1),
+            MutableRoaringBitmap.bitmapOf(0x10000 + 5, 0x10000 + 100),
+            0x10000 + 10));
+  }
+
+  @Test
+  public void orNotIgnoresFullContainersOfOtherBeyondRangeEnd() {
+    assertEquals(
+        MutableRoaringBitmap.bitmapOf(0),
+        orNotAllWays(
+            new MutableRoaringBitmap(), MutableRoaringBitmap.bitmapOfRange(0x10000, 0x20000), 1));
+    assertEquals(
+        MutableRoaringBitmap.bitmapOfRange(0, 0x10001),
+        orNotAllWays(
+            new MutableRoaringBitmap(),
+            MutableRoaringBitmap.bitmapOfRange(0x20000, 0x30000),
+            0x10001));
+  }
+
+  @Test
+  public void orNotZeroRangeEndWithFullContainer() {
+    assertTrue(
+        orNotAllWays(new MutableRoaringBitmap(), MutableRoaringBitmap.bitmapOfRange(0, 0x10000), 0)
+            .isEmpty());
+    assertEquals(
+        MutableRoaringBitmap.bitmapOf(0x20000),
+        orNotAllWays(
+            MutableRoaringBitmap.bitmapOf(0x20000),
+            MutableRoaringBitmap.bitmapOfRange(0, 0x10000),
+            0));
+  }
+
+  @Test
+  public void orNotMatchesModel() {
+    MutableRoaringBitmap partial =
+        MutableRoaringBitmap.bitmapOf(5, 100, 0x10000 + 5, 0x10000 + 100);
+    partial.add(0x20000L + 1000, 0x20000L + 3000);
+    MutableRoaringBitmap[] bitmaps = {
+      new MutableRoaringBitmap(),
+      partial,
+      MutableRoaringBitmap.bitmapOfRange(0, 0x10000),
+      MutableRoaringBitmap.bitmapOfRange(0x10000, 0x20000),
+      MutableRoaringBitmap.bitmapOfRange(0x20000, 0x30000),
+      MutableRoaringBitmap.bitmapOfRange(0x10000, 0x30000),
+      MutableRoaringBitmap.bitmapOf(0x30000 + 7)
+    };
+    long[] rangeEnds = {
+      0,
+      1,
+      10,
+      0xFFFF,
+      0x10000,
+      0x10001,
+      0x10000 + 10,
+      0x1FFFF,
+      0x20000,
+      0x20001,
+      0x20000 + 2000,
+      0x30000,
+      0x30001
+    };
+    for (MutableRoaringBitmap x1 : bitmaps) {
+      for (MutableRoaringBitmap x2 : bitmaps) {
+        for (long rangeEnd : rangeEnds) {
+          // x1 | ([0, rangeEnd) \ x2), computed on BitSets
+          BitSet expected = new BitSet();
+          x1.forEach((int v) -> expected.set(v));
+          BitSet range = new BitSet();
+          range.set(0, (int) rangeEnd);
+          x2.forEach((int v) -> range.clear(v));
+          expected.or(range);
+          BitSet actual = new BitSet();
+          orNotAllWays(x1, x2, rangeEnd).forEach((int v) -> actual.set(v));
+          assertEquals(expected, actual, () -> x1 + " orNot " + x2 + " up to " + rangeEnd);
+        }
+      }
+    }
+  }
+
   @Test
   public void randomTest() {
     rTest(15);

@@ -540,10 +540,11 @@ public class ImmutableRoaringBitmap
     }
     int correction = 0;
     for (int i = 0; i < x2.highLowContainer.size() - remainder; ++i) {
-      correction += x2.highLowContainer.getContainerAtIndex(i).isFull() ? 1 : 0;
-      if (x2.highLowContainer.getKeyAtIndex(i) >= maxKey) {
+      // full containers of x2 past maxKey do not shrink the result
+      if (x2.highLowContainer.getKeyAtIndex(i) > maxKey) {
         break;
       }
+      correction += x2.highLowContainer.getContainerAtIndex(i).isFull() ? 1 : 0;
     }
     // it's almost certain that the bitmap will grow, so make a conservative overestimate,
     // this avoids temporary allocation, and can trim afterwards
@@ -576,8 +577,12 @@ public class ImmutableRoaringBitmap
         ++pos1;
         s1 = pos1 < length1 ? x1.highLowContainer.getKeyAtIndex(pos1) : maxKey + 1;
       } else if (key == s2) { // insert the complement
+        // in the last key, not(0, lastRun) would keep the values of x2 past the range
         newValues[size] =
-            x2.highLowContainer.getContainerAtIndex(pos2).not(0, key == maxKey ? lastRun : 0x10000);
+            key == maxKey
+                ? MappeableContainer.rangeOfOnes(0, lastRun)
+                    .andNot(x2.highLowContainer.getContainerAtIndex(pos2))
+                : x2.highLowContainer.getContainerAtIndex(pos2).not(0, 0x10000);
         ++pos2;
         s2 = pos2 < length2 ? x2.highLowContainer.getKeyAtIndex(pos2) : maxKey + 1;
       } else { // key missing from both
