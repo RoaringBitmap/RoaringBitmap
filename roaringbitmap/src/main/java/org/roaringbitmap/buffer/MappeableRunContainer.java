@@ -1642,7 +1642,8 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   private MappeableRunContainer lazyandNot(MappeableArrayContainer x) {
     if (x.isEmpty()) {
-      return this;
+      // andNot is not in place: the caller owns the result and may write to it
+      return (MappeableRunContainer) clone();
     }
     MappeableRunContainer answer =
         new MappeableRunContainer(CharBuffer.allocate(2 * (this.nbrruns + x.cardinality)), 0);
@@ -1754,11 +1755,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   }
 
   private MappeableContainer lazyxor(MappeableArrayContainer x) {
+    // xor is not in place, and ixor of an array container returns this result: the caller owns
+    // it and may write to it, so it must not be one of the operands
     if (x.isEmpty()) {
-      return this;
+      return clone();
     }
     if (this.nbrruns == 0) {
-      return x;
+      return x.clone();
     }
     MappeableRunContainer answer =
         new MappeableRunContainer(CharBuffer.allocate(2 * (this.nbrruns + x.getCardinality())), 0);

@@ -2,6 +2,7 @@ package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 
 import org.junit.jupiter.api.Test;
@@ -458,6 +459,33 @@ public class TestFastAggregation {
       ImmutableRoaringBitmap or = BufferFastAggregation.or(subset);
       int andCardinality = BufferFastAggregation.orCardinality(subset);
       assertEquals(or.getCardinality(), andCardinality);
+    }
+  }
+
+  @Test
+  public void horizontal_xorDropsBlocksThatCancelOut() {
+    MutableRoaringBitmap a = MutableRoaringBitmap.bitmapOf(1, 3, 5, 70_000);
+    MutableRoaringBitmap b = MutableRoaringBitmap.bitmapOf(1, 3, 5);
+    MutableRoaringBitmap result = BufferFastAggregation.horizontal_xor(a, b);
+    assertEquals(MutableRoaringBitmap.bitmapOf(70_000), result);
+    assertTrue(result.validate());
+    assertTrue(BufferFastAggregation.horizontal_xor(a, a.clone()).isEmpty());
+  }
+
+  @Test
+  public void horizontal_xorDoesNotShareContainersWithItsInputs() {
+    MutableRoaringBitmap a = MutableRoaringBitmap.bitmapOf(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
+    MutableRoaringBitmap runs = new MutableRoaringBitmap();
+    runs.add(100L, 105L);
+    runs.runOptimize();
+    for (ImmutableRoaringBitmap input : Arrays.asList(runs, toMapped(runs))) {
+      MutableRoaringBitmap result = BufferFastAggregation.horizontal_xor(a, a.clone(), input);
+      assertEquals(runs, result);
+
+      result.or(input);
+      result.add(5_000);
+      assertEquals(MutableRoaringBitmap.bitmapOf(100, 101, 102, 103, 104, 5_000), result);
+      assertEquals(MutableRoaringBitmap.bitmapOf(100, 101, 102, 103, 104), input);
     }
   }
 }

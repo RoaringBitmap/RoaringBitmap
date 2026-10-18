@@ -328,7 +328,9 @@ public final class FastAggregation {
           break;
         }
       }
-      answer.highLowContainer.append(x1.key(), newc);
+      if (!newc.isEmpty()) { // the inputs cancelled out in this block
+        answer.highLowContainer.append(x1.key(), newc);
+      }
       x1.advance();
       if (x1.getContainer() != null) {
         pq.add(x1);

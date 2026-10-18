@@ -3956,4 +3956,20 @@ public class TestRunContainer {
   private static int lower16Bits(int x) {
     return ((char) x) & 0xFFFF;
   }
+
+  @Test
+  public void xorAndAndNotWithAnEmptyArrayReturnANewContainer() {
+    // the result of a non-in-place operation belongs to the caller, who may write to it
+    RunContainer run = new RunContainer(100, 105);
+    ArrayContainer empty = new ArrayContainer();
+    assertNotSame(run, run.xor(empty));
+    assertNotSame(run, run.andNot(empty));
+    assertNotSame(run, empty.xor(run));
+    assertNotSame(run, new ArrayContainer().ixor(run));
+    assertEquals(run, run.xor(empty));
+    assertEquals(run, run.andNot(empty));
+    ArrayContainer array = new ArrayContainer(new char[] {7});
+    assertNotSame(array, new RunContainer().xor(array));
+    assertEquals(array, new RunContainer().xor(array));
+  }
 }
