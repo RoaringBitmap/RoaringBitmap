@@ -320,4 +320,27 @@ public class TestRoaringBitmapWriter {
     writer.addMany(4, 5, 6);
     assertArrayEquals(new int[] {4, 5, 6, 100}, writer.get().toArray());
   }
+
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testResetDiscardsUnflushedValues(
+      Supplier<RoaringBitmapWriter<? extends BitmapDataProvider>> supplier) {
+    RoaringBitmapWriter writer = supplier.get();
+    writer.add(1);
+    writer.reset();
+    writer.add(2);
+    assertArrayEquals(new int[] {2}, writer.get().toArray());
+  }
+
+  @ParameterizedTest
+  @MethodSource("params")
+  public void testResetDiscardsUnflushedValuesOfAnotherContainer(
+      Supplier<RoaringBitmapWriter<? extends BitmapDataProvider>> supplier) {
+    RoaringBitmapWriter writer = supplier.get();
+    writer.add(1_000_000);
+    writer.reset();
+    assertArrayEquals(new int[0], writer.get().toArray());
+    writer.add(5);
+    assertArrayEquals(new int[] {5}, writer.get().toArray());
+  }
 }
