@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -507,6 +509,27 @@ public class TestCopyOnWriteEdgeCases {
     assertTrue(containers.getContainerAtIndex(1).isArrayBacked());
     assertFalse(containers.getContainerAtIndex(2).isArrayBacked());
     assertTrue(containers.getContainerAtIndex(3).isArrayBacked());
+  }
+
+  @Test
+  public void testTrimDoesNotChangeTheSourceContainers() {
+    // an array container with unused capacity, whose trim would replace its storage
+    MutableRoaringBitmap source = MutableRoaringBitmap.bitmapOf(1, 2, 3, 65_536);
+    MappeableArrayContainer sourceContainer =
+        (MappeableArrayContainer) source.getMappeableRoaringArray().getContainerAtIndex(0);
+    CharBuffer sourceContent = sourceContainer.content;
+    assertTrue(sourceContent.limit() > sourceContainer.getCardinality());
+
+    CopyOnWriteRoaringBitmap cow = source.toMutableRoaringBitmapCopyOnWrite();
+    cow.add(65_537); // the container of key 1 is copied, the one of key 0 is still shared
+    cow.trim();
+
+    assertSame(sourceContent, sourceContainer.content);
+    MappeableArrayContainer copied =
+        (MappeableArrayContainer) cow.getMappeableRoaringArray().getContainerAtIndex(1);
+    assertEquals(copied.getCardinality(), copied.content.limit());
+    assertEquals(MutableRoaringBitmap.bitmapOf(1, 2, 3, 65_536, 65_537), cow);
+    assertEquals(MutableRoaringBitmap.bitmapOf(1, 2, 3, 65_536), source);
   }
 
   @Test

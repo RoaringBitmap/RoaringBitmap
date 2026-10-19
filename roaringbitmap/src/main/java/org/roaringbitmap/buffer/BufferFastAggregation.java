@@ -353,7 +353,9 @@ public final class BufferFastAggregation {
           break;
         }
       }
-      answer.getMappeableRoaringArray().append(x1.key(), newc);
+      if (!newc.isEmpty()) { // the inputs cancelled out in this block
+        answer.getMappeableRoaringArray().append(x1.key(), newc);
+      }
       x1.advance();
       if (x1.getContainer() != null) {
         pq.add(x1);

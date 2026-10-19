@@ -1921,7 +1921,7 @@ public class ImmutableRoaringBitmap
       return Util.toUnsignedLong(fromValue);
     }
     char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
-    if (fromValue < containerKey << 16) {
+    if (containerKey != key) { // fromValue is in no container
       return Util.toUnsignedLong(fromValue);
     }
     MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);
@@ -1951,7 +1951,7 @@ public class ImmutableRoaringBitmap
     long prevAbsentBit = computePreviousAbsentValue(fromValue);
     assert prevAbsentBit <= 0xFFFFFFFFL;
     assert prevAbsentBit <= Util.toUnsignedLong(fromValue);
-    assert !contains((int) prevAbsentBit);
+    assert prevAbsentBit == -1L || !contains((int) prevAbsentBit);
     return prevAbsentBit;
   }
 
@@ -1963,7 +1963,7 @@ public class ImmutableRoaringBitmap
       return Util.toUnsignedLong(fromValue);
     }
     char containerKey = highLowContainer.getKeyAtIndex(containerIndex);
-    if (fromValue < containerKey << 16) {
+    if (containerKey != key) { // fromValue is in no container
       return Util.toUnsignedLong(fromValue);
     }
     MappeableContainer container = highLowContainer.getContainerAtIndex(containerIndex);

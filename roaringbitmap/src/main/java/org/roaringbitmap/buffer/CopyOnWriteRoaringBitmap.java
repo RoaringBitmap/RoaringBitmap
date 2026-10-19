@@ -7,6 +7,7 @@ import java.io.DataInput;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -208,6 +209,22 @@ public class CopyOnWriteRoaringBitmap extends MutableRoaringBitmap {
   protected void naivelazyor(final ImmutableRoaringBitmap x2) {
     ensureAllContainersCopied();
     super.naivelazyor(x2);
+  }
+
+  /**
+   * Recover allocated but unused memory. The shared containers are left alone: trimming a
+   * container replaces its storage in place, and they belong to the source.
+   */
+  @Override
+  public void trim() {
+    MutableRoaringArray array = getMappeableRoaringArray();
+    array.keys = Arrays.copyOf(array.keys, array.size);
+    array.values = Arrays.copyOf(array.values, array.size);
+    for (MappeableContainer container : array.values) {
+      if (!shared.contains(container)) {
+        container.trim();
+      }
+    }
   }
 
   // clear, deserialize and readExternal replace all the containers: forget the shared ones, so
