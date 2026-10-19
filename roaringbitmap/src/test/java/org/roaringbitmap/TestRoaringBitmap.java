@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -6090,5 +6091,57 @@ public class TestRoaringBitmap {
   public void testContainerSizeRoaringBitmapSingle() {
     RoaringBitmap r = RoaringBitmap.bitmapOfRange(1, 100);
     assertEquals(1, r.getContainerCount());
+  }
+
+  // byte offset of the run length in the serialized form of a bitmap holding one run container
+  private static final int RUN_LENGTH = 13;
+
+  private static byte[] serializeToBytes(RoaringBitmap bitmap) {
+    ByteBuffer buffer = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+    bitmap.serialize(buffer);
+    return buffer.array();
+  }
+
+  private static RoaringBitmap deserializeFromBytes(byte[] bytes) throws IOException {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.deserialize(ByteBuffer.wrap(bytes));
+    return bitmap;
+  }
+
+  @Test
+  public void validateAcceptsRunContainersThatAreNotTheSmallestEncoding() throws IOException {
+    // these operations keep a shrinking run container as a run container
+    RoaringBitmap single = RoaringBitmap.bitmapOfRange(0, 3);
+    single.remove(0);
+    single.remove(1);
+    RoaringBitmap ends = RoaringBitmap.bitmapOfRange(0, 100);
+    ends.remove(1L, 99L);
+    RoaringBitmap manyRuns = RoaringBitmap.bitmapOfRange(0, 12_000);
+    for (int i = 0; i < 3_000; i++) {
+      manyRuns.remove(4 * i + 2);
+      manyRuns.remove(4 * i + 3);
+    }
+    RoaringBitmap[] bitmaps = {
+      single,
+      ends,
+      manyRuns,
+      RoaringBitmap.bitmapOfRange(0, 100).limit(1),
+      RoaringBitmap.bitmapOfRange(0, 100).selectRange(0, 1)
+    };
+    for (RoaringBitmap bitmap : bitmaps) {
+      assertTrue(bitmap.validate(), bitmap::toString);
+      RoaringBitmap copy = deserializeFromBytes(serializeToBytes(bitmap));
+      assertTrue(copy.validate(), bitmap::toString);
+      assertEquals(bitmap, copy);
+    }
+  }
+
+  @Test
+  public void validateRejectsRunPastTheEndOfTheContainer() throws IOException {
+    byte[] bytes = serializeToBytes(RoaringBitmap.bitmapOfRange(65_000, 65_536));
+    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(RUN_LENGTH, (char) 535);
+    assertTrue(deserializeFromBytes(bytes).validate()); // the run ends at 65,535
+    ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(RUN_LENGTH, (char) 536);
+    assertFalse(deserializeFromBytes(bytes).validate()); // the run ends at 65,536
   }
 }
