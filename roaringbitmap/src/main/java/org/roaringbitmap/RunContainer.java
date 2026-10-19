@@ -1718,7 +1718,8 @@ public final class RunContainer extends Container implements Cloneable {
 
   private RunContainer lazyandNot(ArrayContainer x) {
     if (x.isEmpty()) {
-      return this;
+      // andNot is not in place: the caller owns the result and may write to it
+      return (RunContainer) clone();
     }
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.cardinality)], 0);
     int rlepos = 0;
@@ -1829,11 +1830,13 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   private Container lazyxor(ArrayContainer x) {
+    // xor is not in place, and ixor of an array container returns this result: the caller owns
+    // it and may write to it, so it must not be one of the operands
     if (x.isEmpty()) {
-      return this;
+      return clone();
     }
     if (this.nbrruns == 0) {
-      return x;
+      return x.clone();
     }
     RunContainer answer = new RunContainer(new char[2 * (this.nbrruns + x.getCardinality())], 0);
     int rlepos = 0;

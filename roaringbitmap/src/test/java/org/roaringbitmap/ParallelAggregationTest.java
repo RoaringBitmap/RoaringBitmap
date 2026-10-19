@@ -6,6 +6,7 @@ import static org.roaringbitmap.SeededTestData.TestDataSet.testCase;
 import org.roaringbitmap.buffer.BufferFastAggregation;
 import org.roaringbitmap.buffer.BufferParallelAggregation;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
@@ -494,5 +497,41 @@ public class ParallelAggregationTest {
         testCase().withArrayAt(3).withRunAt((1 << 15) | 3).build().toMutableRoaringBitmap();
     assertEquals(
         BufferFastAggregation.xor(one, two, three), BufferParallelAggregation.xor(one, two, three));
+  }
+
+  @Test
+  public void xorDoesNotShareContainersWithItsInputs() {
+    RoaringBitmap a = RoaringBitmap.bitmapOf(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
+    RoaringBitmap runs = new RoaringBitmap();
+    runs.add(100L, 105L);
+    runs.runOptimize();
+    RoaringBitmap result = ParallelAggregation.xor(a, a.clone(), runs);
+    assertEquals(runs, result);
+
+    result.or(runs);
+    result.add(5_000);
+    assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104, 5_000), result);
+    assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104), runs);
+  }
+
+  @Test
+  public void xorDoesNotShareContainersWithItsInputs_Buffer() {
+    MutableRoaringBitmap a = MutableRoaringBitmap.bitmapOf(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
+    MutableRoaringBitmap runs = new MutableRoaringBitmap();
+    runs.add(100L, 105L);
+    runs.runOptimize();
+    ByteBuffer buffer = ByteBuffer.allocate(runs.serializedSizeInBytes());
+    runs.serialize(buffer);
+    buffer.flip();
+    ImmutableRoaringBitmap mapped = new ImmutableRoaringBitmap(buffer);
+    for (ImmutableRoaringBitmap input : Arrays.asList(runs, mapped)) {
+      MutableRoaringBitmap result = BufferParallelAggregation.xor(a, a.clone(), input);
+      assertEquals(runs, result);
+
+      result.or(input);
+      result.add(5_000);
+      assertEquals(MutableRoaringBitmap.bitmapOf(100, 101, 102, 103, 104, 5_000), result);
+      assertEquals(MutableRoaringBitmap.bitmapOf(100, 101, 102, 103, 104), input);
+    }
   }
 }

@@ -4028,6 +4028,77 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void absentValuesWithKeysFromTwoToThe31() {
+    // values from 2^31 on have keys from 32,768 on, which are negative when shifted into an int
+    long twoToThe31 = 2_147_483_648L;
+    long end = 4_294_967_296L;
+    MutableRoaringBitmap[] bitmaps = {
+      MutableRoaringBitmap.bitmapOf((int) twoToThe31),
+      MutableRoaringBitmap.bitmapOf((int) (twoToThe31 + 5)),
+      MutableRoaringBitmap.bitmapOf(5, (int) (twoToThe31 + 5)),
+      MutableRoaringBitmap.bitmapOfRange(twoToThe31 - 65_536, twoToThe31 + 65_536),
+      MutableRoaringBitmap.bitmapOfRange(end - 65_536, end)
+    };
+    long[] probes = {
+      0,
+      5,
+      6,
+      65_535,
+      65_536,
+      twoToThe31 - 65_537,
+      twoToThe31 - 1,
+      twoToThe31,
+      twoToThe31 + 5,
+      twoToThe31 + 6,
+      twoToThe31 + 65_536,
+      end - 65_537,
+      end - 1
+    };
+    for (int i = 0; i < bitmaps.length; i++) {
+      for (ImmutableRoaringBitmap bitmap :
+          new ImmutableRoaringBitmap[] {bitmaps[i], toMapped(bitmaps[i])}) {
+        String name =
+            (bitmap instanceof MutableRoaringBitmap ? "" : "mapped ") + "bitmaps[" + i + "]";
+        for (long probe : probes) {
+          assertEquals(
+              nextAbsentByContains(bitmap, probe),
+              bitmap.nextAbsentValue((int) probe),
+              name + ".nextAbsentValue(" + probe + ")");
+          assertEquals(
+              previousAbsentByContains(bitmap, probe),
+              bitmap.previousAbsentValue((int) probe),
+              name + ".previousAbsentValue(" + probe + ")");
+        }
+      }
+    }
+  }
+
+  @Test
+  public void previousAbsentValueOfZeroWithTheLargestValuePresent() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(0, -1); // -1 is 4,294,967,295
+    assertEquals(-1L, bitmap.previousAbsentValue(0));
+    assertEquals(-1L, toMapped(bitmap).previousAbsentValue(0));
+  }
+
+  private static long nextAbsentByContains(ImmutableRoaringBitmap bitmap, long fromValue) {
+    for (long value = fromValue; value < 4_294_967_296L; value++) {
+      if (!bitmap.contains((int) value)) {
+        return value;
+      }
+    }
+    return -1;
+  }
+
+  private static long previousAbsentByContains(ImmutableRoaringBitmap bitmap, long fromValue) {
+    for (long value = fromValue; value >= 0; value--) {
+      if (!bitmap.contains((int) value)) {
+        return value;
+      }
+    }
+    return -1;
+  }
+
+  @Test
   public void testSelectRange() {
     MutableRoaringBitmap r = MutableRoaringBitmap.bitmapOfRange(1, 1000000);
     for (int i = 1; i <= 1000000; i += 1000) {

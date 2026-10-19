@@ -290,4 +290,29 @@ public class TestFastAggregation {
       assertEquals(or.getCardinality(), orCardinality);
     }
   }
+
+  @Test
+  public void horizontal_xorDropsBlocksThatCancelOut() {
+    RoaringBitmap a = RoaringBitmap.bitmapOf(1, 3, 5, 70_000);
+    RoaringBitmap b = RoaringBitmap.bitmapOf(1, 3, 5);
+    RoaringBitmap result = FastAggregation.horizontal_xor(a, b);
+    assertEquals(RoaringBitmap.bitmapOf(70_000), result);
+    assertTrue(result.validate());
+    assertTrue(FastAggregation.horizontal_xor(a, a.clone()).isEmpty());
+  }
+
+  @Test
+  public void horizontal_xorDoesNotShareContainersWithItsInputs() {
+    RoaringBitmap a = RoaringBitmap.bitmapOf(1, 3, 5, 7, 9, 11, 13, 15, 17, 19);
+    RoaringBitmap runs = new RoaringBitmap();
+    runs.add(100L, 105L);
+    runs.runOptimize();
+    RoaringBitmap result = FastAggregation.horizontal_xor(a, a.clone(), runs);
+    assertEquals(runs, result);
+
+    result.or(runs);
+    result.add(5_000);
+    assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104, 5_000), result);
+    assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104), runs);
+  }
 }
