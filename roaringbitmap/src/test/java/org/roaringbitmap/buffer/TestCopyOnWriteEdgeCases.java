@@ -1,6 +1,7 @@
 package org.roaringbitmap.buffer;
 
-
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +12,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Test edge cases and error conditions for copy-on-write functionality.
@@ -366,5 +370,137 @@ public class TestCopyOnWriteEdgeCases {
     assertEquals(10000, immutable.getCardinality());
     assertTrue(immutable.contains(5000));
   }
-}
 
+  private static final int KEY2 = 2 * 65_536;
+  private static final int KEY4 = 4 * 65_536;
+
+  // key 0: an array container, key 2: a run container, key 4: a bitmap container
+  private static MutableRoaringBitmap threeContainers() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOf(1, 2, 3);
+    bitmap.add((long) KEY2, KEY2 + 1_000L);
+    for (int i = 0; i < 10_000; i += 2) {
+      bitmap.add(KEY4 + i);
+    }
+    bitmap.runOptimize();
+    return bitmap;
+  }
+
+  private static ByteBuffer serialize(MutableRoaringBitmap bitmap) {
+    ByteBuffer buffer = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+    bitmap.serialize(buffer);
+    buffer.flip();
+    return buffer;
+  }
+
+  /**
+   * Applies the write to a plain copy of the source and to copy-on-write bitmaps over three kinds of
+   * source, which must all give the same result and leave the source unchanged.
+   */
+  private static void assertCopyOnWrite(
+      String name, MutableRoaringBitmap source, Consumer<MutableRoaringBitmap> write) {
+    MutableRoaringBitmap expected = source.clone();
+    write.accept(expected);
+
+    // a heap buffer: its bytes must not change
+    ByteBuffer buffer = serialize(source);
+    byte[] bytes = buffer.array().clone();
+    CopyOnWriteRoaringBitmap fromBuffer =
+        new ImmutableRoaringBitmap(buffer).toMutableRoaringBitmapCopyOnWrite();
+    assertDoesNotThrow(() -> write.accept(fromBuffer), name);
+    assertEquals(expected, fromBuffer, name);
+    assertArrayEquals(bytes, buffer.array(), name);
+
+    // a read-only buffer, as from a file mapped read-only: writing to it would throw
+    CopyOnWriteRoaringBitmap fromReadOnly =
+        new ImmutableRoaringBitmap(serialize(source).asReadOnlyBuffer())
+            .toMutableRoaringBitmapCopyOnWrite();
+    assertDoesNotThrow(() -> write.accept(fromReadOnly), name);
+    assertEquals(expected, fromReadOnly, name);
+
+    // a mutable bitmap, whose own containers are shared
+    MutableRoaringBitmap mutable = source.clone();
+    CopyOnWriteRoaringBitmap fromMutable = mutable.toMutableRoaringBitmapCopyOnWrite();
+    assertDoesNotThrow(() -> write.accept(fromMutable), name);
+    assertEquals(expected, fromMutable, name);
+    assertEquals(source, mutable, name);
+  }
+
+  @Test
+  public void testWritesDoNotChangeTheSource() {
+    Map<String, Consumer<MutableRoaringBitmap>> writes = new LinkedHashMap<>();
+    writes.put("add(int)", b -> b.add(KEY4 + 1));
+    writes.put("remove(int)", b -> b.remove(KEY4 + 2));
+    writes.put("flip(int)", b -> b.flip(KEY4 + 2));
+    writes.put("add(long, long)", b -> b.add(KEY4 + 1L, KEY4 + 100L));
+    writes.put("remove(long, long)", b -> b.remove(KEY4 + 200L, KEY4 + 400L));
+    writes.put("remove(long, long) in a run container", b -> b.remove((long) KEY2, KEY2 + 10L));
+    writes.put("flip(long, long)", b -> b.flip((long) KEY4, KEY4 + 100L));
+    writes.put("add(int...)", b -> b.add(new int[] {KEY4 + 1, KEY4 + 3}));
+    writes.put("addN", b -> b.addN(new int[] {KEY4 + 1, KEY4 + 3}, 0, 2));
+    writes.put("checkedAdd", b -> b.checkedAdd(KEY4 + 1));
+    writes.put("checkedRemove", b -> b.checkedRemove(KEY4 + 2));
+    writes.put("orNot", b -> b.orNot(MutableRoaringBitmap.bitmapOf(KEY4 + 2), 300_000L));
+    writes.put("or", b -> b.or(MutableRoaringBitmap.bitmapOf(KEY4 + 1)));
+    writes.put(
+        "naivelazyor",
+        b -> {
+          b.naivelazyor(MutableRoaringBitmap.bitmapOf(KEY4 + 1));
+          b.repairAfterLazy();
+        });
+    writes.put(
+        "lazyor",
+        b -> {
+          b.lazyor(MutableRoaringBitmap.bitmapOf(KEY4 + 1));
+          b.repairAfterLazy();
+        });
+    for (Map.Entry<String, Consumer<MutableRoaringBitmap>> write : writes.entrySet()) {
+      assertCopyOnWrite(write.getKey(), threeContainers(), write.getValue());
+    }
+  }
+
+  @Test
+  public void testWritesAfterContainersMove() {
+    // a new container moves the following ones to a higher index
+    assertCopyOnWrite(
+        "add(int) of a new key, then remove(int)",
+        threeContainers(),
+        b -> {
+          b.add(65_536);
+          b.remove(KEY4 + 2);
+        });
+    assertCopyOnWrite(
+        "add(int) of a new key, then or",
+        threeContainers(),
+        b -> {
+          b.add(65_536);
+          b.or(MutableRoaringBitmap.bitmapOf(KEY4 + 1));
+        });
+    // a removed container moves the following ones to a lower index
+    assertCopyOnWrite(
+        "remove(int) of a whole container, then remove(int)",
+        threeContainers(),
+        b -> {
+          b.add(5);
+          for (int value : new int[] {1, 2, 3, 5}) {
+            b.remove(value);
+          }
+          b.remove(KEY2);
+        });
+  }
+
+  @Test
+  public void testWriteCopiesOnlyTheContainersItChanges() {
+    CopyOnWriteRoaringBitmap cow =
+        new ImmutableRoaringBitmap(serialize(threeContainers()))
+            .toMutableRoaringBitmapCopyOnWrite();
+    cow.add(KEY4 + 1L, KEY4 + 100L);
+    cow.add(65_536);
+
+    // keys 0 and 2 still read the source buffer, key 1 is new and key 4 was copied
+    MutableRoaringArray containers = cow.getMappeableRoaringArray();
+    assertFalse(containers.getContainerAtIndex(0).isArrayBacked());
+    assertTrue(containers.getContainerAtIndex(1).isArrayBacked());
+    assertFalse(containers.getContainerAtIndex(2).isArrayBacked());
+    assertTrue(containers.getContainerAtIndex(3).isArrayBacked());
+  }
+}
