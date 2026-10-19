@@ -185,6 +185,25 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void limitNearIntegerMaxValueDoesNotOverflow() {
+    // every 32-bit value: 65536 full run containers, so this is cheap
+    RoaringBitmap all = RoaringBitmap.bitmapOfRange(0L, 1L << 32);
+    int[] limits = {
+      Integer.MAX_VALUE,
+      Integer.MAX_VALUE - 1000,
+      Integer.MAX_VALUE - 65535,
+      Integer.MAX_VALUE - 65536
+    };
+    for (int n : limits) {
+      RoaringBitmap limited = all.limit(n);
+      assertEquals(n, limited.getLongCardinality());
+      assertEquals(0, limited.first());
+      assertEquals(n - 1, limited.last());
+      assertTrue(limited.validate());
+    }
+  }
+
+  @Test
   public void pointerContainerTest() {
     RoaringBitmap rb = new RoaringBitmap();
     for (int i = 0; i < (1 << 16); i += 2) {

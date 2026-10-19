@@ -1720,18 +1720,16 @@ public class ImmutableRoaringBitmap
   @Override
   public MutableRoaringBitmap limit(int maxcardinality) {
     MutableRoaringBitmap answer = new MutableRoaringBitmap();
-    int currentcardinality = 0;
-    for (int i = 0;
-        (currentcardinality < maxcardinality) && (i < this.highLowContainer.size());
-        i++) {
+    // count down: summing cardinalities upwards would overflow an int
+    int remaining = maxcardinality;
+    for (int i = 0; (remaining > 0) && (i < this.highLowContainer.size()); i++) {
       MappeableContainer c = this.highLowContainer.getContainerAtIndex(i);
-      if (c.getCardinality() + currentcardinality <= maxcardinality) {
+      if (c.getCardinality() <= remaining) {
         ((MutableRoaringArray) answer.highLowContainer)
             .append(this.highLowContainer.getKeyAtIndex(i), c.clone());
-        currentcardinality += c.getCardinality();
+        remaining -= c.getCardinality();
       } else {
-        int leftover = maxcardinality - currentcardinality;
-        MappeableContainer limited = c.limit(leftover);
+        MappeableContainer limited = c.limit(remaining);
         ((MutableRoaringArray) answer.highLowContainer)
             .append(this.highLowContainer.getKeyAtIndex(i), limited);
         break;
