@@ -8,10 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.ThrowingConsumer;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.LinkedHashMap;
@@ -525,5 +530,38 @@ public class TestCopyOnWriteEdgeCases {
     assertEquals(copied.getCardinality(), copied.content.limit());
     assertEquals(MutableRoaringBitmap.bitmapOf(1, 2, 3, 65_536, 65_537), cow);
     assertEquals(MutableRoaringBitmap.bitmapOf(1, 2, 3, 65_536), source);
+  }
+
+  @Test
+  public void testReplacingTheContentForgetsTheSharedContainers() throws Throwable {
+    MutableRoaringBitmap source = threeContainers();
+    byte[] serialized = serialize(source).array();
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+      source.writeExternal(oos);
+    }
+    byte[] external = bos.toByteArray();
+
+    Map<String, ThrowingConsumer<CopyOnWriteRoaringBitmap>> replacements = new LinkedHashMap<>();
+    replacements.put("clear", CopyOnWriteRoaringBitmap::clear);
+    replacements.put(
+        "deserialize(DataInput)",
+        b -> b.deserialize(new DataInputStream(new ByteArrayInputStream(serialized))));
+    replacements.put("deserialize(ByteBuffer)", b -> b.deserialize(ByteBuffer.wrap(serialized)));
+    replacements.put(
+        "readExternal",
+        b -> {
+          try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(external))) {
+            b.readExternal(ois);
+          }
+        });
+    for (Map.Entry<String, ThrowingConsumer<CopyOnWriteRoaringBitmap>> replacement :
+        replacements.entrySet()) {
+      CopyOnWriteRoaringBitmap cow =
+          new ImmutableRoaringBitmap(serialize(source)).toMutableRoaringBitmapCopyOnWrite();
+      assertFalse(cow.shared.isEmpty(), replacement.getKey());
+      replacement.getValue().accept(cow);
+      assertTrue(cow.shared.isEmpty(), replacement.getKey());
+    }
   }
 }
