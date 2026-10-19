@@ -3842,6 +3842,63 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void addOffsetMultipleOf65536DiscardsValuesOutOfRange() {
+    // 0xFFFFFFFF moves past the end of the 32-bit range
+    assertTrue(
+        MutableRoaringBitmap.addOffset(MutableRoaringBitmap.bitmapOf(-1), 0x10000).isEmpty());
+    assertEquals(
+        MutableRoaringBitmap.bitmapOf(0x10005),
+        MutableRoaringBitmap.addOffset(MutableRoaringBitmap.bitmapOf(5, -1), 0x10000));
+    // 5 moves below zero
+    assertTrue(
+        MutableRoaringBitmap.addOffset(MutableRoaringBitmap.bitmapOf(5), -0x10000).isEmpty());
+    assertEquals(
+        MutableRoaringBitmap.bitmapOf(70000 - 0x10000),
+        MutableRoaringBitmap.addOffset(MutableRoaringBitmap.bitmapOf(5, 70000), -0x10000));
+  }
+
+  @Test
+  public void addOffsetMatchesShiftedValues() {
+    MutableRoaringBitmap rb = new MutableRoaringBitmap();
+    for (int key : new int[] {0, 0x7FFF, 0xFFFF}) {
+      rb.add(key << 16 | 7); // array containers
+      rb.add(key << 16 | 0xFFFF);
+    }
+    rb.add(0x10000L, 0x20000L); // a full run container
+    for (int low = 0; low < 0x10000; low += 2) {
+      rb.add(0x80000000 | low); // a bitmap container
+    }
+    rb.add(0xFFFE0000L + 100, 0xFFFE0000L + 200); // a run container
+    rb.runOptimize();
+    ByteBuffer serialized = ByteBuffer.allocate(rb.serializedSizeInBytes());
+    rb.serialize(serialized);
+    serialized.flip();
+    ImmutableRoaringBitmap mapped = new ImmutableRoaringBitmap(serialized);
+    long[] values = rb.stream().mapToLong(Integer::toUnsignedLong).toArray();
+    long[] keyOffsets = {
+      -0x10000, -0xFFFF, -0x8001, -0x8000, -2, -1, 0, 1, 2, 0x7FFF, 0x8000, 0xFFFF, 0x10000
+    };
+    for (ImmutableRoaringBitmap source : new ImmutableRoaringBitmap[] {rb, mapped}) {
+      for (long keyOffset : keyOffsets) {
+        for (long lowOffset : new long[] {0, 1, 0xFFFF}) {
+          long offset = keyOffset * 0x10000 + lowOffset;
+          long[] expected =
+              Arrays.stream(values)
+                  .map(v -> v + offset)
+                  .filter(v -> v >= 0 && v < 1L << 32)
+                  .toArray();
+          MutableRoaringBitmap shifted = MutableRoaringBitmap.addOffset(source, offset);
+          assertTrue(shifted.validate(), "offset " + offset);
+          assertArrayEquals(
+              expected,
+              shifted.stream().mapToLong(Integer::toUnsignedLong).toArray(),
+              "offset " + offset);
+        }
+      }
+    }
+  }
+
+  @Test
   public void testNextValueArray() {
     MutableRoaringBitmap r = new MutableRoaringBitmap();
     r.add(0, 1, 2, 4, 6);
