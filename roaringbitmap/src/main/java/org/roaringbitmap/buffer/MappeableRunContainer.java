@@ -122,19 +122,13 @@ public final class MappeableRunContainer extends MappeableContainer implements C
         return false;
       }
       runEnd = runStart + (this.getLength(rlepos));
-      if (runStart > runEnd) {
+      if (runEnd > 0xFFFF) { // the run must end within the container
         return false;
       }
     }
-
-    int sizeAsRunContainer = MappeableArrayContainer.serializedSizeInBytes(this.nbrruns);
-    int sizeAsBitmapContainer = MappeableBitmapContainer.serializedSizeInBytes(0);
-    int card = this.getCardinality();
-    int sizeAsArrayContainer = MappeableArrayContainer.serializedSizeInBytes(card);
-    if (sizeAsRunContainer <= Math.min(sizeAsBitmapContainer, sizeAsArrayContainer)) {
-      return true;
-    }
-    return false;
+    // A run container need not be the smallest encoding of its values: remove, limit and
+    // selectRange, among others, keep a shrinking run container as a run container.
+    return true;
   }
 
   /**

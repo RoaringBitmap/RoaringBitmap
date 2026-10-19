@@ -375,6 +375,11 @@ public class RoaringBitmap
 
   /**
    * Validate the content of the bitmap. Useful after deserialization.
+   *
+   * It checks that the bitmap is well formed: keys are sorted, and each container is consistent
+   * with its type. It does not check that each container uses the most compact encoding: call
+   * {@link #runOptimize()} for that.
+   *
    * @return true if the content is valid.
    */
   public Boolean validate() {

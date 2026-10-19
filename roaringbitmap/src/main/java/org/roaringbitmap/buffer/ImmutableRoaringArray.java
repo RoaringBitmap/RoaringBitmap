@@ -306,6 +306,10 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
       if (!container.validate()) {
         return false;
       }
+      // the header cardinality is used without reading the container, it must agree with it
+      if (container.getCardinality() != getCardinality(k)) {
+        return false;
+      }
     }
     return true;
   }
