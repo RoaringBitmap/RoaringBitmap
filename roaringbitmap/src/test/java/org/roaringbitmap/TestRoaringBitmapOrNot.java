@@ -426,4 +426,61 @@ public class TestRoaringBitmapOrNot {
     RoaringBitmap actual = RoaringBitmap.orNot(l, r, limit);
     assertEquals(expected, actual);
   }
+
+  @Test
+  public void orNotDoesNotLeakBitsOfOtherBeyondRangeEnd() {
+    // the last key of the range is only present in the right-hand bitmap
+    for (int kind = 0; kind < 3; kind++) {
+      final RoaringBitmap rb = RoaringBitmap.bitmapOf(100000);
+      final RoaringBitmap other = new RoaringBitmap();
+      switch (kind) {
+        case 0: // array container
+          other.add(5);
+          other.add(6);
+          other.add(7);
+          break;
+        case 1: // bitmap container
+          for (int i = 0; i < 20000; i++) {
+            other.add(i * 3);
+          }
+          break;
+        default: // run container
+          other.add(0L, 40000L);
+          other.runOptimize();
+          break;
+      }
+      final long rangeEnd = 3;
+      final RoaringBitmap complement = RoaringBitmap.flip(other, 0L, rangeEnd);
+      complement.remove(rangeEnd, 1L << 32);
+      final RoaringBitmap expected = RoaringBitmap.or(rb, complement);
+
+      final RoaringBitmap actual = RoaringBitmap.orNot(rb, other, rangeEnd);
+      assertEquals(expected, actual);
+      assertTrue(actual.validate());
+
+      final RoaringBitmap inPlace = rb.clone();
+      inPlace.orNot(other, rangeEnd);
+      assertEquals(expected, inPlace);
+      assertTrue(inPlace.validate());
+    }
+  }
+
+  @Test
+  public void orNotKeepsLastKeyWhenOtherHasFullContainerBeyondRange() {
+    final RoaringBitmap rb = new RoaringBitmap();
+    final RoaringBitmap other = new RoaringBitmap();
+    other.add(1);
+    other.add(3L << 16, 4L << 16); // full container, beyond the range
+    final long rangeEnd = (2L << 16) + 10;
+    final RoaringBitmap expected = new RoaringBitmap();
+    expected.add(0L, rangeEnd);
+    expected.andNot(other);
+
+    final RoaringBitmap actual = RoaringBitmap.orNot(rb, other, rangeEnd);
+    assertEquals(expected, actual);
+
+    final RoaringBitmap inPlace = rb.clone();
+    inPlace.orNot(other, rangeEnd);
+    assertEquals(expected, inPlace);
+  }
 }
