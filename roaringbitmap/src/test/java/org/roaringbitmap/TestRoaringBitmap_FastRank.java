@@ -12,6 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -487,6 +495,168 @@ public class TestRoaringBitmap_FastRank {
 
     fast.xor(new RoaringBitmap());
     assertTrue(fast.isCacheDismissed());
+  }
+
+  @Test
+  public void testDismissCache_addN() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.addN(new int[] {0, 2, 3}, 1, 2);
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(2, 3, 123), fast);
+  }
+
+  @Test
+  public void testDismissCache_orNot() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.orNot(new RoaringBitmap(), 2L);
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(0, 1, 123), fast);
+  }
+
+  @Test
+  public void testDismissCache_append() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.append((char) 1, new ArrayContainer().add((char) 7));
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(123, 65_543), fast);
+  }
+
+  @Test
+  public void testDismissCache_deserializeByteBuffer() throws IOException {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+    RoaringBitmap other = RoaringBitmap.bitmapOf(1, 2, 70_000);
+
+    fast.deserialize(ByteBuffer.wrap(serialize(other)));
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(other, fast);
+  }
+
+  @Test
+  public void testDismissCache_deserializeDataInput() throws IOException {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+    RoaringBitmap other = RoaringBitmap.bitmapOf(1, 2, 70_000);
+
+    fast.deserialize(new DataInputStream(new ByteArrayInputStream(serialize(other))));
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(other, fast);
+  }
+
+  @Test
+  public void testDismissCache_deserializeDataInputWithBuffer() throws IOException {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+    RoaringBitmap other = RoaringBitmap.bitmapOf(1, 2, 70_000);
+
+    fast.deserialize(new DataInputStream(new ByteArrayInputStream(serialize(other))), null);
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(other, fast);
+  }
+
+  @Test
+  public void testDismissCache_readExternal() throws IOException {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+    RoaringBitmap other = RoaringBitmap.bitmapOf(1, 2, 70_000);
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+      other.writeExternal(out);
+    }
+
+    try (ObjectInputStream in =
+        new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+      fast.readExternal(in);
+    }
+    assertTrue(fast.isCacheDismissed());
+    assertSameRankAndSelect(other, fast);
+  }
+
+  @Test
+  public void testDismissCache_lazyor() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.lazyor(RoaringBitmap.bitmapOf(1, 2));
+    assertTrue(fast.isCacheDismissed());
+    fast.repairAfterLazy();
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 2, 123), fast);
+  }
+
+  @Test
+  public void testDismissCache_naivelazyor() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.naivelazyor(RoaringBitmap.bitmapOf(1, 2));
+    assertTrue(fast.isCacheDismissed());
+    fast.repairAfterLazy();
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 2, 123), fast);
+  }
+
+  @Test
+  public void testDismissCache_repairAfterLazy() {
+    FastRankRoaringBitmap fast = prepareFastWithComputedCache();
+
+    fast.repairAfterLazy();
+    assertTrue(fast.isCacheDismissed());
+  }
+
+  @Test
+  public void testDismissCache_writerAppendingAfterGet() {
+    for (RoaringBitmapWriter<FastRankRoaringBitmap> writer :
+        Arrays.asList(
+            RoaringBitmapWriter.writer().fastRank().get(),
+            RoaringBitmapWriter.writer().fastRank().constantMemory().get())) {
+      writer.add(1);
+      writer.add(70_000);
+      FastRankRoaringBitmap fast = writer.get();
+      assertEquals(2, fast.rankLong(70_000));
+
+      writer.add(140_000);
+      writer.flush();
+      assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 70_000, 140_000), fast);
+    }
+  }
+
+  @Test
+  public void testCloneDoesNotShareCache() {
+    FastRankRoaringBitmap original = new FastRankRoaringBitmap();
+    original.add(1, 70_000, 140_000);
+    assertEquals(3, original.rankLong(140_000));
+
+    FastRankRoaringBitmap copy = (FastRankRoaringBitmap) original.clone();
+    copy.add(2);
+    copy.add(3);
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 2, 3, 70_000, 140_000), copy);
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 70_000, 140_000), original);
+
+    original.add(4);
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 4, 70_000, 140_000), original);
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 2, 3, 70_000, 140_000), copy);
+  }
+
+  @Test
+  public void testCloneKeepsComputedCache() {
+    FastRankRoaringBitmap original = new FastRankRoaringBitmap();
+    original.add(1, 70_000, 140_000);
+    assertEquals(3, original.rankLong(140_000));
+
+    FastRankRoaringBitmap copy = (FastRankRoaringBitmap) original.clone();
+    assertFalse(copy.isCacheDismissed());
+    assertSameRankAndSelect(RoaringBitmap.bitmapOf(1, 70_000, 140_000), copy);
+  }
+
+  private static byte[] serialize(RoaringBitmap bitmap) {
+    ByteBuffer buffer = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+    bitmap.serialize(buffer);
+    return buffer.array();
+  }
+
+  private static void assertSameRankAndSelect(RoaringBitmap expected, FastRankRoaringBitmap fast) {
+    int[] values = expected.toArray();
+    for (int i = 0; i < values.length; i++) {
+      assertEquals(i + 1, fast.rankLong(values[i]), "rankLong(" + values[i] + ")");
+      assertEquals(values[i], fast.select(i), "select(" + i + ")");
+    }
+    assertThrows(IllegalArgumentException.class, () -> fast.select(values.length));
   }
 
   @Test
