@@ -1764,6 +1764,105 @@ public class TestImmutableRoaringBitmap {
     assertFalse(bitmap.contains(1L << 31, 1L << 32));
   }
 
+  private static ImmutableRoaringBitmap mapped(MutableRoaringBitmap bitmap) {
+    ByteBuffer buffer = ByteBuffer.allocate(bitmap.serializedSizeInBytes());
+    bitmap.serialize(buffer);
+    buffer.flip();
+    return new ImmutableRoaringBitmap(buffer);
+  }
+
+  @Test
+  public void testContainsRange_LastKeyAbsent() {
+    MutableRoaringBitmap bitmap = MutableRoaringBitmap.bitmapOfRange(0, 1 << 16);
+    assertTrue(bitmap.contains(0L, 1L << 16));
+    assertFalse(bitmap.contains(0L, (1L << 16) + 1));
+    assertFalse(mapped(bitmap).contains(0L, (1L << 16) + 1));
+    // a later container holding the low bits of the bound must not stand in for the absent key
+    bitmap.add(3 << 16);
+    assertFalse(bitmap.contains(0L, (1L << 16) + 1));
+    assertFalse(mapped(bitmap).contains(0L, (1L << 16) + 1));
+    assertTrue(bitmap.contains(0L, 1L << 16));
+  }
+
+  @Test
+  public void testContainsRange_EndOfUniverse() {
+    MutableRoaringBitmap low = MutableRoaringBitmap.bitmapOfRange(0, 1 << 16);
+    MutableRoaringBitmap top = MutableRoaringBitmap.bitmapOf(-1);
+    MutableRoaringBitmap lastKey = MutableRoaringBitmap.bitmapOfRange(0xFFFF0000L, 1L << 32);
+    MutableRoaringBitmap all = MutableRoaringBitmap.bitmapOfRange(0, 1L << 32);
+    for (ImmutableRoaringBitmap bitmap : new ImmutableRoaringBitmap[] {low, mapped(low)}) {
+      assertFalse(bitmap.contains(0L, 1L << 32));
+      assertFalse(bitmap.contains(5L, 1L << 32));
+    }
+    for (ImmutableRoaringBitmap bitmap : new ImmutableRoaringBitmap[] {top, mapped(top)}) {
+      assertTrue(bitmap.contains(0xFFFFFFFFL, 1L << 32));
+      assertFalse(bitmap.contains(0xFFFFFFFEL, 1L << 32));
+    }
+    for (ImmutableRoaringBitmap bitmap : new ImmutableRoaringBitmap[] {lastKey, mapped(lastKey)}) {
+      assertTrue(bitmap.contains(0xFFFF0000L, 1L << 32));
+      assertTrue(bitmap.contains(0xFFFF8000L, 1L << 32));
+      assertFalse(bitmap.contains(0xFFFEFFFFL, 1L << 32));
+    }
+    for (ImmutableRoaringBitmap bitmap : new ImmutableRoaringBitmap[] {all, mapped(all)}) {
+      assertTrue(bitmap.contains(0L, 1L << 32));
+      assertTrue(bitmap.contains(5L, 1L << 32));
+    }
+  }
+
+  @Test
+  public void testContainsRange_AgreesWithRangeCardinality() {
+    long[] points = {
+      0,
+      1,
+      0xFFFF,
+      0x10000,
+      0x10001,
+      0x1FFFF,
+      0x20000,
+      0x30000,
+      0x30001,
+      0xFFFEFFFFL,
+      0xFFFF0000L,
+      0xFFFF0001L,
+      0xFFFFFFFEL,
+      0xFFFFFFFFL,
+      1L << 32
+    };
+    MutableRoaringBitmap gap = MutableRoaringBitmap.bitmapOfRange(0, 1 << 16);
+    gap.add(3 << 16);
+    MutableRoaringBitmap ends = MutableRoaringBitmap.bitmapOfRange(0, 2 << 16);
+    ends.add(0xFFFF0000L, 1L << 32);
+    MutableRoaringBitmap[] bitmaps = {
+      MutableRoaringBitmap.bitmapOfRange(0, 1 << 16),
+      gap,
+      ends,
+      MutableRoaringBitmap.bitmapOfRange(0xFFFE0000L, 1L << 32),
+      MutableRoaringBitmap.bitmapOf(0, 1 << 16, 3 << 16, -2, -1),
+      MutableRoaringBitmap.bitmapOfRange(0, 1L << 32)
+    };
+    for (MutableRoaringBitmap source : bitmaps) {
+      for (ImmutableRoaringBitmap bitmap : new ImmutableRoaringBitmap[] {source, mapped(source)}) {
+        for (long min : points) {
+          for (long sup : points) {
+            if (min < sup && min < (1L << 32)) {
+              boolean expected = bitmap.rangeCardinality(min, sup) == sup - min;
+              assertEquals(
+                  expected,
+                  bitmap.contains(min, sup),
+                  "contains("
+                      + min
+                      + ", "
+                      + sup
+                      + ") on "
+                      + bitmap.getLongCardinality()
+                      + " values");
+            }
+          }
+        }
+      }
+    }
+  }
+
   @Test
   public void testNextValue() {
     ImmutableRoaringBitmap bitmap =

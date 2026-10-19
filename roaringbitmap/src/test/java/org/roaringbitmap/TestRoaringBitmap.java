@@ -5488,6 +5488,80 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testContainsRange_LastKeyAbsent() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOfRange(0, 1 << 16);
+    assertTrue(bitmap.contains(0L, 1L << 16));
+    assertFalse(bitmap.contains(0L, (1L << 16) + 1));
+    // a later container holding the low bits of the bound must not stand in for the absent key
+    bitmap.add(3 << 16);
+    assertFalse(bitmap.contains(0L, (1L << 16) + 1));
+    assertTrue(bitmap.contains(0L, 1L << 16));
+  }
+
+  @Test
+  public void testContainsRange_EndOfUniverse() {
+    RoaringBitmap low = RoaringBitmap.bitmapOfRange(0, 1 << 16);
+    assertFalse(low.contains(0L, 1L << 32));
+    assertFalse(low.contains(5L, 1L << 32));
+    RoaringBitmap top = RoaringBitmap.bitmapOf(-1);
+    assertTrue(top.contains(0xFFFFFFFFL, 1L << 32));
+    assertFalse(top.contains(0xFFFFFFFEL, 1L << 32));
+    RoaringBitmap lastKey = RoaringBitmap.bitmapOfRange(0xFFFF0000L, 1L << 32);
+    assertTrue(lastKey.contains(0xFFFF0000L, 1L << 32));
+    assertTrue(lastKey.contains(0xFFFF8000L, 1L << 32));
+    assertFalse(lastKey.contains(0xFFFEFFFFL, 1L << 32));
+    RoaringBitmap all = RoaringBitmap.bitmapOfRange(0, 1L << 32);
+    assertTrue(all.contains(0L, 1L << 32));
+    assertTrue(all.contains(5L, 1L << 32));
+  }
+
+  @Test
+  public void testContainsRange_AgreesWithRangeCardinality() {
+    long[] points = {
+      0,
+      1,
+      0xFFFF,
+      0x10000,
+      0x10001,
+      0x1FFFF,
+      0x20000,
+      0x30000,
+      0x30001,
+      0xFFFEFFFFL,
+      0xFFFF0000L,
+      0xFFFF0001L,
+      0xFFFFFFFEL,
+      0xFFFFFFFFL,
+      1L << 32
+    };
+    RoaringBitmap gap = RoaringBitmap.bitmapOfRange(0, 1 << 16);
+    gap.add(3 << 16);
+    RoaringBitmap ends = RoaringBitmap.bitmapOfRange(0, 2 << 16);
+    ends.add(0xFFFF0000L, 1L << 32);
+    RoaringBitmap[] bitmaps = {
+      RoaringBitmap.bitmapOfRange(0, 1 << 16),
+      gap,
+      ends,
+      RoaringBitmap.bitmapOfRange(0xFFFE0000L, 1L << 32),
+      RoaringBitmap.bitmapOf(0, 1 << 16, 3 << 16, -2, -1),
+      RoaringBitmap.bitmapOfRange(0, 1L << 32)
+    };
+    for (RoaringBitmap bitmap : bitmaps) {
+      for (long min : points) {
+        for (long sup : points) {
+          if (min < sup && min < (1L << 32)) {
+            boolean expected = bitmap.rangeCardinality(min, sup) == sup - min;
+            assertEquals(
+                expected,
+                bitmap.contains(min, sup),
+                "contains(" + min + ", " + sup + ") on " + bitmap.getLongCardinality() + " values");
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   public void addoffset() {
     final RoaringBitmap rb = new RoaringBitmap();
     rb.add(10);

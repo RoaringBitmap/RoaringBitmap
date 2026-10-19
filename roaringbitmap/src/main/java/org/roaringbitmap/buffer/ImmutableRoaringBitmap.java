@@ -1262,14 +1262,15 @@ public class ImmutableRoaringBitmap
       return false;
     }
     char firstKey = highbits(minimum);
-    char lastKey = highbits(supremum);
+    // the key of the exclusive bound: 0x10000 when supremum is 2^32
+    int lastKey = (int) (supremum >>> 16);
     int span = (lastKey) - (firstKey);
     int len = highLowContainer.size();
     if (len < span) {
       return false;
     }
     int begin = highLowContainer.getIndex(firstKey);
-    int end = highLowContainer.getIndex(lastKey);
+    int end = lastKey > 0xFFFF ? len : highLowContainer.getIndex((char) lastKey);
     end = end < 0 ? -end - 1 : end;
     if (begin < 0 || end - begin != span) {
       return false;
@@ -1278,14 +1279,16 @@ public class ImmutableRoaringBitmap
     int min = (char) minimum;
     int sup = (char) supremum;
     if (firstKey == lastKey) {
-      return highLowContainer
-          .getContainerAtIndex(begin)
-          .contains(min, (supremum & 0xFFFF) == 0 ? 0x10000 : sup);
+      return highLowContainer.getContainerAtIndex(begin).contains(min, sup);
     }
     if (!highLowContainer.getContainerAtIndex(begin).contains(min, 1 << 16)) {
       return false;
     }
-    if (sup != 0 && end < len && !highLowContainer.getContainerAtIndex(end).contains(0, sup)) {
+    // a partial last key must be present itself: the container at end may belong to a later key
+    if (sup != 0
+        && (end == len
+            || highLowContainer.getKeyAtIndex(end) != lastKey
+            || !highLowContainer.getContainerAtIndex(end).contains(0, sup))) {
       return false;
     }
     for (int i = begin + 1; i < end; ++i) {
