@@ -3,6 +3,10 @@ package org.roaringbitmap.buffer;
 /*
  * (c) the authors Licensed under the Apache License, Version 2.0.
  */
+import java.io.DataInput;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -14,7 +18,8 @@ import java.util.Set;
 public class CopyOnWriteRoaringBitmap extends MutableRoaringBitmap {
   // The containers still shared with the source bitmap. They are compared by identity, which,
   // unlike their index, does not change when other containers are inserted or removed.
-  private final Set<MappeableContainer> shared = Collections.newSetFromMap(new IdentityHashMap<>());
+  // Package-private for tests.
+  final Set<MappeableContainer> shared = Collections.newSetFromMap(new IdentityHashMap<>());
 
   /**
    * Create a new copy-on-write bitmap.
@@ -203,6 +208,33 @@ public class CopyOnWriteRoaringBitmap extends MutableRoaringBitmap {
   protected void naivelazyor(final ImmutableRoaringBitmap x2) {
     ensureAllContainersCopied();
     super.naivelazyor(x2);
+  }
+
+  // clear, deserialize and readExternal replace all the containers: forget the shared ones, so
+  // that they, and the buffer they may map, can be garbage collected
+
+  @Override
+  public void clear() {
+    shared.clear();
+    super.clear();
+  }
+
+  @Override
+  public void deserialize(DataInput in) throws IOException {
+    shared.clear();
+    super.deserialize(in);
+  }
+
+  @Override
+  public void deserialize(ByteBuffer buffer) throws IOException {
+    shared.clear();
+    super.deserialize(buffer);
+  }
+
+  @Override
+  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    shared.clear();
+    super.readExternal(in);
   }
 
   @Override
