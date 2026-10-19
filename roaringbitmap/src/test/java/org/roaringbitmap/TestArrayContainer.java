@@ -976,4 +976,17 @@ public class TestArrayContainer {
   private static int lower16Bits(int x) {
     return ((char) x) & 0xFFFF;
   }
+
+  @Test
+  public void andNotBitmapSizesResultByCardinality() {
+    ArrayContainer array = new ArrayContainer(1024);
+    array.add((char) 1);
+    array.add((char) 100);
+    array.add((char) 1000);
+    BitmapContainer bitmap = new BitmapContainer();
+    bitmap.add((char) 100);
+    ArrayContainer result = array.andNot(bitmap);
+    assertEquals(new ArrayContainer(new char[] {1, 1000}), result);
+    assertEquals(array.getCardinality(), result.content.length);
+  }
 }

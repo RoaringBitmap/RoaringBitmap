@@ -363,7 +363,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
   @Override
   public MappeableArrayContainer andNot(MappeableBitmapContainer value2) {
 
-    final MappeableArrayContainer answer = new MappeableArrayContainer(content.limit());
+    final MappeableArrayContainer answer = new MappeableArrayContainer(cardinality);
     int pos = 0;
     char[] sarray = answer.content.array();
     if (BufferUtil.isBackedBySimpleArray(this.content)) {

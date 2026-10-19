@@ -756,4 +756,19 @@ public class TestMappeableArrayContainer {
   private static int lower16Bits(int x) {
     return ((char) x);
   }
+
+  @Test
+  public void andNotBitmapSizesResultByCardinality() {
+    MappeableArrayContainer array = new MappeableArrayContainer(1024);
+    array.add((char) 1);
+    array.add((char) 100);
+    array.add((char) 1000);
+    MappeableBitmapContainer bitmap = new MappeableBitmapContainer();
+    bitmap.add((char) 100);
+    MappeableArrayContainer result = array.andNot(bitmap);
+    assertEquals(2, result.getCardinality());
+    assertTrue(result.contains((char) 1));
+    assertTrue(result.contains((char) 1000));
+    assertEquals(array.getCardinality(), result.content.limit());
+  }
 }
