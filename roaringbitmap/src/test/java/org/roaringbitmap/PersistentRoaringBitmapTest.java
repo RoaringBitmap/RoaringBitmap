@@ -365,12 +365,12 @@ public class PersistentRoaringBitmapTest {
   @Test
   public void containsRange() {
     PersistentRoaringBitmap firstBlock = PersistentRoaringBitmap.bitmapOfRange(0, 65_536);
-    // RoaringBitmap.contains(long, long) answers true for both (A13)
+    // RoaringBitmap.contains(long, long) answered true for both before #863
     assertFalse(firstBlock.contains(0, 65_537));
     assertFalse(firstBlock.contains(0, UNIVERSE));
     assertTrue(firstBlock.contains(0, 65_536));
     PersistentRoaringBitmap last = PersistentRoaringBitmap.bitmapOf(-1);
-    // RoaringBitmap.contains(long, long) answers false (A13)
+    // RoaringBitmap.contains(long, long) answered false before #863
     assertTrue(last.contains(UNIVERSE - 1, UNIVERSE));
     assertFalse(last.contains(UNIVERSE - 2, UNIVERSE));
     assertFalse(last.contains(5, 5));
@@ -405,7 +405,7 @@ public class PersistentRoaringBitmapTest {
 
   @Test
   public void limitDoesNotOverflow() {
-    // RoaringBitmap.limit returns every value here (A11); the expectations are symbolic
+    // RoaringBitmap.limit returned every value here before #861; the expectations are symbolic
     PersistentRoaringBitmap universe = PersistentRoaringBitmap.bitmapOfRange(0, UNIVERSE);
     assertTrue(universe.validate());
     for (int n : new int[] {Integer.MAX_VALUE, Integer.MAX_VALUE - 1, 1 << 30, (1 << 30) + 1}) {
@@ -437,17 +437,18 @@ public class PersistentRoaringBitmapTest {
 
   @Test
   public void smallRunHistoriesStayStructurallyValid() {
-    // the run container of {2} is larger than an array: validate() rejects it (A12), J4 does not
+    // the run container of {2} is larger than an array; validate() accepts it since #884
     PersistentRoaringBitmap three = PersistentRoaringBitmap.bitmapOfRange(0, 3);
     three.remove(0);
     three.remove(1);
     assertValues(Model.of(2), three, "{2}");
     assertTrue(container(three, 0) instanceof RunContainer);
-    assertFalse(three.validate());
+    assertTrue(three.validate());
     assertTrue(three.runOptimize());
     assertTrue(three.validate());
     PersistentRoaringBitmap limited = PersistentRoaringBitmap.bitmapOfRange(0, 100).limit(1);
     assertValues(Model.of(0), limited, "limit(1)");
+    assertTrue(limited.validate());
     limited.runOptimize();
     assertTrue(limited.validate());
   }

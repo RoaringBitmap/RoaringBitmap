@@ -514,7 +514,7 @@ public class PersistentRoaringBitmapSharingTest {
 
   @Test
   public void rangeWritesThatLookLikeNoOps() {
-    // RoaringBitmap.contains(long, long) answers true for these ranges (A13)
+    // RoaringBitmap.contains(long, long) answered true for these ranges before #863
     for (long end : new long[] {65_537, UNIVERSE}) {
       PersistentRoaringBitmap x = PersistentRoaringBitmap.bitmapOfRange(0, 65_536);
       PersistentRoaringBitmap copy = x.clone();

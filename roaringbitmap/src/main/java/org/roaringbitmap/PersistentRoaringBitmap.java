@@ -82,14 +82,11 @@ import java.util.Iterator;
  *
  * <p><b>Untrusted input.</b> As with {@link RoaringBitmap}, a bitmap deserialized from an
  * untrusted source must not be used until {@link #validate()} returns {@code true}. {@link
- * #validate()} has exactly {@link RoaringBitmap#validate()}'s semantics, which also reject a run
- * container that is not the smallest encoding of its values. Ordinary writes can leave such
- * containers, so call {@link #runOptimize()} before serializing data that a consumer will validate.
+ * #validate()} has exactly {@link RoaringBitmap#validate()}'s semantics.
  *
  * <p><b>Differences from {@link RoaringBitmap}.</b> {@link #runOptimize()} returns whether anything
- * changed. {@link #hashCode()} depends only on the values. {@link #limit(int)} does not overflow
- * near {@link Integer#MAX_VALUE}, and {@link #contains(long, long)} is exact for every range. The
- * same history can leave different container encodings in the two classes, with the same values.
+ * changed. {@link #hashCode()} depends only on the values. The same history can leave different
+ * container encodings in the two classes, with the same values.
  */
 public final class PersistentRoaringBitmap
     implements ImmutableBitmapDataProvider, BitmapDataProvider, Iterable<Integer>, Cloneable {
