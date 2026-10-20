@@ -457,9 +457,17 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public int hashCode() {
+    // the same as for a bitmap container holding these values (see Util.hashWord)
     int hash = 0;
-    for (int k = 0; k < cardinality; ++k) {
-      hash += 31 * hash + content[k];
+    int k = 0;
+    while (k < cardinality) {
+      final int wordIndex = content[k] >>> 6;
+      long word = 0;
+      do {
+        word |= 1L << content[k];
+        ++k;
+      } while (k < cardinality && content[k] >>> 6 == wordIndex);
+      hash += Util.hashWord(wordIndex, word);
     }
     return hash;
   }

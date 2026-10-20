@@ -514,7 +514,12 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(this.bitmap);
+    // the same as for an array or run container holding these values (see Util.hashWord)
+    int hash = 0;
+    for (int k = 0; k < bitmap.length; ++k) {
+      hash += Util.hashWord(k, bitmap[k]);
+    }
+    return hash;
   }
 
   @Override

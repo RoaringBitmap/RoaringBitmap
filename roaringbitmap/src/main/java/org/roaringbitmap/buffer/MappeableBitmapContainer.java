@@ -580,12 +580,13 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
 
   @Override
   public int hashCode() {
-    long hash = 0;
+    // the same as for an array or run container holding these values (see Util.hashWord)
+    int hash = 0;
     int len = this.bitmap.limit();
     for (int k = 0; k < len; ++k) {
-      hash += 31 * hash + this.bitmap.get(k);
+      hash += Util.hashWord(k, this.bitmap.get(k));
     }
-    return (int) hash;
+    return hash;
   }
 
   @Override

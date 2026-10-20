@@ -596,9 +596,17 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public int hashCode() {
+    // the same as for a bitmap container holding these values (see Util.hashWord)
     int hash = 0;
-    for (int k = 0; k < cardinality; ++k) {
-      hash += 31 * hash + content.get(k);
+    int k = 0;
+    while (k < cardinality) {
+      final int wordIndex = content.get(k) >>> 6;
+      long word = 0;
+      do {
+        word |= 1L << content.get(k);
+        ++k;
+      } while (k < cardinality && content.get(k) >>> 6 == wordIndex);
+      hash += Util.hashWord(wordIndex, word);
     }
     return hash;
   }

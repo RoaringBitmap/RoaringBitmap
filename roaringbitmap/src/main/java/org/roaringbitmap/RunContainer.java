@@ -1070,11 +1070,30 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public int hashCode() {
+    // the same as for a bitmap container holding these values (see Util.hashWord); a word that
+    // runs share is hashed once, after its bits are collected
     int hash = 0;
-    for (int k = 0; k < nbrruns * 2; ++k) {
-      hash += 31 * hash + valueslength[k];
+    int wordIndex = 0;
+    long word = 0;
+    for (int k = 0; k < nbrruns; ++k) {
+      final int start = getValue(k);
+      final int end = start + getLength(k) + 1;
+      if (start >>> 6 != wordIndex) {
+        hash += Util.hashWord(wordIndex, word);
+        wordIndex = start >>> 6;
+        word = 0;
+      }
+      final int endWordIndex = (end - 1) >>> 6;
+      if (endWordIndex == wordIndex) {
+        word |= (~0L << start) & (~0L >>> -end);
+      } else {
+        hash += Util.hashWord(wordIndex, word | (~0L << start));
+        hash += Util.hashFullWords(wordIndex + 1, endWordIndex);
+        wordIndex = endWordIndex;
+        word = ~0L >>> -end;
+      }
     }
-    return hash;
+    return hash + Util.hashWord(wordIndex, word);
   }
 
   @Override

@@ -3223,6 +3223,33 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void testHashDoesNotDependOnTheEncoding() {
+    RoaringBitmap byValues = new RoaringBitmap(); // an array and a bitmap container
+    for (int i = 0; i < 100; i++) {
+      byValues.add(i);
+    }
+    for (int i = 100_000; i < 110_000; i++) {
+      byValues.add(i);
+    }
+    RoaringBitmap byRanges = new RoaringBitmap(); // two run containers
+    byRanges.add(0L, 100L);
+    byRanges.add(100_000L, 110_000L);
+    assertFalse(byValues.hasRunCompression());
+    assertTrue(byRanges.hasRunCompression());
+    RoaringBitmap optimized = byValues.clone();
+    optimized.runOptimize();
+    RoaringBitmap unoptimized = byRanges.clone();
+    unoptimized.removeRunCompression();
+    for (RoaringBitmap other : Arrays.asList(byRanges, optimized, unoptimized)) {
+      assertEquals(byValues, other);
+      assertEquals(byValues.hashCode(), other.hashCode());
+    }
+    Set<RoaringBitmap> set = new HashSet<>();
+    set.add(byValues);
+    assertTrue(set.contains(byRanges));
+  }
+
+  @Test
   public void testHighBits() {
     for (int offset = 1 << 14; offset < 1 << 18; offset *= 2) {
       RoaringBitmap rb = new RoaringBitmap();
