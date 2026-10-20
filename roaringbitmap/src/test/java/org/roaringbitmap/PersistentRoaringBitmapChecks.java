@@ -358,7 +358,7 @@ final class PersistentRoaringBitmapChecks {
 
     long cardinality() {
       long cardinality = 0;
-      for (int i = 0; i < bounds.length; i += 2) {
+      for (int i = 0; i + 1 < bounds.length; i += 2) {
         cardinality += bounds[i + 1] - bounds[i];
       }
       return cardinality;
@@ -390,7 +390,7 @@ final class PersistentRoaringBitmapChecks {
       long[] out = new long[bounds.length];
       long remaining = count;
       int n = 0;
-      for (int i = 0; i < bounds.length && remaining > 0; i += 2) {
+      for (int i = 0; i + 1 < bounds.length && remaining > 0; i += 2) {
         long length = Math.min(bounds[i + 1] - bounds[i], remaining);
         out[n++] = bounds[i];
         out[n++] = bounds[i] + length;
@@ -403,7 +403,7 @@ final class PersistentRoaringBitmapChecks {
     int[] toArray() {
       int[] values = new int[(int) cardinality()];
       int n = 0;
-      for (int i = 0; i < bounds.length; i += 2) {
+      for (int i = 0; i + 1 < bounds.length; i += 2) {
         for (long value = bounds[i]; value < bounds[i + 1]; value++) {
           values[n++] = (int) value;
         }
@@ -424,7 +424,7 @@ final class PersistentRoaringBitmapChecks {
     @Override
     public String toString() {
       StringBuilder text = new StringBuilder("{");
-      for (int i = 0; i < bounds.length; i += 2) {
+      for (int i = 0; i + 1 < bounds.length; i += 2) {
         if (i > 0) {
           text.append(", ");
         }

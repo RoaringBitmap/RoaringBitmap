@@ -137,7 +137,7 @@ public class PersistentRoaringBitmapModelTest {
           break;
         case 1:
           start = base();
-          end = Math.min(UNIVERSE, start + 65_536 * (1 + random.nextInt(2)));
+          end = Math.min(UNIVERSE, start + 65_536L * (1 + random.nextInt(2)));
           break;
         case 2:
           start = value();

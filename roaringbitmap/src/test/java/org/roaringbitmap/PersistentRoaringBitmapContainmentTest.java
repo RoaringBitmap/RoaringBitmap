@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -198,8 +197,8 @@ public class PersistentRoaringBitmapContainmentTest {
 
   /** The members of the OWNERS types that a class file references, from its constant pool. */
   static TreeSet<String> referencedMembers(Class<?> type) throws IOException {
-    try (InputStream stream = type.getResourceAsStream(type.getSimpleName() + ".class")) {
-      DataInputStream in = new DataInputStream(stream);
+    try (DataInputStream in =
+        new DataInputStream(type.getResourceAsStream(type.getSimpleName() + ".class"))) {
       in.readInt(); // magic
       in.readUnsignedShort(); // minor version
       in.readUnsignedShort(); // major version
