@@ -277,10 +277,12 @@ public final class PersistentRoaringBitmap
   }
 
   /**
-   * One linear merge for the four operations. A container whose key only one operand holds, a
-   * container both operands hold under the same key, and a container operation that returns one of
-   * its arguments are borrowed: the result slot is shared and the operand that supplied the
-   * container is marked as lending. No container method is called with the same container twice.
+   * One linear merge for the four operations. A container whose key only one operand holds is
+   * borrowed: the result slot is shared and the operand that supplied the container is marked as
+   * lending. A container both operands hold under the same key is shared in both already, so it is
+   * borrowed without marking either. As a safeguard, a container operation that returns one of its
+   * arguments is borrowed too, although the container operations return new containers. No
+   * container method is called with the same container twice.
    */
   private static PersistentRoaringBitmap merge(
       PersistentRoaringBitmap x1, PersistentRoaringBitmap x2, int op) {

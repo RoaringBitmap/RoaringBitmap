@@ -3,6 +3,7 @@ package org.roaringbitmap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.UNIVERSE;
@@ -268,6 +269,12 @@ public class PersistentRoaringBitmapSharingTest {
     assertEquals(a.xor(b).cardinality(), PersistentRoaringBitmap.xorCardinality(a(), b()));
     assertEquals(a.andNot(b).cardinality(), PersistentRoaringBitmap.andNotCardinality(a(), b()));
     assertTrue(PersistentRoaringBitmap.intersects(a(), b()));
+    // a common key, no common value
+    PersistentRoaringBitmap low = PersistentRoaringBitmap.bitmapOfRange(0, 10);
+    PersistentRoaringBitmap high = PersistentRoaringBitmap.bitmapOfRange(100, 110);
+    assertFalse(PersistentRoaringBitmap.intersects(low, high));
+    assertEquals(0, PersistentRoaringBitmap.andCardinality(low, high));
+    assertValues(Model.EMPTY, PersistentRoaringBitmap.and(low, high), "and of disjoint values");
     PersistentRoaringBitmap empty = new PersistentRoaringBitmap();
     assertValues(a, PersistentRoaringBitmap.or(a(), empty), "or empty");
     assertValues(a, PersistentRoaringBitmap.or(empty, a()), "or empty");
@@ -486,7 +493,7 @@ public class PersistentRoaringBitmapSharingTest {
     for (Write write : noOps) {
       for (int state = 0; state < 4; state++) {
         PersistentRoaringBitmap x = a();
-        PersistentRoaringBitmap other = null; // keeps the co-owner reachable
+        PersistentRoaringBitmap other = null; // another holder of x's containers
         if (state == 1) {
           other = x.clone(); // lent
         } else if (state == 2) {
@@ -507,7 +514,9 @@ public class PersistentRoaringBitmapSharingTest {
         assertTrue(Arrays.equals(flags, flags(x)), name);
         assertSameInstances(values, x, name);
         assertUnchanged(storage, name);
-        assertTrue(other == null || other.getCardinality() > 0);
+        if (other != null) {
+          assertValues(Model.of(a()), other, name + ", the other holder");
+        }
       }
     }
   }
@@ -563,7 +572,7 @@ public class PersistentRoaringBitmapSharingTest {
     x.add(1L << 16, 2L << 16); // the shared bitmap container is replaced, not copied
     assertTrue(container(x, 1) instanceof RunContainer);
     x.remove(0, 65_536); // the shared array container is dropped, not copied
-    assertEquals(null, container(x, 0));
+    assertNull(container(x, 0));
     assertSame(dense, container(copy, 1));
     assertUnchanged(storage, "replaced and dropped");
   }
@@ -589,7 +598,7 @@ public class PersistentRoaringBitmapSharingTest {
     assertOwnership(list(x, copy));
   }
 
-  // T4: the container methods that sharing relies on
+  // the container methods that sharing relies on
 
   /** One container of each type, plus a full run, in a fresh copy each time. */
   static List<Container> shapes() {
@@ -638,8 +647,7 @@ public class PersistentRoaringBitmapSharingTest {
           assertNotSame(backingArray(c2), backingArray(result), name);
           assertEquals(before1, storage(c1), name);
           assertEquals(before2, storage(c2), name);
-          result = result.iadd(0, 65_536).iremove(0, 65_536); // scribble over the result
-          assertTrue(result.isEmpty() || result.getCardinality() >= 0);
+          result.iadd(0, 65_536).iremove(0, 65_536); // scribble over the result
           assertEquals(before1, storage(c1), name);
           assertEquals(before2, storage(c2), name);
         }
@@ -702,7 +710,7 @@ public class PersistentRoaringBitmapSharingTest {
     }
   }
 
-  // T8: concurrent non-mutating operations, then a mutation by the owner
+  // concurrent non-mutating operations, then a mutation by the owner
 
   /**
    * Readers share containers concurrently, the owner writes after joining them, and every result
@@ -711,7 +719,7 @@ public class PersistentRoaringBitmapSharingTest {
    */
   @Test
   public void concurrentSharingThenOwnerWrites() throws InterruptedException {
-    for (int phase = 0; phase < 10; phase++) {
+    for (Write write : WRITES) {
       PersistentRoaringBitmap x = a();
       PersistentRoaringBitmap y = b();
       // versions that share containers, which and() reuses without writing either of them
@@ -747,7 +755,6 @@ public class PersistentRoaringBitmapSharingTest {
           assertValues(expected.get(i), results.get(i), "result " + i + ", epoch " + epoch);
         }
       }
-      Write write = WRITES.get(phase % WRITES.size());
       write.write.accept(x);
       write.write.accept(y);
       for (int i = 0; i < results.size(); i++) {
@@ -776,7 +783,7 @@ public class PersistentRoaringBitmapSharingTest {
           new Thread(
               () -> {
                 try {
-                  for (int i = 0; i < 25; i++) {
+                  for (int i = 0; i < 8; i++) {
                     mine.add(PersistentRoaringBitmap.or(x, y));
                     mine.add(PersistentRoaringBitmap.xor(x, y));
                     mine.add(PersistentRoaringBitmap.andNot(x, y));

@@ -80,7 +80,14 @@ public class PersistentRoaringBitmapTest {
     return bitmap;
   }
 
+  /** The values of {@link #varied()}. Models are immutable, and this one is slow to build. */
+  private static final Model VARIED_MODEL = buildVariedModel();
+
   static Model variedModel() {
+    return VARIED_MODEL;
+  }
+
+  private static Model buildVariedModel() {
     Model model = Model.EMPTY;
     for (int key : new int[] {0, 0x7FFF, 0xFFFF}) {
       for (int low : SPARSE) {
@@ -527,6 +534,7 @@ public class PersistentRoaringBitmapTest {
     byte[] bytes = serialize(varied());
     byte[] truncated = Arrays.copyOf(bytes, bytes.length / 2);
     PersistentRoaringBitmap bitmap = PersistentRoaringBitmap.bitmapOf(7, 70_000);
+    PersistentRoaringBitmap copy = bitmap.clone(); // so the bitmap must stay marked as lending
     assertThrows(
         BufferUnderflowException.class, () -> bitmap.deserialize(ByteBuffer.wrap(truncated)));
     assertThrows(
@@ -537,6 +545,8 @@ public class PersistentRoaringBitmapTest {
     badCookie[1] = 0;
     assertThrows(IOException.class, () -> bitmap.deserialize(ByteBuffer.wrap(badCookie)));
     assertValues(Model.of(7, 70_000), bitmap, "after failed decodes");
+    bitmap.add(5);
+    assertValues(Model.of(7, 70_000), copy, "the clone, after a write to the bitmap");
   }
 
   @Test
@@ -640,5 +650,9 @@ public class PersistentRoaringBitmapTest {
     other.add(2);
     assertNotEquals(bitmap, other);
     assertNotEquals(bitmap, null);
+    // as many values, but different ones: under the same key, and the same low bits under another
+    assertNotEquals(PersistentRoaringBitmap.bitmapOf(1, 2), PersistentRoaringBitmap.bitmapOf(1, 3));
+    assertNotEquals(
+        PersistentRoaringBitmap.bitmapOf(5), PersistentRoaringBitmap.bitmapOf(5 + 65_536));
   }
 }

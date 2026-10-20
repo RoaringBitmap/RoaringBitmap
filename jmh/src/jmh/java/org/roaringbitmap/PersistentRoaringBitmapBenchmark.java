@@ -121,7 +121,11 @@ public class PersistentRoaringBitmapBenchmark {
     return union;
   }
 
-  /** Writes to 10 % of the result's containers, each of which is copied first. */
+  /**
+   * Adds a value under every tenth key of the first operand: 5 to 10 % of the result's containers,
+   * depending on the overlap. An add that changes a container the result shares with an operand
+   * copies it first; at 100 % overlap, the result shares none.
+   */
   @Benchmark
   public PersistentRoaringBitmap persistentOrThenWrite() {
     PersistentRoaringBitmap union = PersistentRoaringBitmap.or(pa, pb);
@@ -149,7 +153,10 @@ public class PersistentRoaringBitmapBenchmark {
     return copy;
   }
 
-  /** Both sides of a clone write to every container: about twice the copies of a deep clone. */
+  /**
+   * Each side of a clone adds a value under every key, so nearly every container is copied once
+   * per side: about twice the copies of a deep clone.
+   */
   @Benchmark
   public PersistentRoaringBitmap persistentCloneThenWriteBothSides() {
     PersistentRoaringBitmap original = pa.clone();

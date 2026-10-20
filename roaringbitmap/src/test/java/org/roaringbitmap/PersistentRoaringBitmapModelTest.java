@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.UNIVERSE;
 import static org.roaringbitmap.PersistentRoaringBitmapChecks.assertOwnership;
@@ -69,6 +70,9 @@ public class PersistentRoaringBitmapModelTest {
                 PersistentRoaringBitmap.fromBitmap(bitmap.toRoaringBitmap());
             copy.runOptimize();
             assertTrue(copy.validate(), context);
+            // equality and hash codes depend neither on the encodings nor on sharing
+            assertEquals(bitmap, copy, context);
+            assertEquals(bitmap.hashCode(), copy.hashCode(), context);
           }
         }
       }
