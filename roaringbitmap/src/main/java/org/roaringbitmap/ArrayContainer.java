@@ -24,6 +24,7 @@ import java.util.Iterator;
 public final class ArrayContainer extends Container implements Cloneable {
   private static final int DEFAULT_INIT_SIZE = 4;
   private static final int ARRAY_LAZY_LOWERBOUND = 1024;
+  private static final int MAX_CARDINALITY_FOR_EAGER_OR = 64;
 
   static final int DEFAULT_MAX_SIZE = 4096; // containers with DEFAULT_MAX_SZE or less integers
   // should be ArrayContainers
@@ -982,6 +983,28 @@ public final class ArrayContainer extends Container implements Cloneable {
     final ArrayContainer value1 = this;
     int totalCardinality = value1.getCardinality() + value2.getCardinality();
     if (totalCardinality > DEFAULT_MAX_SIZE) {
+      ArrayContainer base = value1;
+      ArrayContainer additions = value2;
+      if (base.getCardinality() < additions.getCardinality()) {
+        base = value2;
+        additions = value1;
+      }
+      if (additions.getCardinality() <= MAX_CARDINALITY_FOR_EAGER_OR) {
+        if (additions.getCardinality() == 1
+            && base.getCardinality() <= DEFAULT_MAX_SIZE
+            && base.contains(additions.content[0])) {
+          return base.clone();
+        }
+        BitmapContainer answer = base.toBitmapContainer();
+        answer.ior(additions);
+        if (answer.getCardinality() <= DEFAULT_MAX_SIZE) {
+          return answer.toArrayContainer();
+        }
+        if (answer.isFull()) {
+          return RunContainer.full();
+        }
+        return answer;
+      }
       return toBitmapContainer().lazyIOR(value2).repairAfterLazy();
     }
     ArrayContainer answer = new ArrayContainer(totalCardinality);
