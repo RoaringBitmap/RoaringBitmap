@@ -130,6 +130,15 @@ public class TestArrayContainer {
   }
 
   @Test
+  public void orFullToRunContainerWithSmallArray() {
+    ArrayContainer almostFull = new ArrayContainer(0, (1 << 16) - 1);
+    ArrayContainer lastValue = new ArrayContainer((1 << 16) - 1, 1 << 16);
+    Container result = almostFull.or(lastValue);
+    assertEquals(1 << 16, result.getCardinality());
+    assertTrue(result instanceof RunContainer);
+  }
+
+  @Test
   public void iandBitmap() {
     Container ac = new ArrayContainer();
     ac = ac.add(1, 10);
