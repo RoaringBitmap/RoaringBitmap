@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.longlong.TestRoaring64Bitmap.getSourceForAllKindsOfNodeTypes;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.BitmapDataProviderSupplier;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.TestAdversarialInputs;
@@ -41,6 +42,7 @@ import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class TestRoaring64NavigableMap {
 
@@ -1878,6 +1880,225 @@ public class TestRoaring64NavigableMap {
         Roaring64NavigableMap.bitmapOf(
             1, 2, 3, 4, 5, 7, 8, 9, 1 << 16, 1 << 17, 1 << 18, 1 << 19, 1 << 20, 1L << 33);
     assertEquals(map2, map1);
+  }
+
+  @Test
+  public void testRepairAfterLazyInvalidatesCachedCardinalities() {
+    BitmapDataProviderSupplier[] suppliers = {
+      new RoaringBitmapSupplier(), new MutableRoaringBitmapSupplier()
+    };
+
+    for (boolean signed : new boolean[] {false, true}) {
+      for (BitmapDataProviderSupplier supplier : suppliers) {
+        String context = supplier.getClass().getSimpleName() + " signed=" + signed;
+        testFullyCachedLazyUnion(signed, supplier, context);
+        testPartiallyCachedLazyUnion(signed, supplier, context);
+        testLazyRepairAfterIntersection(signed, supplier, context);
+        testBoundaryLazyUnion(signed, supplier, context);
+        testEmptyAndNoOpLazyUnions(signed, supplier, context);
+      }
+    }
+  }
+
+  private void testFullyCachedLazyUnion(
+      boolean signed, BitmapDataProviderSupplier supplier, String context) {
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> expected = orderedLongs(signed);
+    addValues(bitmap, expected, 1L, 1L << 32);
+
+    assertEquals(2, bitmap.getLongCardinality(), context + " warm-up cardinality");
+
+    Roaring64NavigableMap operand = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> operandValues = orderedLongs(signed);
+    addValues(operand, operandValues, 2L);
+    bitmap.naivelazyor(operand);
+    expected.addAll(operandValues);
+    bitmap.repairAfterLazy();
+
+    assertLazyUnionMatches(bitmap, expected, signed, context + " fully cached", 1L << 32);
+    assertLazyUnionMatches(operand, operandValues, signed, context + " operand");
+  }
+
+  private void testPartiallyCachedLazyUnion(
+      boolean signed, BitmapDataProviderSupplier supplier, String context) {
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> expected = orderedLongs(signed);
+    addValues(bitmap, expected, packedLong(2, 10), packedLong(4, 20), packedLong(6, 40));
+
+    long cachedPrefixEnd = packedLong(4, -1);
+    assertEquals(2, bitmap.rankLong(cachedPrefixEnd), context + " warm-up partial prefix");
+
+    Roaring64NavigableMap operand = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> operandValues = orderedLongs(signed);
+    addValues(operand, operandValues, packedLong(1, 15), packedLong(2, 11), packedLong(7, 50));
+    bitmap.naivelazyor(operand);
+    expected.addAll(operandValues);
+    bitmap.repairAfterLazy();
+
+    assertLazyUnionMatches(
+        bitmap, expected, signed, context + " partial prefix and new buckets", cachedPrefixEnd);
+    assertLazyUnionMatches(operand, operandValues, signed, context + " partial operand");
+  }
+
+  private void testLazyRepairAfterIntersection(
+      boolean signed, BitmapDataProviderSupplier supplier, String context) {
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> expected = orderedLongs(signed);
+    for (int high = 0; high <= 4; high++) {
+      addValues(bitmap, expected, packedLong(high, 1));
+    }
+    assertEquals(5, bitmap.getLongCardinality(), context + " intersection warm-up");
+
+    Roaring64NavigableMap intersection = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> intersectionValues = orderedLongs(signed);
+    addValues(intersection, intersectionValues, packedLong(3, 1), packedLong(4, 1));
+    bitmap.and(intersection);
+    expected.retainAll(intersectionValues);
+
+    Roaring64NavigableMap operand = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> operandValues = orderedLongs(signed);
+    addValues(operand, operandValues, packedLong(3, 2));
+    bitmap.naivelazyor(operand);
+    expected.addAll(operandValues);
+    bitmap.repairAfterLazy();
+
+    long repeatedQuery = packedLong(3, 2);
+    assertLazyUnionMatches(
+        bitmap, expected, signed, context + " intersection history", repeatedQuery, repeatedQuery);
+  }
+
+  private void testBoundaryLazyUnion(
+      boolean signed, BitmapDataProviderSupplier supplier, String context) {
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> expected = orderedLongs(signed);
+    addValues(
+        bitmap,
+        expected,
+        Long.MIN_VALUE,
+        Long.MIN_VALUE + 1,
+        -1L,
+        0L,
+        1L,
+        Long.MAX_VALUE - 1,
+        Long.MAX_VALUE);
+    assertEquals(7, bitmap.getLongCardinality(), context + " boundary warm-up cardinality");
+
+    Roaring64NavigableMap operand = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> operandValues = orderedLongs(signed);
+    addValues(
+        operand,
+        operandValues,
+        Long.MIN_VALUE + 2,
+        -2L,
+        2L,
+        0x0000000100000002L,
+        0x7ffffffe00000005L,
+        0x8000000100000000L);
+    bitmap.naivelazyor(operand);
+    expected.addAll(operandValues);
+    bitmap.repairAfterLazy();
+
+    assertLazyUnionMatches(
+        bitmap,
+        expected,
+        signed,
+        context + " signed and unsigned boundaries",
+        Long.MIN_VALUE,
+        -1L,
+        0L,
+        Long.MAX_VALUE);
+    assertLazyUnionMatches(operand, operandValues, signed, context + " boundary operand");
+  }
+
+  private void testEmptyAndNoOpLazyUnions(
+      boolean signed, BitmapDataProviderSupplier supplier, String context) {
+    Roaring64NavigableMap bitmap = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> expected = orderedLongs(signed);
+    addValues(bitmap, expected, 1L, 1L << 32);
+    assertEquals(2, bitmap.getLongCardinality(), context + " empty-input warm-up");
+
+    Roaring64NavigableMap empty = new Roaring64NavigableMap(signed, true, supplier);
+    bitmap.naivelazyor(empty);
+    bitmap.repairAfterLazy();
+    assertLazyUnionMatches(bitmap, expected, signed, context + " empty operand");
+
+    Roaring64NavigableMap duplicateOnly = new Roaring64NavigableMap(signed, true, supplier);
+    TreeSet<Long> duplicateValues = orderedLongs(signed);
+    addValues(duplicateOnly, duplicateValues, 1L, 1L << 32);
+    bitmap.naivelazyor(duplicateOnly);
+    bitmap.repairAfterLazy();
+    assertLazyUnionMatches(bitmap, expected, signed, context + " duplicate-only operand");
+
+    bitmap.naivelazyor(bitmap);
+    bitmap.repairAfterLazy();
+    assertLazyUnionMatches(bitmap, expected, signed, context + " self operand");
+
+    Roaring64NavigableMap emptyBitmap = new Roaring64NavigableMap(signed, true, supplier);
+    emptyBitmap.getLongCardinality();
+    emptyBitmap.naivelazyor(empty);
+    emptyBitmap.repairAfterLazy();
+    assertLazyUnionMatches(emptyBitmap, orderedLongs(signed), signed, context + " empty bitmap");
+  }
+
+  private static TreeSet<Long> orderedLongs(boolean signed) {
+    return signed ? new TreeSet<Long>() : new TreeSet<>(Long::compareUnsigned);
+  }
+
+  private static long packedLong(int high, int low) {
+    return ((long) high << 32) | (low & 0xffffffffL);
+  }
+
+  private static void addValues(
+      Roaring64NavigableMap bitmap, TreeSet<Long> expected, long... values) {
+    for (long value : values) {
+      bitmap.addLong(value);
+      expected.add(value);
+    }
+  }
+
+  private void assertLazyUnionMatches(
+      Roaring64NavigableMap bitmap,
+      TreeSet<Long> expected,
+      boolean signed,
+      String context,
+      long... firstRankQueries) {
+    for (long query : firstRankQueries) {
+      assertEquals(
+          expected.headSet(query, true).size(), bitmap.rankLong(query), context + " rank " + query);
+    }
+
+    assertEquals(expected.size(), bitmap.getLongCardinality(), context + " cardinality");
+
+    List<Long> actual = new ArrayList<>();
+    LongIterator iterator = bitmap.getLongIterator();
+    while (iterator.hasNext()) {
+      actual.add(iterator.next());
+    }
+    assertEquals(new ArrayList<>(expected), actual, context + " iteration");
+
+    long index = 0;
+    for (long value : expected) {
+      assertEquals(value, bitmap.select(index++), context + " select");
+    }
+
+    TreeSet<Long> queries = orderedLongs(signed);
+    queries.addAll(expected);
+    queries.add(Long.MIN_VALUE);
+    queries.add(-1L);
+    queries.add(0L);
+    queries.add(Long.MAX_VALUE);
+    for (long value : expected) {
+      if (value != Long.MIN_VALUE) {
+        queries.add(value - 1);
+      }
+      if (value != Long.MAX_VALUE) {
+        queries.add(value + 1);
+      }
+    }
+    for (long query : queries) {
+      assertEquals(
+          expected.headSet(query, true).size(), bitmap.rankLong(query), context + " rank " + query);
+    }
   }
 
   // https://github.com/RoaringBitmap/RoaringBitmap/issues/528
