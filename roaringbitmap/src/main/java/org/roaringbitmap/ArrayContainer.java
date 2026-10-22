@@ -24,7 +24,7 @@ import java.util.Iterator;
 public final class ArrayContainer extends Container implements Cloneable {
   private static final int DEFAULT_INIT_SIZE = 4;
   private static final int ARRAY_LAZY_LOWERBOUND = 1024;
-  private static final int MAX_CARDINALITY_FOR_EAGER_OR = 64;
+  private static final int MAX_CARDINALITY_FOR_EAGER_OR = 65;
 
   static final int DEFAULT_MAX_SIZE = 4096; // containers with DEFAULT_MAX_SZE or less integers
   // should be ArrayContainers

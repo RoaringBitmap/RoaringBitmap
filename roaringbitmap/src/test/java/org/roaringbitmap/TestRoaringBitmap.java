@@ -2683,6 +2683,30 @@ public class TestRoaringBitmap {
       sixtyFourDisjoint.add(highBits | (1 + 16 * i));
     }
     assertArrayOrResults(left, sixtyFourDisjoint, BitmapContainer.class);
+
+    RoaringBitmap sixtyFiveContained = new RoaringBitmap();
+    for (int i = 0; i < 65; ++i) {
+      int index = (i + 1) * 4096 / 66;
+      sixtyFiveContained.add(highBits | (index * 16));
+    }
+    assertArrayOrResults(left, sixtyFiveContained, ArrayContainer.class);
+
+    RoaringBitmap sixtyFiveDisjoint = new RoaringBitmap();
+    for (int i = 0; i < 65; ++i) {
+      sixtyFiveDisjoint.add(highBits | (1 + 16 * i));
+    }
+    assertArrayOrResults(left, sixtyFiveDisjoint, BitmapContainer.class);
+
+    int[] partialValues65 = new int[65];
+    for (int i = 0; i < 32; ++i) {
+      int index = (i + 1) * 4096 / 33;
+      partialValues65[i] = highBits | (index * 16);
+    }
+    for (int i = 0; i < 33; ++i) {
+      partialValues65[32 + i] = highBits | (1 + 16 * i);
+    }
+    Arrays.sort(partialValues65);
+    assertArrayOrResults(left, RoaringBitmap.bitmapOf(partialValues65), BitmapContainer.class);
   }
 
   private static void assertArrayOrResults(
