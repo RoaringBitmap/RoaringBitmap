@@ -21,7 +21,7 @@ public class ArrayArrayOrBenchmark {
   @Param({"1", "16"})
   int containerCount;
 
-  @Param({"1", "64", "256", "4096"})
+  @Param({"1", "64", "65", "256", "4096"})
   int rightCardinality;
 
   @Param({"0", "50", "100"})
