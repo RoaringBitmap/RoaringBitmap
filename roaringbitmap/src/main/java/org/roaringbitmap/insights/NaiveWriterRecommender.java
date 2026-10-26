@@ -1,5 +1,7 @@
 package org.roaringbitmap.insights;
 
+import java.util.Arrays;
+
 /**
  * The purpose of this class it to help user decide
  * which {@link org.roaringbitmap.RoaringBitmapWriter} heuristic to use.
@@ -29,6 +31,9 @@ public class NaiveWriterRecommender {
       runContainerRecommendations(sb);
     } else {
       constantMemoryRecommendation(s, sb);
+    }
+    if (s.getRunContainersStats().hasManyLongRuns()) {
+      manyLongRunsRecommendations(s, sb);
     }
     return sb.toString();
   }
@@ -67,6 +72,28 @@ public class NaiveWriterRecommender {
         .append(".expectedContainerSize(")
         .append(s.getArrayContainersStats().averageCardinality())
         .append(") to preallocate array containers for average number of elements.\n");
+  }
+
+  private static void manyLongRunsRecommendations(BitmapStatistics s, StringBuilder sb) {
+    sb.append(s.getBitmapsCount() == 1 ? "Bitmap contains " : "Bitmaps contain ");
+    sb.append(
+            "many long runs backed by simple arrays, thus it is convenient to enable faster way of"
+                + " manipulating them. The trade-off is some permanently occupied memory.\n")
+        .append(
+            "CharRangeFiller.allocateCompletely() - uses 128 kB of memory, especially suitable when"
+                + " operations with ranges are used often - methods with rangeStart, rangeEnd,"
+                + " firstOfRun or endOfRun as its parameter.\n")
+        .append(
+            "Call CharRangeFiller.deallocate() or IntRangeFiller.deallocate() to free memory.\n")
+        .append("Average run length: ")
+        .append(s.getRunContainersStats().averageRunLength())
+        .append("\n")
+        .append("Number of runs: ")
+        .append(s.getRunContainersStats().getRunsCount())
+        .append("\n")
+        .append("2 base logarithmic histogram of run lengths (bins):")
+        .append(Arrays.toString(s.getRunContainersStats().getRunLengthHistogram()))
+        .append("\n");
   }
 
   private static void containerCountRecommendations(BitmapStatistics basedOn, StringBuilder sb) {
