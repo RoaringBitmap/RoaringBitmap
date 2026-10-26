@@ -235,6 +235,14 @@ the content has not been tempered with.
 This last examples also illustrates the use of `runOptimize()` which is sometimes
 helpful to reduce the size of the bitmaps.
 
+Operations that mutate a bitmap containing run containers (such as `add`, `remove`,
+`flip`, range additions or removals, or `limit`) do not always convert a run container
+back to an array or bitmap container when the runs stop being the most compact encoding.
+In the worst case, the runs of one 65536-value chunk can take about 128 KiB of memory
+where a bitmap container takes 8 KiB. Calling `runOptimize()` again after such mutations
+recovers that space, in memory and once serialized. This applies to `RoaringBitmap`,
+`MutableRoaringBitmap`, `Roaring64Bitmap` and `Roaring64NavigableMap`.
+
 Please see the examples folder for more examples, which you can run with `./gradlew :examples:runAll`, or run a specific one with `./gradlew :examples:runExampleBitmap64`, etc.
 
 API docs
