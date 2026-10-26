@@ -6144,4 +6144,20 @@ public class TestRoaringBitmap {
     ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(RUN_LENGTH, (char) 536);
     assertFalse(deserializeFromBytes(bytes).validate()); // the run ends at 65,536
   }
+
+  @Test
+  public void testContainsBitmapOfRunContainer_Issue887() {
+    RoaringBitmap big = new RoaringBitmap();
+    for (int i = 0; i < 10_000; i++) {
+      if (i != 100) {
+        big.add(i);
+      }
+    }
+    RoaringBitmap sub = RoaringBitmap.bitmapOfRange(90, 101);
+    assertFalse(big.contains(sub));
+    assertFalse(big.toMutableRoaringBitmap().contains(sub.toMutableRoaringBitmap()));
+    big.add(100);
+    assertTrue(big.contains(sub));
+    assertTrue(big.toMutableRoaringBitmap().contains(sub.toMutableRoaringBitmap()));
+  }
 }
