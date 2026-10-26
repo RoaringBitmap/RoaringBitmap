@@ -2107,6 +2107,21 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testRunOptimizeConvertsRunsThatAreNoLongerCompact() {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.addRange(0L, 100L);
+    assertTrue(bitmap.runOptimize());
+    for (long i = 200; i < 65536; i += 2) {
+      bitmap.add(i); // each value becomes a run of length one
+    }
+    Roaring64Bitmap expected = bitmap.clone();
+    long before = bitmap.serializedSizeInBytes();
+    assertFalse(bitmap.runOptimize());
+    assertTrue(bitmap.serializedSizeInBytes() < before / 10);
+    assertEquals(expected, bitmap);
+  }
+
+  @Test
   public void testEmptySkips() {
     Roaring64Bitmap bitmap = new Roaring64Bitmap();
     PeekableLongIterator it = bitmap.getLongIterator();
