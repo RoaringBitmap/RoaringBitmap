@@ -878,9 +878,11 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     while (containerIterator.hasNext()) {
       Container container = containerIterator.next();
       Container freshContainer = container.runOptimize();
+      if (freshContainer != container) {
+        containerIterator.replace(freshContainer);
+      }
       if (freshContainer instanceof RunContainer) {
         hasChanged = true;
-        containerIterator.replace(freshContainer);
       }
     }
     return hasChanged;
