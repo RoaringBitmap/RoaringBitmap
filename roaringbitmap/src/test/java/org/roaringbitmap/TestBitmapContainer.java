@@ -1388,4 +1388,24 @@ public class TestBitmapContainer {
     assertEquals(new ArrayContainer(new char[] {1, 1000}), result);
     assertEquals(array.getCardinality(), result.content.length);
   }
+
+  @Test
+  public void testContainsRunContainer_Issue887() {
+    Container bc = new BitmapContainer().iadd(0, 10000).remove((char) 100);
+    assertTrue(bc instanceof BitmapContainer);
+    Container rc = new RunContainer().add(90, 101);
+    assertTrue(rc instanceof RunContainer);
+    assertFalse(bc.contains(rc));
+    assertTrue(bc.contains(new RunContainer().add(90, 100)));
+  }
+
+  @Test
+  public void testContainsRunContainerEndingAtMax_Issue887() {
+    Container bc = new BitmapContainer().iadd(0, 65535);
+    assertTrue(bc instanceof BitmapContainer);
+    assertFalse(bc.contains(new RunContainer().add(65530, 65536)));
+    assertTrue(bc.contains(new RunContainer().add(65530, 65535)));
+    bc = bc.add((char) 65535);
+    assertTrue(bc.contains(new RunContainer().add(65530, 65536)));
+  }
 }

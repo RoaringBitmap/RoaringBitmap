@@ -1219,4 +1219,24 @@ public class TestMappeableBitmapContainer {
     assertTrue(result.contains((char) 1000));
     assertEquals(array.getCardinality(), result.content.limit());
   }
+
+  @Test
+  public void testContainsRunContainer_Issue887() {
+    MappeableContainer bc = new MappeableBitmapContainer().iadd(0, 10000).remove((char) 100);
+    assertTrue(bc instanceof MappeableBitmapContainer);
+    MappeableContainer rc = new MappeableRunContainer().add(90, 101);
+    assertTrue(rc instanceof MappeableRunContainer);
+    assertFalse(bc.contains(rc));
+    assertTrue(bc.contains(new MappeableRunContainer().add(90, 100)));
+  }
+
+  @Test
+  public void testContainsRunContainerEndingAtMax_Issue887() {
+    MappeableContainer bc = new MappeableBitmapContainer().iadd(0, 65535);
+    assertTrue(bc instanceof MappeableBitmapContainer);
+    assertFalse(bc.contains(new MappeableRunContainer().add(65530, 65536)));
+    assertTrue(bc.contains(new MappeableRunContainer().add(65530, 65535)));
+    bc = bc.add((char) 65535);
+    assertTrue(bc.contains(new MappeableRunContainer().add(65530, 65536)));
+  }
 }
