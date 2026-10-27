@@ -6,6 +6,8 @@ package org.roaringbitmap;
 
 import static java.lang.Long.numberOfTrailingZeros;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -18,6 +20,22 @@ public final class Util {
    * combine a binary search with a sequential search
    */
   public static final boolean USE_HYBRID_BINSEARCH = true;
+
+  /**
+   * Skips exactly n bytes of the input. {@link DataInput#skipBytes} may skip fewer bytes than
+   * requested (e.g., with a {@code javax.crypto.CipherInputStream}); the remaining bytes are
+   * then consumed one at a time.
+   *
+   * @param in the input
+   * @param n the number of bytes to skip
+   * @throws java.io.EOFException if the input ends before n bytes are skipped
+   * @throws IOException if an I/O error occurs
+   */
+  public static void skipFully(DataInput in, int n) throws IOException {
+    for (int remaining = n - in.skipBytes(n); remaining > 0; remaining--) {
+      in.readByte();
+    }
+  }
 
   /**
    * Add value "offset" to all values in the container, producing
