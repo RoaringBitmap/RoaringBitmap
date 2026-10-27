@@ -1892,6 +1892,19 @@ public class TestRoaring64Bitmap {
   }
 
   @Test
+  public void testHashCodeDoesNotDependOnTheEncoding() {
+    long base = 5_000_000_000L;
+    Roaring64Bitmap byValues = newDefaultCtor(); // an array container
+    for (long i = 0; i < 100; i++) {
+      byValues.addLong(base + i);
+    }
+    Roaring64Bitmap byRange = newDefaultCtor(); // a run container
+    byRange.addRange(base, base + 100);
+    assertEquals(byValues, byRange);
+    assertEquals(byValues.hashCode(), byRange.hashCode());
+  }
+
+  @Test
   public void testIssue428() {
     long input = 1353768194141061120L;
 
