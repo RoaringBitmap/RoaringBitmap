@@ -174,6 +174,28 @@ public class HighLowContainer {
   }
 
   /**
+   * Validate the content. Useful after deserialization.
+   *
+   * It checks that the tree of keys is well formed (see {@link Art#validate(Containers)}), that
+   * the keys and the containers correspond one to one, and that each container is consistent with
+   * its type.
+   *
+   * @return true if the content is valid
+   */
+  public boolean validate() {
+    if (!art.validate(containers)) {
+      return false;
+    }
+    ContainerIterator containerIterator = containers.iterator();
+    while (containerIterator.hasNext()) {
+      if (!containerIterator.next().validate()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Compares two unsigned byte arrays for order.
    * Result is a negative integer, zero, or a positive integer
    * as the first array is less than, equal to, or greater than the second.

@@ -385,6 +385,91 @@ public class Art {
     root = deserialize(byteBuffer);
   }
 
+  /**
+   * Check that the tree is well formed and consistent with the containers. Useful after
+   * deserialization.
+   *
+   * It checks that the children of each branch node are present, in increasing order of their
+   * key byte, reachable by that key byte, and as many as the node claims; that the paths fit in 48
+   * bits; that each leaf key agrees with the path leading to the leaf; that the number of keys is
+   * the one recorded; and that the leaves and the containers correspond one to one. It does not
+   * check the content of the containers.
+   *
+   * @param containers the containers the leaves refer to
+   * @return true if the tree is valid
+   */
+  public boolean validate(Containers containers) {
+    LeafContainerIdxs leaves = new LeafContainerIdxs();
+    if (root != null
+        && !validate(root, new byte[LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES], 0, leaves)) {
+      return false;
+    }
+    if (keySize != leaves.count) {
+      return false;
+    }
+    return containers.validate(leaves.idxs, leaves.count);
+  }
+
+  private static boolean validate(Node node, byte[] path, int depth, LeafContainerIdxs leaves) {
+    if (node == null) {
+      return false;
+    }
+    if (node instanceof LeafNode) {
+      LeafNode leafNode = (LeafNode) node;
+      byte[] key = leafNode.getKeyBytes();
+      for (int i = 0; i < depth; i++) {
+        if (key[i] != path[i]) {
+          return false;
+        }
+      }
+      leaves.add(leafNode.getContainerIdx());
+      return true;
+    }
+    BranchNode branchNode = (BranchNode) node;
+    int prefixLength = branchNode.prefixLength();
+    // the prefix and the key byte of a child must fit in the 48 bit key
+    if (depth + prefixLength >= LeafNode.LEAF_NODE_KEY_LENGTH_IN_BYTES || branchNode.count <= 0) {
+      return false;
+    }
+    System.arraycopy(branchNode.prefix, 0, path, depth, prefixLength);
+    depth += prefixLength;
+    int childCount = 0;
+    int previousKey = -1;
+    for (int pos = branchNode.getMinPos();
+        pos != BranchNode.ILLEGAL_IDX;
+        pos = branchNode.getNextLargerPos(pos)) {
+      if (++childCount > branchNode.count) {
+        return false;
+      }
+      byte key = branchNode.getChildKey(pos);
+      if (Byte.toUnsignedInt(key) <= previousKey) {
+        return false;
+      }
+      previousKey = Byte.toUnsignedInt(key);
+      Node child = branchNode.getChild(pos);
+      if (child == null || branchNode.getChildAtKey(key) != child) {
+        return false;
+      }
+      path[depth] = key;
+      if (!validate(child, path, depth + 1, leaves)) {
+        return false;
+      }
+    }
+    return childCount == branchNode.count;
+  }
+
+  private static final class LeafContainerIdxs {
+    long[] idxs = new long[16];
+    int count = 0;
+
+    void add(long containerIdx) {
+      if (count == idxs.length) {
+        idxs = Arrays.copyOf(idxs, 2 * count);
+      }
+      idxs[count++] = containerIdx;
+    }
+  }
+
   public LeafNodeIterator leafNodeIterator(boolean reverse, Containers containers) {
     return new LeafNodeIterator(this, reverse, containers);
   }

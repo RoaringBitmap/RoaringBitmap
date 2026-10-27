@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.longlong.TestRoaring64Bitmap.getSourceForAllKindsOfNodeTypes;
 
 import org.roaringbitmap.BitmapDataProvider;
+import org.roaringbitmap.BitmapDataProviderSupplier;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.RoaringBitmapSupplier;
 import org.roaringbitmap.TestAdversarialInputs;
@@ -32,6 +33,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -2345,5 +2348,81 @@ public class TestRoaring64NavigableMap {
       Assertions.assertEquals(dst.getLongCardinality(), 3);
   }
 
+  private static byte[] serializeToBytes(Roaring64NavigableMap bitmap, int serializationMode)
+      throws IOException {
+    int previousMode = Roaring64NavigableMap.SERIALIZATION_MODE;
+    Roaring64NavigableMap.SERIALIZATION_MODE = serializationMode;
+    try {
+      ByteArrayOutputStream output = new ByteArrayOutputStream();
+      bitmap.serialize(new DataOutputStream(output));
+      return output.toByteArray();
+    } finally {
+      Roaring64NavigableMap.SERIALIZATION_MODE = previousMode;
+    }
+  }
 
+  private static Roaring64NavigableMap deserializeFromBytes(
+      byte[] bytes, int serializationMode, BitmapDataProviderSupplier supplier) throws IOException {
+    int previousMode = Roaring64NavigableMap.SERIALIZATION_MODE;
+    Roaring64NavigableMap.SERIALIZATION_MODE = serializationMode;
+    try {
+      Roaring64NavigableMap bitmap = new Roaring64NavigableMap(supplier);
+      bitmap.deserialize(new DataInputStream(new ByteArrayInputStream(bytes)));
+      return bitmap;
+    } finally {
+      Roaring64NavigableMap.SERIALIZATION_MODE = previousMode;
+    }
+  }
+
+  @Test
+  public void validateAcceptsWellFormedBitmaps() throws IOException {
+    assertTrue(new Roaring64NavigableMap().validate());
+    BitmapDataProviderSupplier[] suppliers = {
+      new RoaringBitmapSupplier(), new MutableRoaringBitmapSupplier()
+    };
+    int[] modes = {
+      Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY,
+      Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
+    };
+    for (BitmapDataProviderSupplier supplier : suppliers) {
+      Roaring64NavigableMap bitmap = new Roaring64NavigableMap(supplier);
+      bitmap.addRange(0L, 100L); // a run container
+      for (long i = 0; i < 100; i++) {
+        bitmap.addLong((1L << 32) + 3 * i); // an array container
+      }
+      for (long i = 0; i < 5_000; i++) {
+        bitmap.addLong((1L << 40) + 2 * i); // a bitmap container
+      }
+      bitmap.runOptimize();
+      assertTrue(bitmap.validate());
+      for (int mode : modes) {
+        byte[] bytes = serializeToBytes(bitmap, mode);
+        assertTrue(deserializeFromBytes(bytes, mode, supplier).validate());
+      }
+    }
+  }
+
+  @Test
+  public void validateRejectsRunPastTheEndOfTheContainer() throws IOException {
+    BitmapDataProviderSupplier[] suppliers = {
+      new RoaringBitmapSupplier(), new MutableRoaringBitmapSupplier()
+    };
+    int[] modes = {
+      Roaring64NavigableMap.SERIALIZATION_MODE_LEGACY,
+      Roaring64NavigableMap.SERIALIZATION_MODE_PORTABLE
+    };
+    for (BitmapDataProviderSupplier supplier : suppliers) {
+      Roaring64NavigableMap bitmap = new Roaring64NavigableMap(supplier);
+      bitmap.addRange(65_000L, 65_536L); // one run container
+      bitmap.runOptimize();
+      for (int mode : modes) {
+        byte[] bytes = serializeToBytes(bitmap, mode);
+        int runLength = bytes.length - 2; // the run length minus one ends the stream
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(runLength, (char) 535);
+        assertTrue(deserializeFromBytes(bytes, mode, supplier).validate()); // ends at 65,535
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(runLength, (char) 536);
+        assertFalse(deserializeFromBytes(bytes, mode, supplier).validate()); // ends at 65,536
+      }
+    }
+  }
 }

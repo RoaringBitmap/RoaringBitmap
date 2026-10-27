@@ -151,6 +151,60 @@ public class Containers {
     return containerSize;
   }
 
+  /**
+   * Check that the containers correspond one to one to the given container indexes, as found in
+   * the leaves of a tree: each index refers to a container, no two indexes refer to the same one,
+   * and there is no other container. Also check that the next container to be added will not
+   * overwrite an existing one. It does not check the content of the containers.
+   *
+   * @param containerIdxs the container indexes
+   * @param count the number of container indexes
+   * @return true if the containers are consistent with the indexes
+   */
+  boolean validate(long[] containerIdxs, int count) {
+    if (containerSize != count || firstLevelIdx != containerArrays.size() - 1) {
+      return false;
+    }
+    boolean[][] referenced = new boolean[containerArrays.size()][];
+    for (int i = 0; i < referenced.length; i++) {
+      referenced[i] = new boolean[containerArrays.get(i).length];
+    }
+    for (int i = 0; i < count; i++) {
+      int firstDimIdx = (int) (containerIdxs[i] >>> 32);
+      int secondDimIdx = (int) containerIdxs[i];
+      if (firstDimIdx < 0
+          || firstDimIdx >= referenced.length
+          || secondDimIdx < 0
+          || secondDimIdx >= referenced[firstDimIdx].length
+          || referenced[firstDimIdx][secondDimIdx]
+          || containerArrays.get(firstDimIdx)[secondDimIdx] == null) {
+        return false;
+      }
+      referenced[firstDimIdx][secondDimIdx] = true;
+    }
+    for (int i = 0; i < referenced.length; i++) {
+      Container[] containers = containerArrays.get(i);
+      for (int j = 0; j < containers.length; j++) {
+        if (containers[j] != null && !referenced[i][j]) {
+          return false;
+        }
+      }
+    }
+    if (firstLevelIdx >= 0) {
+      // addContainer writes after secondLevelIdx in the last array
+      Container[] last = containerArrays.get(firstLevelIdx);
+      if (secondLevelIdx < 0 || secondLevelIdx >= last.length) {
+        return false;
+      }
+      for (int j = secondLevelIdx + 1; j < last.length; j++) {
+        if (last[j] != null) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   List<Container[]> getContainerArrays() {
     return containerArrays;
   }

@@ -889,6 +889,19 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
   }
 
   /**
+   * Validate the content of the bitmap. Useful after deserialization.
+   *
+   * It checks that the bitmap is well formed: keys are sorted, and each container is consistent
+   * with its type. It does not check that each container uses the most compact encoding: call
+   * {@link #runOptimize()} for that.
+   *
+   * @return true if the content is valid.
+   */
+  public boolean validate() {
+    return highLowContainer.validate();
+  }
+
+  /**
    * Serializes this bitmap in the portable 64-bit format.
    *
    * <p>The format is specified at
