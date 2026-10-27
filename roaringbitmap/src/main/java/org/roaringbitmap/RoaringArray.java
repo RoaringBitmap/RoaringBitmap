@@ -309,7 +309,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
     if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
       // skipping the offsets
-      in.skipBytes(this.size * 4);
+      Util.skipFully(in, this.size * 4);
     }
     // Reading the containers
     for (int k = 0; k < this.size; ++k) {
@@ -405,7 +405,7 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
     }
     if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
       // skipping the offsets
-      in.skipBytes(this.size * 4);
+      Util.skipFully(in, this.size * 4);
     }
 
     // Reading the containers

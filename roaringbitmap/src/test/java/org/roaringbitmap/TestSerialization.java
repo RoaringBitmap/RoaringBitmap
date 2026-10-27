@@ -24,6 +24,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 
+import javax.crypto.CipherInputStream;
+import javax.crypto.NullCipher;
+
 class ByteBufferBackedInputStream extends InputStream {
 
   ByteBuffer buf;
@@ -330,6 +333,35 @@ public class TestSerialization {
       bitmap.deserialize(dataInputStream);
       assertFalse(bitmap.validate());
     }
+  }
+
+  @Test
+  public void testDeserializeWhenSkipBytesFallsShort() throws IOException {
+    // 200 containers: the 800-byte offset table crosses the 512-byte buffer of
+    // CipherInputStream, whose skip() stops at the end of that buffer
+    RoaringBitmap bitmap = new RoaringBitmap();
+    for (int i = 0; i < 200; i++) {
+      bitmap.add(i << 16);
+    }
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    bitmap.serialize(new DataOutputStream(output));
+    byte[] bytes = output.toByteArray();
+
+    RoaringBitmap fromStream = new RoaringBitmap();
+    fromStream.deserialize(new DataInputStream(cipherStream(bytes)));
+    assertEquals(bitmap, fromStream);
+
+    RoaringBitmap fromStreamWithBuffer = new RoaringBitmap();
+    fromStreamWithBuffer.deserialize(new DataInputStream(cipherStream(bytes)), new byte[8192]);
+    assertEquals(bitmap, fromStreamWithBuffer);
+
+    MutableRoaringBitmap mutable = new MutableRoaringBitmap();
+    mutable.deserialize(new DataInputStream(cipherStream(bytes)));
+    assertEquals(bitmap.toMutableRoaringBitmap(), mutable);
+  }
+
+  private static InputStream cipherStream(byte[] bytes) {
+    return new CipherInputStream(new ByteArrayInputStream(bytes), new NullCipher());
   }
 
   @Test
