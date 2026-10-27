@@ -2874,4 +2874,62 @@ public class TestRoaring64Bitmap {
   public void testEmptyRoaring64BitmapClonesWithoutException() {
     assertEquals(new Roaring64Bitmap(), new Roaring64Bitmap().clone());
   }
+
+  private static byte[] serializeToBytes(Roaring64Bitmap bitmap, boolean portable)
+      throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    if (portable) {
+      bitmap.serializePortable(new DataOutputStream(output));
+    } else {
+      bitmap.serialize(new DataOutputStream(output));
+    }
+    return output.toByteArray();
+  }
+
+  private static Roaring64Bitmap deserializeFromBytes(byte[] bytes, boolean portable)
+      throws IOException {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    DataInputStream input = new DataInputStream(new ByteArrayInputStream(bytes));
+    if (portable) {
+      bitmap.deserializePortable(input);
+    } else {
+      bitmap.deserialize(input);
+    }
+    return bitmap;
+  }
+
+  @Test
+  public void validateAcceptsWellFormedBitmaps() throws IOException {
+    assertTrue(new Roaring64Bitmap().validate());
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.addRange(0L, 100L); // a run container
+    for (long i = 0; i < 100; i++) {
+      bitmap.addLong((1L << 32) + 3 * i); // an array container
+    }
+    for (long i = 0; i < 5_000; i++) {
+      bitmap.addLong((1L << 40) + 2 * i); // a bitmap container
+    }
+    bitmap.runOptimize();
+    assertTrue(bitmap.validate());
+    assertTrue(deserializeFromBytes(serializeToBytes(bitmap, false), false).validate());
+    assertTrue(deserializeFromBytes(serializeToBytes(bitmap, true), true).validate());
+  }
+
+  @Test
+  public void validateRejectsRunPastTheEndOfTheContainer() throws IOException {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    bitmap.addRange(65_000L, 65_536L); // one run container
+    bitmap.runOptimize();
+    for (boolean portable : new boolean[] {false, true}) {
+      byte[] bytes = serializeToBytes(bitmap, portable);
+      // the run length minus one is the last char of the container: in the portable format it ends
+      // the stream, in the other format it is followed by containerSize, firstLevelIdx and
+      // secondLevelIdx
+      int runLength = portable ? bytes.length - 2 : bytes.length - 18;
+      ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(runLength, (char) 535);
+      assertTrue(deserializeFromBytes(bytes, portable).validate()); // the run ends at 65,535
+      ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(runLength, (char) 536);
+      assertFalse(deserializeFromBytes(bytes, portable).validate()); // the run ends at 65,536
+    }
+  }
 }

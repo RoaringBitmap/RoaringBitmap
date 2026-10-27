@@ -1560,6 +1560,30 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   /**
+   * Validate the content of the bitmap. Useful after deserialization.
+   *
+   * It checks that each 32-bit bitmap is well formed, as {@link RoaringBitmap#validate()} does:
+   * keys are sorted, and each container is consistent with its type. It does not check that each
+   * container uses the most compact encoding: call {@link #runOptimize()} for that.
+   *
+   * @return true if the content is valid.
+   */
+  public boolean validate() {
+    for (BitmapDataProvider lowBitmap : highToBitmap.values()) {
+      if (lowBitmap instanceof RoaringBitmap) {
+        if (!((RoaringBitmap) lowBitmap).validate()) {
+          return false;
+        }
+      } else if (lowBitmap instanceof MutableRoaringBitmap) {
+        if (!((MutableRoaringBitmap) lowBitmap).validate()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * Serialize this bitmap.
    *
    * If SERIALIZATION_MODE is set to SERIALIZATION_MODE_PORTABLE, this will rely on the
