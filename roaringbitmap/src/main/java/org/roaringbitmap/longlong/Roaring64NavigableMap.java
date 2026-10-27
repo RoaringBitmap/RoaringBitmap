@@ -1566,6 +1566,9 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * keys are sorted, and each container is consistent with its type. It does not check that each
    * container uses the most compact encoding: call {@link #runOptimize()} for that.
    *
+   * Only {@link RoaringBitmap} and {@link MutableRoaringBitmap} 32-bit bitmaps are checked: those
+   * from another {@link BitmapDataProviderSupplier} are assumed to be valid.
+   *
    * @return true if the content is valid.
    */
   public boolean validate() {

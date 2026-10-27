@@ -8,6 +8,9 @@ import static org.roaringbitmap.ValidationRangeConsumer.Value.PRESENT;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.TestAdversarialInputs;
 import org.roaringbitmap.ValidationRangeConsumer;
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.art.Art;
+import org.roaringbitmap.art.Containers;
 import org.roaringbitmap.art.LeafNode;
 import org.roaringbitmap.art.LeafNodeIterator;
 
@@ -2931,5 +2934,108 @@ public class TestRoaring64Bitmap {
       ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putChar(runLength, (char) 536);
       assertFalse(deserializeFromBytes(bytes, portable).validate()); // the run ends at 65,536
     }
+  }
+
+  @Test
+  public void validateAcceptsBitmapsAfterAddsAndRemoves() throws IOException {
+    Roaring64Bitmap bitmap = new Roaring64Bitmap();
+    List<Long> source = new ArrayList<>(getSourceForAllKindsOfNodeTypes());
+    source.forEach(bitmap::addLong);
+    assertTrue(bitmap.validate());
+    assertTrue(deserializeFromBytes(serializeToBytes(bitmap, false), false).validate());
+    for (int i = 0; i < source.size(); i += 2) {
+      bitmap.removeLong(source.get(i));
+    }
+    assertTrue(bitmap.validate());
+    assertTrue(deserializeFromBytes(serializeToBytes(bitmap, false), false).validate());
+    source.forEach(bitmap::addLong);
+    assertTrue(bitmap.validate());
+    source.forEach(bitmap::removeLong);
+    assertTrue(bitmap.validate());
+    assertTrue(deserializeFromBytes(serializeToBytes(bitmap, false), false).validate());
+  }
+
+  private static final byte[] HIGH_0 = {0, 0, 0, 0, 0, 0};
+  private static final byte[] HIGH_2 = {0, 0, 0, 0, 0, 2};
+
+  private static byte[] artBytes(Art art) throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    art.serializeArt(new DataOutputStream(output));
+    return output.toByteArray();
+  }
+
+  private static byte[] containersBytes(int count) throws IOException {
+    Containers containers = new Containers();
+    for (int i = 0; i < count; i++) {
+      containers.addContainer(new ArrayContainer().add((char) 7));
+    }
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    containers.serialize(new DataOutputStream(output));
+    return output.toByteArray();
+  }
+
+  // the format of serialize(): a non-empty tag, the tree, then the containers
+  private static Roaring64Bitmap deserializeLegacy(byte[] art, byte[] containers)
+      throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    output.write(1);
+    output.write(art);
+    output.write(containers);
+    return deserializeFromBytes(output.toByteArray(), false);
+  }
+
+  private static Art twoKeyArt(long secondContainerIdx) {
+    Art art = new Art();
+    art.insert(HIGH_0, 0L);
+    art.insert(HIGH_2, secondContainerIdx);
+    return art;
+  }
+
+  @Test
+  public void validateAcceptsHandBuiltStream() throws IOException {
+    Roaring64Bitmap bitmap = deserializeLegacy(artBytes(twoKeyArt(1L)), containersBytes(2));
+    assertTrue(bitmap.validate());
+    assertEquals(Roaring64Bitmap.bitmapOf(7L, (2L << 16) + 7), bitmap);
+  }
+
+  @Test
+  public void validateRejectsContainerWithoutKey() throws IOException {
+    // getLongCardinality() would count the third container
+    assertFalse(deserializeLegacy(artBytes(twoKeyArt(1L)), containersBytes(3)).validate());
+  }
+
+  @Test
+  public void validateRejectsKeysSharingAContainer() throws IOException {
+    assertFalse(deserializeLegacy(artBytes(twoKeyArt(0L)), containersBytes(1)).validate());
+    assertFalse(deserializeLegacy(artBytes(twoKeyArt(0L)), containersBytes(2)).validate());
+  }
+
+  @Test
+  public void validateRejectsLeafKeyThatDisagreesWithItsPath() throws IOException {
+    byte[] art = artBytes(twoKeyArt(1L));
+    // the last leaf ends with its key (6 bytes) and its container index (8 bytes): set the last
+    // key byte to 3 while the leaf stays under the branch for 2, where contains() looks for it
+    art[art.length - 9] = 3;
+    Roaring64Bitmap bitmap = deserializeLegacy(art, containersBytes(2));
+    assertFalse(bitmap.contains(bitmap.last()));
+    assertFalse(bitmap.validate());
+  }
+
+  @Test
+  public void validateRejectsWrongKeyCount() throws IOException {
+    byte[] art = artBytes(twoKeyArt(1L));
+    art[0] = 3; // the key count, as a little-endian long, starts the tree
+    assertFalse(deserializeLegacy(art, containersBytes(2)).validate());
+  }
+
+  @Test
+  public void validateRejectsNextContainerOverwritingAnother() throws IOException {
+    byte[] containers = containersBytes(2);
+    // the index of the last container written, as a little-endian int, ends the stream
+    ByteBuffer.wrap(containers).order(ByteOrder.LITTLE_ENDIAN).putInt(containers.length - 4, 0);
+    Roaring64Bitmap bitmap = deserializeLegacy(artBytes(twoKeyArt(1L)), containers);
+    assertFalse(bitmap.validate());
+    bitmap.addLong(9L << 16);
+    assertEquals(2, bitmap.getLongCardinality()); // the new container replaced the one for 2
   }
 }

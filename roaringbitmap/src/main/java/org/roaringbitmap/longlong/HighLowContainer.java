@@ -176,29 +176,19 @@ public class HighLowContainer {
   /**
    * Validate the content. Useful after deserialization.
    *
-   * It checks that the keys are sorted, that every key refers to a container, and that each
-   * container is consistent with its type.
+   * It checks that the tree of keys is well formed (see {@link Art#validate(Containers)}), that
+   * the keys and the containers correspond one to one, and that each container is consistent with
+   * its type.
    *
    * @return true if the content is valid
    */
   public boolean validate() {
-    if (art.isEmpty()) {
-      return true;
+    if (!art.validate(containers)) {
+      return false;
     }
-    LeafNodeIterator leafNodeIterator = art.leafNodeIterator(false, containers);
-    long previousKey = -1;
-    while (leafNodeIterator.hasNext()) {
-      LeafNode leafNode = leafNodeIterator.next();
-      long key = leafNode.getKey();
-      if (key <= previousKey) {
-        return false;
-      }
-      previousKey = key;
-      Container container = containers.getContainer(leafNode.getContainerIdx());
-      if (container == null) {
-        return false;
-      }
-      if (!container.validate()) {
+    ContainerIterator containerIterator = containers.iterator();
+    while (containerIterator.hasNext()) {
+      if (!containerIterator.next().validate()) {
         return false;
       }
     }
