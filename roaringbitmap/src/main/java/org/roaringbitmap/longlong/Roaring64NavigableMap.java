@@ -1734,19 +1734,25 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void deserializePortable(DataInput in) throws IOException {
-    this.clear();
-
-    // Portable format handles only unsigned longs
-    signedLongs = false;
-
     // Read from LittleEndian to BigEndian
     long nbHighs = Long.reverseBytes(in.readLong());
+    if (nbHighs < 0 || nbHighs > LongUtils.MAX_UNSIGNED_INT) {
+      throw new IOException("Invalid portable serialization bucket count");
+    }
 
-    // Other NavigableMap may accept a target capacity
-    highToBitmap = new TreeMap<>(RoaringIntPacking.unsignedComparator());
+    // Build into a separate map, so that a malformed input leaves this bitmap unchanged
+    NavigableMap<Integer, BitmapDataProvider> deserialized =
+        new TreeMap<>(RoaringIntPacking.unsignedComparator());
 
-    for (int i = 0; i < nbHighs; i++) {
+    long previousHigh = -1;
+    for (long i = 0; i < nbHighs; i++) {
       int high = Integer.reverseBytes(in.readInt());
+      long unsignedHigh = Integer.toUnsignedLong(high);
+      if (unsignedHigh <= previousHigh) {
+        // a duplicate key would otherwise silently replace the previous bucket
+        throw new IOException("Bucket keys must be strictly increasing");
+      }
+      previousHigh = unsignedHigh;
       BitmapDataProvider provider = newRoaringBitmap();
       if (provider instanceof RoaringBitmap) {
         ((RoaringBitmap) provider).deserialize(in);
@@ -1756,9 +1762,15 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         throw new UnsupportedEncodingException("Cannot deserialize a " + provider.getClass());
       }
 
-      highToBitmap.put(high, provider);
+      // skip empty buckets, as Roaring64Bitmap does: they hold no value
+      if (provider.getLongCardinality() > 0) {
+        deserialized.put(high, provider);
+      }
     }
 
+    // Portable format handles only unsigned longs
+    signedLongs = false;
+    highToBitmap = deserialized;
     resetPerfHelpers();
   }
 

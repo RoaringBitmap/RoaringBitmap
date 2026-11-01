@@ -2425,4 +2425,129 @@ public class TestRoaring64NavigableMap {
       }
     }
   }
+
+  // Portable 64-bit stream: little-endian bucket count, then for each bucket a little-endian
+  // 32-bit key followed by a 32-bit portable RoaringBitmap.
+  private static byte[] portableBuckets(long count, int[] keys, RoaringBitmap[] buckets)
+      throws IOException {
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    DataOutputStream out = new DataOutputStream(bytes);
+    out.writeLong(Long.reverseBytes(count));
+    for (int i = 0; i < keys.length; i++) {
+      out.writeInt(Integer.reverseBytes(keys[i]));
+      buckets[i].serialize(out);
+    }
+    out.flush();
+    return bytes.toByteArray();
+  }
+
+  private static byte[] portableBuckets(int[] keys, RoaringBitmap[] buckets) throws IOException {
+    return portableBuckets(keys.length, keys, buckets);
+  }
+
+  private static Roaring64NavigableMap readPortable(
+      byte[] bytes, BitmapDataProviderSupplier supplier) throws IOException {
+    Roaring64NavigableMap map = new Roaring64NavigableMap(supplier);
+    map.deserializePortable(new DataInputStream(new ByteArrayInputStream(bytes)));
+    return map;
+  }
+
+  private static final BitmapDataProviderSupplier[] PORTABLE_SUPPLIERS = {
+    new RoaringBitmapSupplier(), new MutableRoaringBitmapSupplier()
+  };
+
+  @Test
+  public void testDeserializePortableRejectsDuplicateBucketKeys() throws IOException {
+    // a duplicate key used to replace the first bucket, silently losing {1}
+    byte[] bytes =
+        portableBuckets(
+            new int[] {7, 7},
+            new RoaringBitmap[] {RoaringBitmap.bitmapOf(1), RoaringBitmap.bitmapOf(2)});
+    for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+      assertThrows(IOException.class, () -> readPortable(bytes, supplier));
+    }
+  }
+
+  @Test
+  public void testDeserializePortableRejectsDecreasingBucketKeys() throws IOException {
+    RoaringBitmap one = RoaringBitmap.bitmapOf(1);
+    // keys compare as unsigned 32-bit integers: 0xFFFFFFFF is the largest key
+    int[][] rejected = {{1, 0}, {-1, 0}, {-1, 0x7FFFFFFF}, {0x80000000, 0x7FFFFFFF}};
+    for (int[] keys : rejected) {
+      byte[] bytes = portableBuckets(keys, new RoaringBitmap[] {one, one});
+      for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+        assertThrows(IOException.class, () -> readPortable(bytes, supplier));
+      }
+    }
+    byte[] increasing =
+        portableBuckets(
+            new int[] {0, 0x7FFFFFFF, 0x80000000, -1}, new RoaringBitmap[] {one, one, one, one});
+    for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+      Roaring64NavigableMap map = readPortable(increasing, supplier);
+      assertArrayEquals(
+          new long[] {
+            1L, (0x7FFFFFFFL << 32) | 1, (0x80000000L << 32) | 1, (0xFFFFFFFFL << 32) | 1
+          },
+          map.toArray());
+    }
+  }
+
+  @Test
+  public void testDeserializePortableRejectsInvalidBucketCount() throws IOException {
+    for (long count : new long[] {-1L, Long.MIN_VALUE, 0x100000000L}) {
+      byte[] bytes = portableBuckets(count, new int[0], new RoaringBitmap[0]);
+      for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+        assertThrows(IOException.class, () -> readPortable(bytes, supplier));
+      }
+    }
+  }
+
+  @Test
+  public void testDeserializePortableDropsEmptyBuckets() throws IOException {
+    byte[] bytes =
+        portableBuckets(
+            new int[] {0, 1, 2},
+            new RoaringBitmap[] {
+              new RoaringBitmap(), RoaringBitmap.bitmapOf(5), new RoaringBitmap()
+            });
+    byte[] expected =
+        portableBuckets(new int[] {1}, new RoaringBitmap[] {RoaringBitmap.bitmapOf(5)});
+    for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+      Roaring64NavigableMap map = readPortable(bytes, supplier);
+      // serialize first: computing the cardinality used to prune empty buckets as a side effect
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      map.serializePortable(new DataOutputStream(out));
+      // the empty buckets are not written back
+      assertArrayEquals(expected, out.toByteArray());
+      assertEquals(1, map.getLongCardinality());
+      assertTrue(map.contains((1L << 32) | 5));
+    }
+  }
+
+  @Test
+  public void testFailedDeserializePortableLeavesTheBitmapUnchanged() throws IOException {
+    byte[] valid =
+        portableBuckets(
+            new int[] {0, 3},
+            new RoaringBitmap[] {RoaringBitmap.bitmapOf(1), RoaringBitmap.bitmapOf(2)});
+    byte[][] malformed = {
+      Arrays.copyOf(valid, valid.length - 1),
+      portableBuckets(
+          new int[] {3, 3},
+          new RoaringBitmap[] {RoaringBitmap.bitmapOf(1), RoaringBitmap.bitmapOf(2)})
+    };
+    for (BitmapDataProviderSupplier supplier : PORTABLE_SUPPLIERS) {
+      for (byte[] bytes : malformed) {
+        Roaring64NavigableMap map = new Roaring64NavigableMap(supplier);
+        map.addLong(42L);
+        map.addLong(Long.MIN_VALUE);
+        assertThrows(
+            IOException.class,
+            () -> map.deserializePortable(new DataInputStream(new ByteArrayInputStream(bytes))));
+        assertArrayEquals(new long[] {42L, Long.MIN_VALUE}, map.toArray());
+        assertEquals(2, map.getLongCardinality());
+        assertEquals(Long.MIN_VALUE, map.select(1));
+      }
+    }
+  }
 }
