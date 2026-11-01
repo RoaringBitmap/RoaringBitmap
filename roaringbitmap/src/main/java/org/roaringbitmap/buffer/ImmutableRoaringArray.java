@@ -372,8 +372,8 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public boolean equals(Object o) {
-    if (o instanceof ImmutableRoaringArray) {
-      ImmutableRoaringArray srb = (ImmutableRoaringArray) o;
+    if (o instanceof PointableRoaringArray) {
+      PointableRoaringArray srb = (PointableRoaringArray) o;
       if (srb.size() != this.size()) {
         return false;
       }
@@ -386,7 +386,10 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         if (!cp.getContainer().equals(cpo.getContainer())) {
           return false;
         }
+        cp.advance();
+        cpo.advance();
       }
+      return true;
     }
     return false;
   }
