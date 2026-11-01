@@ -174,6 +174,21 @@ public class TestBufferAdversarialInputs {
     assertTrue(rb.validate());
     assertEquals(cardinality, rb.getLongCardinality());
     assertEquals(bytes.length, rb.serializedSizeInBytes());
+    int bitmapCount = 0;
+    int arrayCount = 0;
+    int runCount = 0;
+    for (MappeableContainerPointer cp = rb.getContainerPointer(); cp.hasContainer(); cp.advance()) {
+      if (cp.isRunContainer()) {
+        runCount++;
+      } else if (cp.isBitmapContainer()) {
+        bitmapCount++;
+      } else {
+        arrayCount++;
+      }
+    }
+    assertEquals(bitmaps, bitmapCount);
+    assertEquals(arrays, arrayCount);
+    assertEquals(runs, runCount);
     RoaringBitmap heap = new RoaringBitmap();
     heap.deserialize(ByteBuffer.wrap(bytes));
     assertEquals(heap, rb.toRoaringBitmap());
@@ -193,6 +208,8 @@ public class TestBufferAdversarialInputs {
   @MethodSource("org.roaringbitmap.TestAdversarialInputs#malformedVectors")
   public void malformedInputIsAcceptedButInvalidMapped(String name, String hex, int cardinality) {
     ImmutableRoaringBitmap rb = new ImmutableRoaringBitmap(ByteBuffer.wrap(hex(hex)));
+    // the cardinality is not checked: the mapped bitmap reports the header cardinality,
+    // which disagrees with the content of these malformed inputs; validate() catches it
     assertFalse(rb.validate(), name);
   }
 
