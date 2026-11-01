@@ -448,6 +448,12 @@ public class TestCopyOnWriteEdgeCases {
     writes.put("checkedRemove", b -> b.checkedRemove(KEY4 + 2));
     writes.put("orNot", b -> b.orNot(MutableRoaringBitmap.bitmapOf(KEY4 + 2), 300_000L));
     writes.put("or", b -> b.or(MutableRoaringBitmap.bitmapOf(KEY4 + 1)));
+    writes.put("and", b -> b.and(MutableRoaringBitmap.bitmapOf(2, KEY2 + 5, KEY4 + 2)));
+    writes.put("and with a range", b -> b.and(MutableRoaringBitmap.bitmapOfRange(0, 100)));
+    writes.put("xor", b -> b.xor(MutableRoaringBitmap.bitmapOf(1, KEY2 + 5, KEY4 + 2, KEY4 + 3)));
+    writes.put("andNot", b -> b.andNot(MutableRoaringBitmap.bitmapOf(1, KEY2 + 5, KEY4 + 2)));
+    writes.put("runOptimize", MutableRoaringBitmap::runOptimize);
+    writes.put("removeRunCompression", MutableRoaringBitmap::removeRunCompression);
     writes.put(
         "naivelazyor",
         b -> {
@@ -563,5 +569,46 @@ public class TestCopyOnWriteEdgeCases {
       replacement.getValue().accept(cow);
       assertTrue(cow.shared.isEmpty(), replacement.getKey());
     }
+  }
+
+  @Test
+  public void testContainersCopiedByOrStayIndependentOfTheArgument() {
+    // from the Go library (TestBitmapOrBulkMergeCopyOnWrite{,Tail}Ownership)
+    MutableRoaringBitmap left = new MutableRoaringBitmap();
+    MutableRoaringBitmap right = new MutableRoaringBitmap();
+    for (int i = 0; i < 64; i++) {
+      left.add((2 * i) << 16);
+      right.add(((2 * i + 1) << 16) | 1);
+    }
+    MutableRoaringBitmap leftCopy = left.clone();
+    MutableRoaringBitmap rightCopy = right.clone();
+    int lastKeyOfRight = 127 << 16;
+    for (ImmutableRoaringBitmap argument :
+        new ImmutableRoaringBitmap[] {
+          right,
+          right.toMutableRoaringBitmapCopyOnWrite(),
+          new ImmutableRoaringBitmap(serialize(right))
+        }) {
+      CopyOnWriteRoaringBitmap receiver = left.toMutableRoaringBitmapCopyOnWrite();
+      receiver.or(argument);
+      // writes to the receiver in containers that came from the argument
+      receiver.add((1 << 16) | 10);
+      receiver.add(lastKeyOfRight | 10);
+      receiver.add(10);
+      assertEquals(rightCopy, argument);
+      assertEquals(leftCopy, left);
+      assertTrue(receiver.contains((1 << 16) | 10));
+      assertTrue(receiver.validate());
+    }
+    // writes to the argument after the or
+    MutableRoaringBitmap argument = right.clone();
+    CopyOnWriteRoaringBitmap receiver = left.toMutableRoaringBitmapCopyOnWrite();
+    receiver.or(argument);
+    MutableRoaringBitmap expected = MutableRoaringBitmap.or(left, right);
+    argument.add((1 << 16) | 11);
+    argument.add(lastKeyOfRight | 11);
+    assertEquals(expected, receiver);
+    assertTrue(receiver.validate());
+    assertTrue(argument.validate());
   }
 }

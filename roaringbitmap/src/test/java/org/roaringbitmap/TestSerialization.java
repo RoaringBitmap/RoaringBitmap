@@ -1,6 +1,9 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.roaringbitmap.TestAdversarialInputs.hex;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -559,5 +562,156 @@ public class TestSerialization {
 
     boolean actual = target.intersects(26244001, 27293761);
     assertEquals(actual, expected);
+  }
+
+  private static byte[] toBytes(RoaringBitmap rb) {
+    ByteBuffer buffer = ByteBuffer.allocate(rb.serializedSizeInBytes());
+    rb.serialize(buffer);
+    return buffer.array();
+  }
+
+  private static RoaringBitmap fromBytes(byte[] bytes) throws IOException {
+    RoaringBitmap rb = new RoaringBitmap();
+    rb.deserialize(ByteBuffer.wrap(bytes));
+    return rb;
+  }
+
+  @Test
+  public void testGoldenBytesAroundTheNoOffsetThreshold() throws IOException {
+    // the same bytes are produced by CRoaring and Go
+    String[] expected = {
+      "3b3000000100000900010000000900",
+      "3b300100030000090001000900010000000900010000000900",
+      "3b30020007000009000100090002000900010000000900010000000900010000000900",
+      "3b3003000f00000900010009000200090003000900250000002b0000003100000037000000"
+          + "010000000900010000000900010000000900010000000900"
+    };
+    for (int k = 1; k <= 5; k++) {
+      RoaringBitmap runs = new RoaringBitmap();
+      RoaringBitmap arrays = new RoaringBitmap();
+      for (int j = 0; j < k; j++) {
+        runs.add((long) j << 16, ((long) j << 16) + 10);
+        arrays.add((j << 16) + 7);
+      }
+      assertTrue(runs.runOptimize());
+      byte[] bytes = toBytes(runs);
+      // without offsets below 4 containers (NO_OFFSET_THRESHOLD), with offsets from then on
+      assertEquals(k < 4 ? 5 + 10 * k : 5 + 14 * k, bytes.length);
+      if (k <= expected.length) {
+        assertArrayEquals(hex(expected[k - 1]), bytes);
+      }
+      assertEquals(runs, fromBytes(bytes));
+      ImmutableRoaringBitmap mapped = new ImmutableRoaringBitmap(ByteBuffer.wrap(bytes));
+      assertTrue(mapped.validate());
+      assertEquals(runs, mapped.toRoaringBitmap());
+      // without run containers, offsets are always present
+      assertEquals(8 + 10 * k, arrays.serializedSizeInBytes());
+      assertEquals(arrays, fromBytes(toBytes(arrays)));
+    }
+  }
+
+  @Test
+  public void testEmptyBitmapGoldenBytes() throws IOException {
+    byte[] bytes = toBytes(new RoaringBitmap());
+    assertArrayEquals(hex("3a30000000000000"), bytes);
+    RoaringBitmap rb = fromBytes(bytes);
+    assertTrue(rb.isEmpty());
+    assertTrue(rb.validate());
+    assertTrue(new ImmutableRoaringBitmap(ByteBuffer.wrap(bytes)).isEmpty());
+    for (byte[] tooShort : new byte[][] {new byte[0], hex("3a300000"), hex("3a300000000000")}) {
+      assertThrows(
+          IOException.class,
+          () ->
+              new RoaringBitmap()
+                  .deserialize(new DataInputStream(new ByteArrayInputStream(tooShort))));
+      assertThrows(RuntimeException.class, () -> fromBytes(tooShort));
+    }
+  }
+
+  @Test
+  public void testArrayAndBitmapContainerBoundaryGoldenBytes() throws IOException {
+    RoaringBitmap array = new RoaringBitmap();
+    for (int i = 0; i < 4096; i++) {
+      array.add(2 * i);
+    }
+    RoaringBitmap bitmap = array.clone();
+    bitmap.add(2 * 4096);
+    byte[] arrayBytes = toBytes(array);
+    byte[] bitmapBytes = toBytes(bitmap);
+    assertEquals(8208, arrayBytes.length);
+    assertEquals(16 + 8192, bitmapBytes.length);
+    assertArrayEquals(hex("3A300000 01000000 0000 FF0F 10000000"), Arrays.copyOf(arrayBytes, 16));
+    assertArrayEquals(hex("3A300000 01000000 0000 0010 10000000"), Arrays.copyOf(bitmapBytes, 16));
+    RoaringBitmap arrayCopy = fromBytes(arrayBytes);
+    RoaringBitmap bitmapCopy = fromBytes(bitmapBytes);
+    assertTrue(arrayCopy.validate());
+    assertTrue(bitmapCopy.validate());
+    assertEquals(4096, arrayCopy.getCardinality());
+    assertEquals(4097, bitmapCopy.getCardinality());
+    assertArrayEquals(arrayBytes, toBytes(arrayCopy));
+    assertArrayEquals(bitmapBytes, toBytes(bitmapCopy));
+  }
+
+  @Test
+  public void testTrailingBytesAreIgnored() throws IOException {
+    byte[] bytes = hex("3A300000 01000000 0500 0000 10000000 0700 AABB");
+    RoaringBitmap rb = fromBytes(bytes);
+    assertEquals(RoaringBitmap.bitmapOf(327687), rb);
+    assertEquals(18, rb.serializedSizeInBytes());
+    ImmutableRoaringBitmap mapped = new ImmutableRoaringBitmap(ByteBuffer.wrap(bytes));
+    assertEquals(18, mapped.serializedSizeInBytes());
+    assertEquals(rb, mapped.toRoaringBitmap());
+  }
+
+  @Test
+  public void testPyRoaringBitMap124() throws IOException {
+    // from CRoaring's toplevel_unit.c
+    byte[] bytes =
+        hex(
+            "3a300000 01000000 0000 0900 10000000"
+                + "3200 3300 3400 3500 3600 3700 3800 3a00 3b00 3c00");
+    RoaringBitmap rb = fromBytes(bytes);
+    assertTrue(rb.validate());
+    assertEquals(
+        RoaringBitmap.bitmapOf(0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x3a, 0x3b, 0x3c), rb);
+    assertTrue(new ImmutableRoaringBitmap(ByteBuffer.wrap(bytes)).validate());
+  }
+
+  @Test
+  public void testAddOffsetInputFile() throws IOException {
+    // shared with CRoaring (cpp_unit.cpp)
+    byte[] bytes = TestAdversarialInputs.readAllBytes("/testdata/addoffsetinput.bin");
+    RoaringBitmap rb = fromBytes(bytes);
+    assertTrue(rb.validate());
+    assertEquals(933468, rb.getLongCardinality());
+    long offset = 4107040;
+    RoaringBitmap shifted = fromBytes(toBytes(RoaringBitmap.addOffset(rb, offset)));
+    assertTrue(shifted.validate());
+    assertEquals(rb.getLongCardinality(), shifted.getLongCardinality());
+    int[] original = rb.toArray();
+    int[] moved = shifted.toArray();
+    for (int i = 0; i < original.length; i++) {
+      assertEquals(Integer.toUnsignedLong(original[i]) + offset, Integer.toUnsignedLong(moved[i]));
+    }
+  }
+
+  @Test
+  public void testIssue245() throws IOException {
+    // CRoaring issue 245: one run, then 2047 isolated values, then one more (a bitmap container)
+    RoaringBitmap rb = new RoaringBitmap();
+    rb.add(0L, 9L);
+    int offset = 10;
+    for (int count = 1; count < 2048; count++, offset += 2) {
+      rb.add(offset);
+    }
+    assertEquals(rb, fromBytes(toBytes(rb)));
+    rb.runOptimize();
+    assertEquals(rb, fromBytes(toBytes(rb)));
+    offset += 2;
+    rb.add(offset);
+    assertEquals(rb, fromBytes(toBytes(rb)));
+    rb.runOptimize();
+    assertEquals(rb, fromBytes(toBytes(rb)));
+    assertTrue(fromBytes(toBytes(rb)).validate());
   }
 }

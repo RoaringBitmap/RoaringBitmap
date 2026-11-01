@@ -12,6 +12,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -424,5 +425,67 @@ public class RBBsiTest {
         bsi.compare(BitmapSliceIndex.Operation.RANGE, -129, -14, null).getCardinality(), 0);
     Assertions.assertEquals(
         bsi.compare(BitmapSliceIndex.Operation.RANGE, 129, 2000, null).getCardinality(), 0);
+  }
+
+  @Test
+  public void testEQOfAnAbsentValueAtTheDeclaredMaximum() {
+    // issue 426 (Go bsi_test.go)
+    RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex(0, 101);
+    bsi.setValue(3, 5);
+    Assertions.assertTrue(bsi.compare(BitmapSliceIndex.Operation.EQ, 101, 0, null).isEmpty());
+  }
+
+  @Test
+  public void testSetValueAfterRunOptimizeGrowsTheSlices() {
+    // from the Go library (bsi_test.go)
+    RoaringBitmapSliceIndex bsi = new RoaringBitmapSliceIndex();
+    bsi.setValue(0, 1);
+    bsi.runOptimize();
+    bsi.setValue(1, 1024);
+    Assertions.assertEquals(1024, bsi.getValue(1).getKey());
+    Assertions.assertTrue(bsi.getValue(1).getValue());
+    Assertions.assertEquals(1, bsi.getValue(0).getKey());
+    Assertions.assertEquals(11, bsi.bitCount());
+
+    RoaringBitmapSliceIndex many = new RoaringBitmapSliceIndex();
+    many.setValue(0, 1);
+    many.runOptimize();
+    many.setValues(Arrays.asList(Pair.newPair(1, 1024), Pair.newPair(2, 3)));
+    Assertions.assertEquals(1024, many.getValue(1).getKey());
+    Assertions.assertEquals(3, many.getValue(2).getKey());
+    Assertions.assertEquals(11, many.bitCount());
+  }
+
+  @Test
+  public void testRunOptimizedQueriesAndValueExist() {
+    RoaringBitmapSliceIndex ones = new RoaringBitmapSliceIndex();
+    for (int i = 0; i < 10000; i++) {
+      ones.setValue(i, 1);
+    }
+    ones.runOptimize();
+    Assertions.assertTrue(ones.hasRunCompression());
+    RoaringBitmap result = ones.compare(BitmapSliceIndex.Operation.EQ, 1, 0, null);
+    Assertions.assertEquals(RoaringBitmap.bitmapOfRange(0, 10000), result);
+
+    RoaringBitmapSliceIndex small = new RoaringBitmapSliceIndex();
+    for (int i = 1; i < 10; i++) {
+      small.setValue(i, i);
+    }
+    Assertions.assertFalse(small.valueExist(0L));
+    small.setValue(0, 0);
+    Assertions.assertTrue(small.valueExist(0L));
+    Assertions.assertEquals(10, small.getLongCardinality());
+  }
+
+  @Test
+  public void testCompareResultsAreIndependentOfTheIndex() {
+    RoaringBitmap existence = bsi.getExistenceBitmap().clone();
+    for (BitmapSliceIndex.Operation operation : BitmapSliceIndex.Operation.values()) {
+      RoaringBitmap result = bsi.compare(operation, 0, 200, null);
+      result.add(1000);
+      result.remove(1);
+    }
+    Assertions.assertEquals(existence, bsi.getExistenceBitmap());
+    IntStream.range(1, 100).forEach(x -> Assertions.assertEquals(x, bsi.getValue(x).getKey()));
   }
 }
