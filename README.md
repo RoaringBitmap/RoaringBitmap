@@ -611,6 +611,34 @@ CopyOnWriteRoaringBitmap cowBitmap = immutable.toMutableRoaringBitmapCopyOnWrite
 cowBitmap.add(newValue);    // Only copies affected containers
 cowBitmap.remove(oldValue); // Shares unchanged containers
 ```
+
+## Persistent bitmaps (structural sharing)
+
+`PersistentRoaringBitmap` is a 32-bit bitmap whose versions share containers: a
+[persistent data structure](https://en.wikipedia.org/wiki/Persistent_data_structure). Every version
+you still hold stays valid and unchanged, whatever happens to the versions it shares containers
+with. "Persistent" does not mean "on disk": it serializes to the same portable format as
+`RoaringBitmap`.
+
+`clone()`, `limit(int)` and the static `or`, `xor`, `andNot` and `and` put the containers that pass
+through unchanged into their result instead of copying them. A shared container is copied just
+before the first write to it.
+
+```java
+PersistentRoaringBitmap small = PersistentRoaringBitmap.bitmapOf(1, 2, 3);
+PersistentRoaringBitmap large = PersistentRoaringBitmap.bitmapOfRange(1_000_000, 2_000_000);
+PersistentRoaringBitmap union = PersistentRoaringBitmap.or(small, large); // copies no container
+union.add(4); // copies the container of {1, 2, 3} first: small still holds {1, 2, 3}
+PersistentRoaringBitmap snapshot = union.clone(); // copies only the arrays of references
+RoaringBitmap plain = union.toRoaringBitmap(); // a deep copy, for APIs that take a RoaringBitmap
+```
+
+It pays off when bitmaps are mostly read after they are produced (versions, snapshots, query
+results) and the operands of set operations share few keys. A plain `RoaringBitmap` remains the
+better choice for a bitmap that is written heavily while it also serves as an operand, and for
+one-off operations on plain bitmaps, since the conversions in and out deep-copy. The class
+documentation describes the cost model and the thread-safety contract.
+
 Prerequisites
 -------------
 
