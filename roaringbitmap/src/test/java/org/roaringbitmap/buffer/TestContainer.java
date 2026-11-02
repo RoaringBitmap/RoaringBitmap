@@ -5,6 +5,7 @@
 package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,10 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 /**
  * Various tests on Container and its subclasses, ArrayContainer, RunContainer and BitmapContainer
@@ -861,5 +864,79 @@ public class TestContainer {
     String normalizedRCstr =
         rc.toString().replaceAll("\\d+\\]\\[", "").replace('[', '{').replaceFirst(",\\d+\\]", "}");
     assertEquals(expected, normalizedRCstr);
+  }
+
+  private static MappeableContainer containerOfType(int type, int[] values) {
+    // values must be sorted
+    switch (type) {
+      case 0:
+        char[] chars = new char[values.length];
+        for (int i = 0; i < values.length; i++) {
+          chars[i] = (char) values[i];
+        }
+        return new MappeableArrayContainer(CharBuffer.wrap(chars), chars.length);
+      case 1:
+        MappeableContainer bitmap = new MappeableBitmapContainer();
+        for (int v : values) {
+          bitmap = bitmap.add((char) v);
+        }
+        assertTrue(bitmap instanceof MappeableBitmapContainer);
+        return bitmap;
+      default:
+        MappeableContainer run = new MappeableRunContainer();
+        for (int v : values) {
+          run = run.add((char) v);
+        }
+        assertTrue(run instanceof MappeableRunContainer);
+        return run;
+    }
+  }
+
+  private static int[] valuesWith(int[] values, int... extra) {
+    return IntStream.concat(IntStream.of(values), IntStream.of(extra)).sorted().toArray();
+  }
+
+  @Test
+  public void crossTypeEquality() {
+    // from CRoaring's container_comparison_unit.c (generic_equal_test); 0 = array, 1 = bitmap,
+    // 2 = run
+    int[] tens = IntStream.range(0, 100).map(i -> i * 10).toArray();
+    int[] full = IntStream.range(0, 65536).toArray();
+    int[] withoutFirst = IntStream.range(1, 65536).toArray();
+    int[] withoutSecond = IntStream.range(0, 65536).filter(i -> i != 1).toArray();
+    int[] withoutSecondToLast = IntStream.range(0, 65536).filter(i -> i != 65534).toArray();
+    int[] withoutLast = IntStream.range(0, 65535).toArray();
+    for (int t1 = 0; t1 < 3; t1++) {
+      for (int t2 = 0; t2 < 3; t2++) {
+        if (t1 + t2 == 1) {
+          // array and bitmap containers never compare equal: they hold disjoint cardinality ranges
+          // in a well-formed bitmap (CRoaring compares them by content)
+          continue;
+        }
+        String types = t1 + "/" + t2;
+        assertEquals(containerOfType(t1, new int[0]), containerOfType(t2, new int[0]), types);
+        assertEquals(containerOfType(t1, tens), containerOfType(t2, tens), types);
+        MappeableContainer a = containerOfType(t1, valuesWith(tens, 273));
+        MappeableContainer b = containerOfType(t2, tens);
+        assertNotEquals(a, b, types);
+        assertNotEquals(b, a, types);
+        b = containerOfType(t2, valuesWith(tens, 854));
+        assertNotEquals(a, b, types);
+        assertNotEquals(b, a, types);
+        a = containerOfType(t1, valuesWith(tens, 273, 854));
+        b = containerOfType(t2, valuesWith(tens, 273, 854));
+        assertEquals(a, b, types);
+        assertEquals(b, a, types);
+        assertEquals(containerOfType(t1, full), containerOfType(t2, full), types);
+        assertNotEquals(
+            containerOfType(t1, withoutFirst), containerOfType(t2, withoutSecond), types);
+        assertNotEquals(
+            containerOfType(t2, withoutSecond), containerOfType(t1, withoutFirst), types);
+        assertNotEquals(
+            containerOfType(t1, withoutSecondToLast), containerOfType(t2, withoutLast), types);
+        assertNotEquals(
+            containerOfType(t2, withoutLast), containerOfType(t1, withoutSecondToLast), types);
+      }
+    }
   }
 }

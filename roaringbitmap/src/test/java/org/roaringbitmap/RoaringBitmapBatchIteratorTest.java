@@ -299,4 +299,17 @@ public class RoaringBitmapBatchIteratorTest {
     n = it.nextBatch(batch);
     assertEquals(0, n);
   }
+
+  @Test
+  public void batchWithAnEmptyBufferDoesNotAdvance() {
+    // from CRoaring (read_uint32_iterator_zero_count)
+    RoaringBitmap r = RoaringBitmap.bitmapOfRange(0, 10000);
+    BatchIterator it = r.getBatchIterator();
+    assertEquals(0, it.nextBatch(new int[0]));
+    assertTrue(it.hasNext());
+    int[] buffer = new int[10000];
+    assertEquals(10000, it.nextBatch(buffer));
+    assertArrayEquals(IntStream.range(0, 10000).toArray(), buffer);
+    assertFalse(it.hasNext());
+  }
 }

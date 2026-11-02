@@ -12,6 +12,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -314,5 +318,101 @@ public class TestFastAggregation {
     result.add(5_000);
     assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104, 5_000), result);
     assertEquals(RoaringBitmap.bitmapOf(100, 101, 102, 103, 104), runs);
+  }
+
+  private static List<RoaringBitmap> readBitmapsPerLine(String resourceName) throws IOException {
+    List<RoaringBitmap> bitmaps = new ArrayList<>();
+    try (BufferedReader reader =
+        new BufferedReader(
+            new InputStreamReader(TestAdversarialInputs.openInputstream(resourceName), "UTF-8"))) {
+      for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+        if (!line.isEmpty()) {
+          bitmaps.add(
+              RoaringBitmap.bitmapOf(
+                  Arrays.stream(line.split(",")).mapToInt(Integer::parseInt).toArray()));
+        }
+      }
+    }
+    return bitmaps;
+  }
+
+  @Test
+  public void testIssue330() throws IOException {
+    // from the Go library: sparse inputs over keys 16-24 with runs
+    List<RoaringBitmap> bitmaps = readBitmapsPerLine("/testdata/issue330.txt");
+    assertEquals(3, bitmaps.size());
+    for (RoaringBitmap bitmap : bitmaps) {
+      bitmap.runOptimize();
+      assertTrue(bitmap.validate());
+    }
+    RoaringBitmap b0 = bitmaps.get(0);
+    RoaringBitmap b1 = bitmaps.get(1);
+    RoaringBitmap b2 = bitmaps.get(2);
+    assertEquals(0, FastAggregation.and(b0, b1).getCardinality());
+    assertEquals(0, FastAggregation.and(b0, b2).getCardinality());
+    assertEquals(0, FastAggregation.and(b1, b2).getCardinality());
+    RoaringBitmap chained = RoaringBitmap.or(b0, b1);
+    chained.or(b2);
+    assertEquals(1040, chained.getCardinality());
+    assertTrue(chained.validate());
+    RoaringBitmap[][] orders = {{b0, b1, b2}, {b2, b1, b0}};
+    for (RoaringBitmap[] order : orders) {
+      for (RoaringBitmap result :
+          new RoaringBitmap[] {
+            FastAggregation.or(order),
+            FastAggregation.horizontal_or(order),
+            FastAggregation.priorityqueue_or(order),
+            FastAggregation.naive_or(order),
+            ParallelAggregation.or(order)
+          }) {
+        assertEquals(chained, result);
+        assertTrue(result.validate());
+      }
+    }
+  }
+
+  @Test
+  public void testIssue178() {
+    // from the Go library: one value per container
+    RoaringBitmap r1 =
+        RoaringBitmap.bitmapOf(
+            3585028, 65901253, 143441994, 211160474, 286511937, 356744840, 434332509, 502812785,
+            576097614, 646557334, 714794241, 775083485, 833704249, 889329147, 941367043);
+    RoaringBitmap r2 =
+        RoaringBitmap.bitmapOf(
+            17883, 54494426, 113908938, 174519827, 235465665, 296685741, 357644666, 420192495,
+            476104304, 523046142, 577855081, 634889665, 692460635, 751350463, 809989192, 863494316,
+            919127240);
+    assertEquals(32, FastAggregation.or(r1, r2).getCardinality());
+    assertEquals(32, FastAggregation.horizontal_or(r1, r2).getCardinality());
+    assertEquals(32, FastAggregation.priorityqueue_or(r1, r2).getCardinality());
+    assertEquals(32, ParallelAggregation.or(r1, r2).getCardinality());
+  }
+
+  @Test
+  public void unionThatFillsAContainerBecomesARunContainer() {
+    // from CRoaring's test_full_bitset_union_becomes_run
+    RoaringBitmap evens = new RoaringBitmap();
+    RoaringBitmap odds = new RoaringBitmap();
+    for (int i = 0; i < 65536; i += 2) {
+      evens.add(i);
+      odds.add(i + 1);
+    }
+    RoaringBitmap inPlace = evens.clone();
+    inPlace.or(odds);
+    RoaringBitmap[] results = {
+      inPlace,
+      RoaringBitmap.or(evens, odds),
+      FastAggregation.or(evens, odds, odds),
+      FastAggregation.horizontal_or(evens, odds, odds),
+      FastAggregation.priorityqueue_or(evens, odds, odds),
+      ParallelAggregation.or(evens, odds, odds)
+    };
+    for (RoaringBitmap result : results) {
+      assertEquals(65536, result.getLongCardinality());
+      assertEquals(1, result.getContainerCount());
+      assertTrue(result.getContainerPointer().isRunContainer());
+      assertTrue(result.validate());
+    }
   }
 }

@@ -15,10 +15,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -453,5 +455,101 @@ public class BufferBSITest {
 
     Assertions.assertEquals(bsi.topK(null, 4), MutableRoaringBitmap.bitmapOf(5, 6, 8, 9));
     Assertions.assertEquals(bsi.topK(null, 0), MutableRoaringBitmap.bitmapOf());
+  }
+
+  @Test
+  public void testEQOfAnAbsentValueAtTheDeclaredMaximum() {
+    // issue 426 (Go bsi_test.go)
+    MutableBitSliceIndex bsi = new MutableBitSliceIndex(0, 101);
+    bsi.setValue(3, 5);
+    Assertions.assertTrue(bsi.compare(BitmapSliceIndex.Operation.EQ, 101, 0, null).isEmpty());
+  }
+
+  @Test
+  public void testSetValueAfterRunOptimizeGrowsTheSlices() {
+    // from the Go library (bsi_test.go)
+    MutableBitSliceIndex bsi = new MutableBitSliceIndex();
+    bsi.setValue(0, 1);
+    bsi.runOptimize();
+    bsi.setValue(1, 1024);
+    Assertions.assertEquals(1024, bsi.getValue(1).getKey());
+    Assertions.assertTrue(bsi.getValue(1).getValue());
+    Assertions.assertEquals(1, bsi.getValue(0).getKey());
+    Assertions.assertEquals(11, bsi.bitCount());
+  }
+
+  @Test
+  public void testRunOptimizedQueriesAndValueExist() {
+    MutableBitSliceIndex ones = new MutableBitSliceIndex();
+    for (int i = 0; i < 10000; i++) {
+      ones.setValue(i, 1);
+    }
+    ones.runOptimize();
+    Assertions.assertTrue(ones.hasRunCompression());
+    ImmutableRoaringBitmap result = ones.compare(BitmapSliceIndex.Operation.EQ, 1, 0, null);
+    Assertions.assertEquals(MutableRoaringBitmap.bitmapOfRange(0, 10000), result);
+
+    MutableBitSliceIndex small = new MutableBitSliceIndex();
+    for (int i = 1; i < 10; i++) {
+      small.setValue(i, i);
+    }
+    Assertions.assertFalse(small.valueExist(0L));
+    small.setValue(0, 0);
+    Assertions.assertTrue(small.valueExist(0L));
+    Assertions.assertEquals(10, small.getLongCardinality());
+  }
+
+  @Test
+  public void testINEdgeCases() throws ExecutionException, InterruptedException {
+    // from the Go library (bsi_benchmark_test.go, BatchEqual)
+    MutableBitSliceIndex bsi = new MutableBitSliceIndex(0, 100);
+    bsi.setValue(10, 42);
+    bsi.setValue(20, 100);
+    bsi.setValue(30, 42);
+    bsi.setValue(40, 5);
+    MutableRoaringBitmap existence = bsi.getExistenceBitmap().clone();
+    ExecutorService pool = Executors.newFixedThreadPool(2);
+    try {
+      Assertions.assertTrue(bsi.parallelIn(2, null, new HashSet<>(), pool).isEmpty());
+      Set<Integer> values = new HashSet<>(Arrays.asList(42, 100, 999));
+      Assertions.assertArrayEquals(
+          new int[] {10, 20, 30}, bsi.parallelIn(2, null, values, pool).toArray());
+      // a value beyond the bit depth of the index
+      Set<Integer> tooLarge = new HashSet<>(Arrays.asList(200));
+      Assertions.assertTrue(bsi.parallelIn(2, null, tooLarge, pool).isEmpty());
+      // existence is authoritative: an absent column does not have the value 0
+      MutableRoaringBitmap foundSet = MutableRoaringBitmap.bitmapOf(10, 15);
+      Set<Integer> zero = new HashSet<>(Arrays.asList(0));
+      Assertions.assertTrue(bsi.parallelIn(2, foundSet, zero, pool).isEmpty());
+      Set<Integer> fortyTwo = new HashSet<>(Arrays.asList(42));
+      Assertions.assertArrayEquals(
+          new int[] {10}, bsi.parallelIn(2, foundSet, fortyTwo, pool).toArray());
+      // the result is independent of the index
+      ((MutableRoaringBitmap) bsi.parallelIn(2, null, values, pool)).add(50);
+      Assertions.assertEquals(existence, bsi.getExistenceBitmap());
+      Assertions.assertFalse(bsi.getValue(50).getValue());
+
+      // random values against the ground truth
+      Random random = new Random(42);
+      MutableBitSliceIndex randomBsi = new MutableBitSliceIndex(0, 1000);
+      for (int i = 0; i < 5000; i++) {
+        randomBsi.setValue(random.nextInt(20000), random.nextInt(1001));
+      }
+      Set<Integer> wanted = new HashSet<>();
+      for (int i = 0; i < 50; i++) {
+        wanted.add(random.nextInt(1001));
+      }
+      MutableRoaringBitmap expected = new MutableRoaringBitmap();
+      for (int column : randomBsi.getExistenceBitmap().toArray()) {
+        if (wanted.contains(randomBsi.getValue(column).getKey())) {
+          expected.add(column);
+        }
+      }
+      for (int parallelism : new int[] {1, 2, 4}) {
+        Assertions.assertEquals(expected, randomBsi.parallelIn(parallelism, null, wanted, pool));
+      }
+    } finally {
+      pool.shutdownNow();
+    }
   }
 }

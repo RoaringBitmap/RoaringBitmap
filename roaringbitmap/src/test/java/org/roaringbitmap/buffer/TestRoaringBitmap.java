@@ -4254,4 +4254,87 @@ public class TestRoaringBitmap {
         .putChar(RUN_HEADER_CARDINALITY, (char) 99);
     assertFalse(new ImmutableRoaringBitmap(ByteBuffer.wrap(bytes)).validate());
   }
+
+  private static ImmutableRoaringBitmap mapped(MutableRoaringBitmap bitmap) {
+    return new ImmutableRoaringBitmap(ByteBuffer.wrap(serializeToBytes(bitmap)));
+  }
+
+  @Test
+  public void removeRangeAtTheEndOfTheUniverse() {
+    MutableRoaringBitmap r = MutableRoaringBitmap.bitmapOf(0xFFFFFFFF);
+    r.remove(0L, 0xFFFFFFFFL);
+    assertEquals(1, r.getLongCardinality());
+    r.remove(0L, 1L << 32);
+    assertTrue(r.isEmpty());
+    MutableRoaringBitmap again = MutableRoaringBitmap.bitmapOf(0xFFFFFFFF);
+    assertThrows(IllegalArgumentException.class, () -> again.remove(0L, (1L << 32) + 1));
+    assertEquals(1, again.getLongCardinality());
+  }
+
+  @Test
+  public void absentValuesAcrossContainerKeys() {
+    // from the Go library (TestNextAndPreviousAbsentValueContainerKeys)
+    MutableRoaringBitmap carry = MutableRoaringBitmap.bitmapOf(65536, 131071);
+    carry.add(131072L, 196608L);
+    MutableRoaringBitmap single = MutableRoaringBitmap.bitmapOf(65537);
+    MutableRoaringBitmap fullSecond = MutableRoaringBitmap.bitmapOfRange(65536, 131072);
+    MutableRoaringBitmap twoFull = MutableRoaringBitmap.bitmapOfRange(0, 131072);
+    for (ImmutableRoaringBitmap r : new ImmutableRoaringBitmap[] {carry, mapped(carry)}) {
+      assertEquals(131070, r.previousAbsentValue(196607));
+    }
+    for (ImmutableRoaringBitmap r : new ImmutableRoaringBitmap[] {single, mapped(single)}) {
+      assertEquals(65536, r.nextAbsentValue(65536));
+      assertEquals(65538, r.nextAbsentValue(65537));
+      assertEquals(65536, r.previousAbsentValue(65537));
+      assertEquals(65538, r.previousAbsentValue(65538));
+    }
+    for (ImmutableRoaringBitmap r : new ImmutableRoaringBitmap[] {fullSecond, mapped(fullSecond)}) {
+      assertEquals(65535, r.previousAbsentValue(131071));
+      assertEquals(65535, r.previousAbsentValue(65536));
+    }
+    for (ImmutableRoaringBitmap r : new ImmutableRoaringBitmap[] {twoFull, mapped(twoFull)}) {
+      assertEquals(131072, r.nextAbsentValue(0));
+      assertEquals(131072, r.nextAbsentValue(65536));
+    }
+  }
+
+  @Test
+  public void intersectBitmapWithRangeHighBits() {
+    // a bitmap container with values only in its lower half
+    MutableRoaringBitmap r = new MutableRoaringBitmap();
+    for (int i = 1; i < 32768; i += 2) {
+      r.add(i);
+    }
+    for (ImmutableRoaringBitmap b : new ImmutableRoaringBitmap[] {r, mapped(r)}) {
+      assertFalse(b.intersects(1 << 15, 0xFFFF));
+      assertTrue(b.intersects(32767, 32769));
+    }
+  }
+
+  private static MutableRoaringBitmap highKeyBitmapContainer(long word) {
+    MutableRoaringBitmap r = new MutableRoaringBitmap();
+    for (int w = 0; w < 1024; w++) {
+      for (int bit = 0; bit < 64; bit++) {
+        if ((word & (1L << bit)) != 0) {
+          r.add((1 << 31) + 64 * w + bit);
+        }
+      }
+    }
+    return r;
+  }
+
+  @Test
+  public void intersectsAtTheFirstValueOfAHighKeyBitmapContainer() {
+    MutableRoaringBitmap a = highKeyBitmapContainer(1789303257167203747L);
+    for (ImmutableRoaringBitmap b : new ImmutableRoaringBitmap[] {a, mapped(a)}) {
+      assertFalse(b.intersects(0, b.first() & 0xFFFFFFFFL));
+    }
+    MutableRoaringBitmap c = highKeyBitmapContainer(2697219678014362575L);
+    for (ImmutableRoaringBitmap b : new ImmutableRoaringBitmap[] {c, mapped(c)}) {
+      long first = b.first() & 0xFFFFFFFFL;
+      assertTrue(b.intersects(first - 1, first + 1));
+      assertTrue(b.intersects(first, first + 1));
+      assertFalse(b.intersects(first - 1, first));
+    }
+  }
 }

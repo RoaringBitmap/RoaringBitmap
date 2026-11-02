@@ -4,6 +4,7 @@
 
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TestIterators {
   private static List<Integer> asList(IntIterator ints) {
@@ -468,5 +470,159 @@ public class TestIterators {
     bitIt.advanceIfNeeded(6000000);
     assertEquals(6000000, bitIt.peekNext());
     assertEquals(6000000, bitIt.next());
+  }
+
+  /** The reference data set of CRoaring's iterator tests (test_iterator_generate_data). */
+  private static int[] iteratorReferenceData() {
+    IntStream.Builder values = IntStream.builder();
+    int base = 1234; // container key
+    values.add(0); // the smallest value
+    values.add(base << 16); // only the first value of a container
+    base += 2;
+    values.add((base << 16) + 65535); // only the last value of a container
+    base += 2;
+    for (int i = 0; i < 65536; i++) { // a full container
+      values.add((base << 16) + i);
+    }
+    base += 2;
+    for (int i = 0; i < 65536; i += 2) { // even values
+      values.add((base << 16) + i);
+    }
+    base += 2;
+    for (int i = 1; i < 65536; i += 2) { // odd values
+      values.add((base << 16) + i);
+    }
+    base += 2;
+    for (int i = 0; i < 65536; i += 65) { // each 64-bit word is rotated by one
+      values.add((base << 16) + i);
+    }
+    base += 2;
+    for (int i = 0, run = 0; i < 65536; i++) { // runs of increasing lengths
+      if (i != (run + 1) * (run + 2) / 2 - 1) {
+        values.add((base << 16) + i);
+      } else {
+        run++;
+      }
+    }
+    base += 2;
+    for (int i = 65536 - 100; i < 65536; i++) { // a run over three containers
+      values.add((base << 16) + i);
+    }
+    base += 1;
+    for (int i = 0; i < 65536; i++) {
+      values.add((base << 16) + i);
+    }
+    base += 1;
+    for (int i = 0; i < 100; i++) {
+      values.add((base << 16) + i);
+    }
+    base += 2;
+    Random random = new Random(1234);
+    for (int i = 0; i < 65536; i += random.nextInt(10) + 1) {
+      values.add((base << 16) + i);
+    }
+    values.add(0xFFFFFFFF); // the largest value
+    return values.build().toArray();
+  }
+
+  /** 0: as built, 1: runOptimize, 2: every container is an array, 3: a bitmap, 4: a run. */
+  private static RoaringBitmap withContainers(int[] values, int kind) {
+    RoaringBitmap r = RoaringBitmap.bitmapOf(values);
+    if (kind == 1) {
+      r.runOptimize();
+    } else if (kind > 1) {
+      RoaringArray containers = r.highLowContainer;
+      for (int i = 0; i < containers.size(); i++) {
+        Container c = containers.getContainerAtIndex(i);
+        Container forced;
+        if (kind == 2) {
+          char[] content = new char[c.getCardinality()];
+          CharIterator it = c.getCharIterator();
+          for (int j = 0; j < content.length; j++) {
+            content[j] = it.next();
+          }
+          forced = new ArrayContainer(content);
+        } else {
+          BitmapContainer bitmap = c.toBitmapContainer();
+          forced = kind == 3 ? bitmap : new RunContainer(bitmap, bitmap.numberOfRuns());
+        }
+        containers.setContainerAtIndex(i, forced);
+      }
+    }
+    return r;
+  }
+
+  @Test
+  public void allIteratorsOverTheReferenceDataSet() {
+    int[] reference = iteratorReferenceData();
+    int[] reversed = new int[reference.length];
+    for (int i = 0; i < reference.length; i++) {
+      reversed[i] = reference[reference.length - 1 - i];
+    }
+    for (int kind = 0; kind < 5; kind++) {
+      RoaringBitmap r = withContainers(reference, kind);
+      String name = "kind " + kind;
+      assertEquals(reference.length, r.getCardinality(), name);
+      assertArrayEquals(reference, r.toArray(), name);
+      assertArrayEquals(reference, Ints.toArray(asList(r.getIntIterator())), name);
+      assertArrayEquals(reversed, Ints.toArray(asList(r.getReverseIntIterator())), name);
+      IntStream.Builder visited = IntStream.builder();
+      r.forEach((IntConsumer) visited::add);
+      assertArrayEquals(reference, visited.build().toArray(), name);
+      for (int size : new int[] {1, 2, 7, reference.length - 1, reference.length}) {
+        BatchIterator it = r.getBatchIterator();
+        int[] buffer = new int[size];
+        int[] read = new int[reference.length];
+        int count = 0;
+        while (it.hasNext()) {
+          int n = it.nextBatch(buffer);
+          System.arraycopy(buffer, 0, read, count, n);
+          count += n;
+        }
+        assertEquals(reference.length, count, name + " size " + size);
+        assertArrayEquals(reference, read, name + " size " + size);
+        assertEquals(0, it.nextBatch(buffer));
+        assertFalse(it.hasNext());
+      }
+    }
+  }
+
+  @Test
+  public void advanceToTheLargestValue() {
+    RoaringBitmap single = RoaringBitmap.bitmapOf(0, 65535, 65536, 0xFFFFFFFF);
+    RoaringBitmap run = RoaringBitmap.bitmapOfRange(0xFFFFFF00L, 1L << 32);
+    run.runOptimize();
+    for (RoaringBitmap r : new RoaringBitmap[] {single, run}) {
+      PeekableIntIterator it = r.getIntIterator();
+      it.advanceIfNeeded(0xFFFFFFFF);
+      assertTrue(it.hasNext());
+      assertEquals(0xFFFFFFFF, it.peekNext());
+      assertEquals(0xFFFFFFFF, it.next());
+      assertFalse(it.hasNext());
+      BatchIterator batch = r.getBatchIterator();
+      batch.advanceIfNeeded(0xFFFFFFFF);
+      int[] buffer = new int[4];
+      assertEquals(1, batch.nextBatch(buffer));
+      assertEquals(0xFFFFFFFF, buffer[0]);
+    }
+    PeekableIntIterator it = RoaringBitmap.bitmapOf(1, 2).getIntIterator();
+    it.advanceIfNeeded(0xFFFFFFFF);
+    assertFalse(it.hasNext());
+    it.advanceIfNeeded(0xFFFFFFFF);
+    assertFalse(it.hasNext());
+  }
+
+  @Test
+  public void advanceToASmallerValueDoesNotMoveBack() {
+    // from the Go library (TestIteratorAdvance)
+    RoaringBitmap r = RoaringBitmap.bitmapOf(1, 2, 15, 16, 31, 32, 33, 9999, 65535);
+    PeekableIntIterator it = r.getIntIterator();
+    it.advanceIfNeeded(29);
+    assertEquals(31, it.peekNext());
+    it.advanceIfNeeded(13);
+    assertEquals(31, it.peekNext());
+    it.advanceIfNeeded(31);
+    assertEquals(31, it.next());
+    assertEquals(32, it.peekNext());
   }
 }

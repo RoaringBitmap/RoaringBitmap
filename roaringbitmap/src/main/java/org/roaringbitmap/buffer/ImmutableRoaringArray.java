@@ -295,9 +295,22 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public Boolean validate() {
+    final boolean hasrun = hasRunCompression();
+    // containers are located through the offset table (when present), which must therefore
+    // agree with the sequential layout used by the other readers of the format
+    int expectedOffset = headerSize(hasrun);
     for (int k = 0; k < size; ++k) {
       if (k > 0 && getKey(k - 1) >= getKey(k)) {
         return false;
+      }
+      if (getOffsetContainer(k, hasrun) != expectedOffset) {
+        return false;
+      }
+      if (isRunContainer(k, hasrun)) {
+        expectedOffset +=
+            BufferUtil.getSizeInBytesFromCardinalityEtc(0, buffer.getChar(expectedOffset), true);
+      } else {
+        expectedOffset += BufferUtil.getSizeInBytesFromCardinalityEtc(getCardinality(k), 0, false);
       }
       MappeableContainer container = getContainerAtIndex(k);
       if (container == null) {

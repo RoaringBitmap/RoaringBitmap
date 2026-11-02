@@ -24,18 +24,22 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -6159,5 +6163,682 @@ public class TestRoaringBitmap {
     big.add(100);
     assertTrue(big.contains(sub));
     assertTrue(big.toMutableRoaringBitmap().contains(sub.toMutableRoaringBitmap()));
+  }
+
+  // ---- end of the universe for range operations (Go TestRoaringRangeEnd) ----
+
+  @Test
+  public void removeRangeAtTheEndOfTheUniverse() {
+    RoaringBitmap r = RoaringBitmap.bitmapOf(0xFFFFFFFF);
+    r.remove(0L, 0xFFFFFFFFL);
+    assertEquals(1, r.getLongCardinality());
+    r.remove(0L, 1L << 32);
+    assertTrue(r.isEmpty());
+    RoaringBitmap again = RoaringBitmap.bitmapOf(0xFFFFFFFF);
+    assertThrows(IllegalArgumentException.class, () -> again.remove(0L, (1L << 32) + 1));
+    assertThrows(IllegalArgumentException.class, () -> again.add(0L, (1L << 32) + 1));
+    assertEquals(1, again.getLongCardinality());
+  }
+
+  // ---- equality across container representations ----
+
+  @Test
+  public void equalsAcrossContainerTypes() {
+    RoaringBitmap array = new RoaringBitmap();
+    array.add(1L, 101L);
+    array.removeRunCompression();
+    RoaringBitmap run = array.clone();
+    assertTrue(run.runOptimize());
+    assertEquals(array, run);
+    assertEquals(run, array);
+
+    RoaringBitmap bitmap = new RoaringBitmap();
+    for (int i = 0; i < 10000; i++) {
+      bitmap.add(i);
+    }
+    RoaringBitmap range = RoaringBitmap.bitmapOfRange(0, 10000);
+    assertEquals(bitmap, range);
+    RoaringBitmap backToBitmap = range.clone();
+    backToBitmap.removeRunCompression();
+    assertEquals(range, backToBitmap);
+
+    RoaringBitmap full = new RoaringBitmap();
+    for (int i = 0; i < 65536; i++) {
+      full.add(i);
+    }
+    RoaringBitmap fullRange = new RoaringBitmap();
+    fullRange.add(0L, 65536L);
+    assertEquals(full, fullRange);
+    full.runOptimize();
+    assertEquals(full, fullRange);
+  }
+
+  // ---- runOptimize ----
+
+  @Test
+  public void runOptimizeShrinksADegenerateRunContainer() {
+    RoaringBitmap r = new RoaringBitmap();
+    r.add(0L, 65536L);
+    for (int i = 0; i < 65536; i += 2) {
+      r.remove((long) i, i + 1L);
+    }
+    RoaringBitmap expected = new RoaringBitmap();
+    for (int i = 1; i < 65536; i += 2) {
+      expected.add(i);
+    }
+    long sizeBefore = r.getLongSizeInBytes();
+    assertFalse(r.runOptimize());
+    assertTrue(r.getLongSizeInBytes() < sizeBefore / 10, () -> r.getLongSizeInBytes() + "");
+    assertFalse(r.hasRunCompression());
+    assertEquals(expected, r);
+    assertTrue(r.validate());
+
+    // variant from CRoaring: a run followed by many runs of length 1
+    RoaringBitmap s = new RoaringBitmap();
+    s.add(0L, 100L);
+    assertTrue(s.runOptimize());
+    for (int i = 200; i < 65536; i += 2) {
+      s.add(i);
+    }
+    RoaringBitmap copy = s.clone();
+    long sizeBefore2 = s.serializedSizeInBytes();
+    assertFalse(s.runOptimize());
+    assertTrue(s.serializedSizeInBytes() < sizeBefore2 / 10);
+    assertEquals(copy, s);
+    assertTrue(s.validate());
+  }
+
+  @Test
+  public void removeRunCompressionAtTheTopOfTheUniverse() {
+    RoaringBitmap r = new RoaringBitmap();
+    assertFalse(r.runOptimize());
+    assertFalse(r.removeRunCompression());
+    for (long v = 0xFFFFFFF5L; v <= 0xFFFFFFFFL; v++) {
+      r.add((int) v);
+    }
+    assertTrue(r.runOptimize());
+    assertTrue(r.hasRunCompression());
+    assertTrue(r.removeRunCompression());
+    assertFalse(r.hasRunCompression());
+    assertEquals(11, r.getLongCardinality());
+    assertTrue(r.contains(0xFFFFFFFF));
+    assertTrue(r.contains(0xFFFFFFF5));
+    assertTrue(r.validate());
+    assertFalse(r.removeRunCompression());
+  }
+
+  @Test
+  public void issue467() {
+    // from the Go library: adjacent ranges followed by runOptimize must stay valid
+    long[][] ranges = {
+      {0, 16385}, {16385, 20482}, {20482, 27862}, {27862, 44247}, {45576, 61961},
+      {61961, 66058}, {66058, 67247}, {68819, 73028}, {73028, 89413}, {92266, 108651},
+      {108651, 113772}, {113772, 118757}, {118757, 132098}
+    };
+    RoaringBitmap r = new RoaringBitmap();
+    long cardinality = 0;
+    for (long[] range : ranges) {
+      r.add(range[0], range[1]);
+      cardinality += range[1] - range[0];
+    }
+    r.runOptimize();
+    assertTrue(r.validate());
+    assertEquals(cardinality, r.getLongCardinality());
+  }
+
+  @Test
+  public void issue467Large() {
+    // verbatim port of Go's TestIssue467CaseLarge: '+' adds and '-' removes a range
+    String ops =
+        "-0,16385 -16385,20482 -20482,27862 +0,16385 +16385,20482 +20482,27862 -27862,44247"
+            + " -44247,45576 -45576,61961 -61961,66058 -66058,67247 +27862,44247 +45576,61961"
+            + " +44247,45576 +61961,66058 +66058,67247 -67247,68819 -68819,73028 -73028,89413"
+            + " -89413,92266 -92266,108651 -108651,113772 -113772,118757 +68819,73028"
+            + " +73028,89413 +92266,108651 +89413,92266 +108651,113772 +113772,118757"
+            + " -118757,132098 +118757,132098 -132098,137544 +132098,137544 -137544,153929"
+            + " -153929,155151 -155151,162078 -162078,167119 -167119,181012 -181012,197397"
+            + " -197397,201244 -201244,217629 -217629,222750 -222750,227708 -227708,235777"
+            + " -235777,252162 -252162,256259 +252162,256259 +227708,235777 +235777,252162";
+    RoaringBitmap r = new RoaringBitmap();
+    BitSet reference = new BitSet();
+    for (String op : ops.split(" ")) {
+      String[] bounds = op.substring(1).split(",");
+      int start = Integer.parseInt(bounds[0]);
+      int end = Integer.parseInt(bounds[1]);
+      if (op.charAt(0) == '+') {
+        r.add((long) start, (long) end);
+        reference.set(start, end);
+      } else {
+        r.remove((long) start, (long) end);
+        reference.clear(start, end);
+      }
+    }
+    r.runOptimize();
+    assertTrue(r.validate());
+    assertEquals(BitSetUtil.bitmapOf(reference), r);
+  }
+
+  @Test
+  public void issue469() {
+    // from the Go library (TestValidate469)
+    RoaringBitmap r = new RoaringBitmap();
+    long[][] ops = {
+      {-1, 0, 180}, {1, 0, 180}, {-1, 180, 217}, {1, 180, 217}, {-1, 217, 2394},
+      {-1, 2394, 2427}, {1, 2394, 2427}, {-1, 2427, 2428}, {1, 2427, 2428}, {-1, 2428, 3345},
+      {-1, 3345, 3346}, {-1, 3346, 3597}, {-1, 3597, 3815}, {-1, 3815, 3816}, {1, 3815, 3816},
+      {-1, 3816, 3856}, {-1, 3856, 4067}, {-1, 4067, 4069}, {-1, 4069, 4071}, {-1, 4071, 4095},
+      {-1, 4095, 4096}
+    };
+    for (long[] op : ops) {
+      if (op[0] > 0) {
+        r.add(op[1], op[2]);
+      } else {
+        r.remove(op[1], op[2]);
+      }
+      assertTrue(r.validate());
+    }
+    r.runOptimize();
+    assertFalse(r.isEmpty());
+    assertTrue(r.validate());
+  }
+
+  // ---- next/previous absent values ----
+
+  @Test
+  public void absentValuesAcrossContainerKeys() {
+    // from the Go library (TestNextAndPreviousAbsentValueContainerKeys)
+    RoaringBitmap single = RoaringBitmap.bitmapOf(65537);
+    assertEquals(65536, single.nextAbsentValue(65536));
+    assertEquals(65538, single.nextAbsentValue(65537));
+    assertEquals(65536, single.previousAbsentValue(65537));
+    assertEquals(65538, single.previousAbsentValue(65538));
+
+    RoaringBitmap carry = RoaringBitmap.bitmapOf(65536, 131071);
+    carry.add(131072L, 196608L);
+    assertEquals(131070, carry.previousAbsentValue(196607));
+
+    RoaringBitmap fullFirst = RoaringBitmap.bitmapOfRange(0, 65536);
+    assertEquals(65536, fullFirst.nextAbsentValue(0));
+    assertEquals(65536, fullFirst.nextAbsentValue(65535));
+
+    RoaringBitmap fullSecond = RoaringBitmap.bitmapOfRange(65536, 131072);
+    assertEquals(65535, fullSecond.previousAbsentValue(131071));
+    assertEquals(65535, fullSecond.previousAbsentValue(65536));
+
+    RoaringBitmap twoFull = RoaringBitmap.bitmapOfRange(0, 131072);
+    assertEquals(131072, twoFull.nextAbsentValue(0));
+    assertEquals(131072, twoFull.nextAbsentValue(65536));
+  }
+
+  // ---- rangeCardinality ----
+
+  private static void assertRangeCardinality(RoaringBitmap r, long start, long end, long expected) {
+    assertEquals(expected, r.rangeCardinality(start, end), start + ".." + end);
+    long below = start == 0 ? 0 : r.rankLong((int) (start - 1));
+    long upTo = r.rankLong((int) (end - 1));
+    assertEquals(expected, upTo - below, start + ".." + end);
+  }
+
+  @Test
+  public void rangeCardinalityOnArrayBitmapAndMultipleContainers() {
+    // from the Go library (TestCardinalityInRange*)
+    RoaringBitmap array = new RoaringBitmap();
+    for (int i = 0; i < 300; i += 3) {
+      array.add(i);
+    }
+    assertRangeCardinality(array, 0, 300, 100);
+    assertRangeCardinality(array, 0, 1, 1);
+    assertRangeCardinality(array, 0, 4, 2);
+    assertRangeCardinality(array, 3, 7, 2);
+
+    RoaringBitmap bitmap = new RoaringBitmap();
+    for (int i = 0; i < 16384; i += 2) {
+      bitmap.add(i);
+    }
+    assertRangeCardinality(bitmap, 0, 16384, 8192);
+    assertRangeCardinality(bitmap, 1, 2, 0);
+    assertRangeCardinality(bitmap, 1, 3, 1);
+    assertRangeCardinality(bitmap, 100, 200, 50);
+
+    RoaringBitmap multi = new RoaringBitmap();
+    for (int key : new int[] {0, 1, 3}) {
+      for (int i = 0; i < 100; i++) {
+        multi.add((key << 16) + i);
+      }
+    }
+    assertRangeCardinality(multi, 50, 196658, 200);
+    assertRangeCardinality(multi, 131072, 196608, 0);
+
+    RoaringBitmap runs = RoaringBitmap.bitmapOfRange(0, 1024);
+    runs.add(2048L, 3072L);
+    assertRangeCardinality(runs, 1023, 1025, 1);
+    assertRangeCardinality(runs, 512, 2560, 1024);
+
+    RoaringBitmap high = RoaringBitmap.bitmapOf(0, 0x80000000, 0xFFFFFFFF);
+    assertRangeCardinality(high, 0, 1L << 32, 3);
+    assertRangeCardinality(high, 0xFFFFFFFFL, 1L << 32, 1);
+  }
+
+  // ---- flips ----
+
+  @Test
+  public void flipTheLastValueAndTheWholeUniverse() {
+    RoaringBitmap last = RoaringBitmap.bitmapOf(0xFFFFFFFF);
+    last.flip(0xFFFFFFFFL, 1L << 32);
+    assertTrue(last.isEmpty());
+    assertTrue(
+        RoaringBitmap.flip(RoaringBitmap.bitmapOf(0xFFFFFFFF), 0xFFFFFFFFL, 1L << 32).isEmpty());
+
+    RoaringBitmap all = new RoaringBitmap();
+    all.flip(0L, 1L << 32);
+    assertEquals(1L << 32, all.getLongCardinality());
+    assertTrue(all.validate());
+    assertTrue(RoaringBitmap.flip(all, 0L, 1L << 32).isEmpty());
+    all.flip(0L, 1L << 32);
+    assertTrue(all.isEmpty());
+
+    RoaringBitmap unchanged = RoaringBitmap.bitmapOf(2, 3);
+    unchanged.flip(2L, 2L);
+    assertEquals(RoaringBitmap.bitmapOf(2, 3), unchanged);
+  }
+
+  @Test
+  public void flipThatRemovesEveryValueLeavesAValidEmptyBitmap() {
+    RoaringBitmap array = RoaringBitmap.bitmapOfRange(0, 100);
+    array.removeRunCompression();
+    RoaringBitmap bitmap = new RoaringBitmap();
+    for (int i = 0; i < 10000; i++) {
+      bitmap.add(i);
+    }
+    RoaringBitmap run = RoaringBitmap.bitmapOfRange(0, 10000);
+    long[] ends = {100, 10000, 10000};
+    RoaringBitmap[] bitmaps = {array, bitmap, run};
+    for (int i = 0; i < bitmaps.length; i++) {
+      bitmaps[i].flip(0L, ends[i]);
+      assertTrue(bitmaps[i].isEmpty());
+      assertEquals(0, bitmaps[i].getContainerCount());
+      assertTrue(bitmaps[i].validate());
+    }
+    RoaringBitmap wide = RoaringBitmap.bitmapOfRange(0, 66002);
+    wide.flip(0L, 987653576L);
+    assertEquals(987653576L - 66002, wide.getLongCardinality());
+    assertTrue(wide.validate());
+  }
+
+  // ---- select ----
+
+  @Test
+  public void selectAfterRunOptimize() {
+    // from the Go library (TestSelectAfterOptimize)
+    RoaringBitmap r = RoaringBitmap.bitmapOfRange(438945, 439247);
+    r.add(439248);
+    r.removeRunCompression();
+    int[] before = new int[r.getCardinality()];
+    for (int i = 0; i < before.length; i++) {
+      before[i] = r.select(i);
+    }
+    assertTrue(r.runOptimize());
+    for (int i = 0; i < before.length; i++) {
+      assertEquals(before[i], r.select(i));
+    }
+    assertThrows(IllegalArgumentException.class, () -> r.select(before.length));
+  }
+
+  // ---- bulk add ----
+
+  @Test
+  public void bulkAddWithUnsortedValuesAndDuplicates() {
+    int[] values = {9999, 123, 0xFFFFFFFF, 0xFFFFFFF7, 9999, 0};
+    RoaringBitmap oneByOne = new RoaringBitmap();
+    for (int v : values) {
+      oneByOne.add(v);
+    }
+    RoaringBitmap bulk = new RoaringBitmap();
+    bulk.add(values);
+    assertEquals(oneByOne, bulk);
+    RoaringBitmap addN = new RoaringBitmap();
+    addN.addN(values, 0, values.length);
+    assertEquals(oneByOne, addN);
+    assertEquals(oneByOne, RoaringBitmap.bitmapOf(values));
+    assertEquals(5, bulk.getCardinality());
+
+    List<Integer> list = new ArrayList<>();
+    for (int i = 0; i <= 10000; i++) {
+      list.add(i);
+      list.add(0x80000000 + i);
+    }
+    Collections.shuffle(list, new Random(42));
+    int[] shuffled = list.stream().mapToInt(Integer::intValue).toArray();
+    RoaringBitmap expected = new RoaringBitmap();
+    for (int v : shuffled) {
+      expected.add(v);
+    }
+    RoaringBitmap large = RoaringBitmap.bitmapOf(shuffled);
+    assertEquals(expected, large);
+    assertTrue(large.validate());
+    assertEquals(20002, large.getCardinality());
+  }
+
+  // ---- fuzzer reproducers from the Go library ----
+
+  private static RoaringBitmap fromBase64(String base64) throws IOException {
+    RoaringBitmap r = new RoaringBitmap();
+    r.deserialize(ByteBuffer.wrap(Base64.getDecoder().decode(base64)));
+    assertTrue(r.validate());
+    return r;
+  }
+
+  @Test
+  public void goFuzzerReproducers() throws IOException {
+    // {647253, 1048572} andNot {647253}: the first container is emptied
+    RoaringBitmap a = fromBase64("OjAAAAIAAAAJAAAADwAAABgAAAAaAAAAVeD8/w==");
+    a.andNot(fromBase64("OjAAAAEAAAAJAAAAEAAAAFXg"));
+    assertTrue(a.validate());
+    assertEquals(RoaringBitmap.bitmapOf(1048572), a);
+
+    // run [3, 6] or {1}
+    RoaringBitmap b = fromBase64("OzAAAAEAAAMAAQADAAMA");
+    b.or(fromBase64("OjAAAAEAAAAAAAAAEAAAAAEA"));
+    assertTrue(b.validate());
+    assertEquals(RoaringBitmap.bitmapOf(1, 3, 4, 5, 6), b);
+
+    // {0, 1048575} xor and or with an equal copy
+    RoaringBitmap c = fromBase64("OjAAAAIAAAAAAAAADwAAABgAAAAaAAAAAAD//w==");
+    RoaringBitmap same = fromBase64("OjAAAAIAAAAAAAAADwAAABgAAAAaAAAAAAD//w==");
+    RoaringBitmap orred = c.clone();
+    orred.or(same);
+    assertEquals(RoaringBitmap.bitmapOf(0, 1048575), orred);
+    assertTrue(orred.validate());
+    c.xor(same);
+    assertTrue(c.isEmpty());
+    assertTrue(c.validate());
+
+    // run [1048565, 1048568] andNot {1048566, 1048567}: one run splits into two values
+    RoaringBitmap d = fromBase64("OzAAAAEPAAMAAQD1/wMA");
+    d.andNot(fromBase64("OjAAAAEAAAAPAAEAEAAAAPb/9/8="));
+    assertTrue(d.validate());
+    assertEquals(RoaringBitmap.bitmapOf(1048565, 1048568), d);
+
+    // flip of the last value of a run that ends the container data
+    RoaringBitmap e = fromBase64("OzAAAAEPAAMAAQDo/wMA");
+    e.flip(1048555L, 1048556L);
+    assertTrue(e.validate());
+    assertEquals(3, e.getCardinality());
+
+    // remove from and add to minimal run containers
+    RoaringBitmap f = fromBase64("OzAAAAEAAAMAAQACAAMA");
+    f.remove(3);
+    assertTrue(f.validate());
+    assertEquals(RoaringBitmap.bitmapOf(2, 4, 5), f);
+    RoaringBitmap g = fromBase64("OzAAAAEAAAMAAQA2AAMA");
+    g.add(112);
+    assertTrue(g.validate());
+    assertEquals(RoaringBitmap.bitmapOf(54, 55, 56, 57, 112), g);
+  }
+
+  @Test
+  public void pointMutationsOnMinimalRunContainersStayValid() {
+    RoaringBitmap a = RoaringBitmap.bitmapOfRange(2, 6);
+    a.runOptimize();
+    a.remove(3);
+    assertTrue(a.validate());
+    RoaringBitmap b = RoaringBitmap.bitmapOfRange(54, 58);
+    b.runOptimize();
+    b.add(112);
+    assertTrue(b.validate());
+    RoaringBitmap c = RoaringBitmap.bitmapOfRange((15 << 16) | 0xFFE8, (15 << 16) | 0xFFEC);
+    c.runOptimize();
+    c.flip(1048555L, 1048556L);
+    assertTrue(c.validate());
+    assertEquals(3, c.getCardinality());
+  }
+
+  // ---- set operations ----
+
+  @Test
+  public void containsAfterFlipIssue431() {
+    RoaringBitmap b1 = RoaringBitmap.bitmapOf(100);
+    b1.flip(0L, 101L);
+    assertEquals(RoaringBitmap.bitmapOfRange(0, 100), b1);
+    RoaringBitmap b2 = RoaringBitmap.bitmapOfRange(50, 101);
+    assertFalse(b1.contains(b2));
+    assertTrue(b1.contains(RoaringBitmap.bitmapOfRange(50, 100)));
+  }
+
+  private static RoaringBitmap readGoRunBitmap() throws IOException {
+    try (BufferedReader reader =
+        new BufferedReader(
+            new InputStreamReader(
+                TestAdversarialInputs.openInputstream("/testdata/go-runs-key4272.base64.txt"),
+                "UTF-8"))) {
+      return fromBase64(reader.readLine().trim());
+    }
+  }
+
+  @Test
+  public void fullRangeMaskCombinedWithRunsStaysValid() throws IOException {
+    // from the Go library (TestRoaring_OrThenAnd and TestRoaring_OrThenAnd_RunOptimize)
+    RoaringBitmap bm1 = RoaringBitmap.bitmapOf(279981785, 279982923, 279988809, 279995913);
+    RoaringBitmap fromBytes = readGoRunBitmap();
+    RoaringBitmap rebuilt = RoaringBitmap.bitmapOf(fromBytes.toArray());
+    rebuilt.runOptimize();
+    for (RoaringBitmap bm2 : new RoaringBitmap[] {fromBytes, rebuilt}) {
+      RoaringBitmap orBm = RoaringBitmap.or(bm1, bm2);
+      assertTrue(orBm.validate());
+      RoaringBitmap range = RoaringBitmap.bitmapOfRange(279_900_001L, 280_000_001L);
+      RoaringBitmap orMask = range.clone();
+      orMask.or(orBm);
+      assertTrue(orMask.validate());
+      assertEquals(RoaringBitmap.or(range, orBm), orMask);
+      RoaringBitmap andMask = range.clone();
+      andMask.and(orBm);
+      assertTrue(andMask.validate());
+      assertEquals(RoaringBitmap.and(orBm, range), andMask);
+    }
+  }
+
+  @Test
+  public void andWithAFullRangeMask() {
+    // from the Go library (TestRoaring_AndMask)
+    Random random = new Random(1322);
+    RoaringBitmap rb = new RoaringBitmap();
+    for (int j = 0; j < 1_000_000; j++) {
+      rb.add(random.nextInt(10_000_000) + 5_000_000);
+    }
+    RoaringBitmap mask = RoaringBitmap.bitmapOfRange(1, 10_000_001);
+    mask.and(rb);
+    assertTrue(mask.validate());
+    assertEquals(RoaringBitmap.and(rb, RoaringBitmap.bitmapOfRange(1, 10_000_001)), mask);
+    assertEquals(rb.rangeCardinality(1, 10_000_001), mask.getLongCardinality());
+  }
+
+  @Test
+  public void singleValueRunDoesNotIntersectABitmapContainer() {
+    // from CRoaring (test_intersect_small_run_bitset)
+    RoaringBitmap run = RoaringBitmap.bitmapOfRange(0, 1);
+    run.runOptimize();
+    RoaringBitmap odds = new RoaringBitmap();
+    for (int i = 1; i <= 8193; i += 2) {
+      odds.add(i);
+    }
+    assertFalse(RoaringBitmap.intersects(run, odds));
+    assertFalse(RoaringBitmap.intersects(odds, run));
+    assertEquals(0, RoaringBitmap.andCardinality(run, odds));
+    assertEquals(0, RoaringBitmap.andCardinality(odds, run));
+  }
+
+  @Test
+  public void runAndNotRunWithRunsPastTheLastRunOfTheRightOperand() {
+    // from CRoaring (andnot_run_containers_tail)
+    RoaringBitmap r1 = new RoaringBitmap();
+    RoaringBitmap r2 = new RoaringBitmap();
+    BitSet expected = new BitSet();
+    for (int x = 0; x < 4000; x += 20) {
+      r1.add((long) x, x + 5L);
+      expected.set(x, x + 5);
+      if (x < 1000) {
+        r2.add(x + 1L, x + 4L);
+        expected.clear(x + 1, x + 4);
+      }
+    }
+    r1.runOptimize();
+    r2.runOptimize();
+    RoaringBitmap result = RoaringBitmap.andNot(r1, r2);
+    assertEquals(BitSetUtil.bitmapOf(expected), result);
+    assertTrue(result.validate());
+    r1.andNot(r2);
+    assertEquals(result, r1);
+  }
+
+  @Test
+  public void inPlaceOrIntoOneValueWithAlmostTheWholeUniverse() {
+    // from CRoaring (inplaceorwide)
+    RoaringBitmap r1 = RoaringBitmap.bitmapOf(0);
+    RoaringBitmap r2 = new RoaringBitmap();
+    r2.add(0L, 4294901761L);
+    r1.or(r2);
+    assertEquals(4294901761L, r1.getLongCardinality());
+    assertTrue(r1.validate());
+  }
+
+  @Test
+  public void inPlaceOrOfAFewContainersIntoManyMixedContainers() {
+    // from CRoaring (test_or_inplace_few_containers)
+    RoaringBitmap big = new RoaringBitmap();
+    for (int k = 0; k < 1000; k++) {
+      int base = (2 * k + 1) << 16;
+      switch (k % 4) {
+        case 0:
+          big.add(base + 7);
+          break;
+        case 1:
+          for (int i = 0; i < 65536; i += 3) {
+            big.add(base + i);
+          }
+          break;
+        case 2:
+          big.add(base + 100L, base + 5000L);
+          break;
+        default:
+          big.add((long) base, base + 65536L);
+          break;
+      }
+    }
+    big.runOptimize();
+    Random random = new Random(1234);
+    for (int trial = 0; trial < 50; trial++) {
+      RoaringBitmap small = new RoaringBitmap();
+      int keys = 1 + random.nextInt(20);
+      for (int j = 0; j < keys; j++) {
+        // existing keys, gaps between them, before the first and after the last
+        long key = random.nextInt(2004);
+        long low = random.nextInt(65536);
+        if (random.nextBoolean()) {
+          small.add((int) ((key << 16) + low));
+        } else {
+          small.add((key << 16) + low, (key + 1) << 16);
+        }
+      }
+      RoaringBitmap smallCopy = small.clone();
+      RoaringBitmap receiver = big.clone();
+      receiver.or(small);
+      RoaringBitmap expected = big.clone();
+      small.forEach((IntConsumer) expected::add);
+      assertEquals(expected, receiver);
+      assertEquals(RoaringBitmap.or(big, small), receiver);
+      assertTrue(receiver.validate());
+      assertEquals(smallCopy, small);
+    }
+  }
+
+  @Test
+  public void inPlaceAndNotThatShrinksABitmapThenSerialize() throws IOException {
+    // from the Go library (TestRoaringInPlaceAndNotBitmapContainer)
+    RoaringBitmap bm = new RoaringBitmap();
+    for (int i = 0; i < 8192; i++) {
+      bm.add(i);
+    }
+    bm.andNot(RoaringBitmap.bitmapOfRange(128, 8192));
+    assertEquals(128, bm.getCardinality());
+    assertTrue(bm.validate());
+    assertEquals(8 + 8 + 2 * 128, bm.serializedSizeInBytes()); // an array container
+    ByteBuffer buffer = ByteBuffer.allocate(bm.serializedSizeInBytes());
+    bm.serialize(buffer);
+    buffer.flip();
+    RoaringBitmap copy = new RoaringBitmap();
+    copy.deserialize(buffer);
+    assertEquals(bm, copy);
+    assertEquals(bm.serializedSizeInBytes(), copy.serializedSizeInBytes());
+  }
+
+  @Test
+  public void operationsWithAnEmptyOperand() {
+    RoaringBitmap r = new RoaringBitmap();
+    for (int i = 100; i < 70000; i += 3) {
+      r.add(i);
+    }
+    RoaringBitmap copy = r.clone();
+    RoaringBitmap e = new RoaringBitmap();
+    assertEquals(r, RoaringBitmap.or(r, e));
+    assertEquals(r, RoaringBitmap.or(e, r));
+    assertEquals(r, RoaringBitmap.xor(r, e));
+    assertEquals(r, RoaringBitmap.xor(e, r));
+    assertEquals(r, RoaringBitmap.andNot(r, e));
+    assertTrue(RoaringBitmap.and(r, e).isEmpty());
+    assertTrue(RoaringBitmap.and(e, r).isEmpty());
+    assertTrue(RoaringBitmap.andNot(e, r).isEmpty());
+    assertEquals(0, RoaringBitmap.andCardinality(r, e));
+    assertEquals(r.getCardinality(), RoaringBitmap.orCardinality(r, e));
+    assertEquals(r.getCardinality(), RoaringBitmap.orCardinality(e, r));
+    assertEquals(r.getCardinality(), RoaringBitmap.xorCardinality(r, e));
+    assertEquals(r.getCardinality(), RoaringBitmap.andNotCardinality(r, e));
+    assertEquals(0, RoaringBitmap.andNotCardinality(e, r));
+    assertFalse(RoaringBitmap.intersects(r, e));
+    assertFalse(RoaringBitmap.intersects(e, r));
+    assertTrue(r.contains(e));
+    assertFalse(e.contains(r));
+
+    RoaringBitmap orInto = new RoaringBitmap();
+    orInto.or(r);
+    RoaringBitmap xorInto = new RoaringBitmap();
+    xorInto.xor(r);
+    assertEquals(r, orInto);
+    assertEquals(r, xorInto);
+    // the results are independent of r
+    orInto.add(101);
+    xorInto.remove(100);
+    assertEquals(copy, r);
+    RoaringBitmap andInto = new RoaringBitmap();
+    andInto.and(r);
+    RoaringBitmap andNotInto = new RoaringBitmap();
+    andNotInto.andNot(r);
+    assertTrue(andInto.isEmpty());
+    assertTrue(andNotInto.isEmpty());
+  }
+
+  // ---- toString and memory ----
+
+  @Test
+  public void toStringOfTheEmptyBitmap() {
+    assertEquals("{}", new RoaringBitmap().toString());
+  }
+
+  @Test
+  public void toStringIsTruncatedForVeryLargeBitmaps() {
+    String s = RoaringBitmap.bitmapOfRange(0, 1 << 20).toString();
+    assertTrue(s.startsWith("{0,1,2,"));
+    assertTrue(s.endsWith("...}"), () -> s.substring(s.length() - 20));
+  }
+
+  @Test
+  public void runOptimizeReducesTheSizeInBytes() {
+    RoaringBitmap r = new RoaringBitmap();
+    for (int i = 0; i < 100000; i++) {
+      r.add(i);
+    }
+    long before = r.getLongSizeInBytes();
+    assertTrue(r.runOptimize());
+    assertTrue(r.getLongSizeInBytes() < before);
+    assertTrue(r.getSizeInBytes() < before);
   }
 }

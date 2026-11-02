@@ -2828,4 +2828,40 @@ public class TestRunContainer {
     assertNotSame(array, new MappeableRunContainer().xor(array));
     assertEquals(array, new MappeableRunContainer().xor(array));
   }
+
+  @Test
+  public void runAndNotArrayRemovesAValueInsideARun() {
+    // from CRoaring's mixed_container_unit.c (run_array_andnot_bug_test)
+    int[] runContents = {
+      196608, 196611, 196612, 196613, 196616, 196619, 196621, 196623, 196628,
+      196629, 196630, 196631, 196632, 196633, 196634, 196635, 196636, 196638,
+      196639, 196640, 196641, 196642, 196644, 196645, 196646, 196647, 196648,
+      196649, 196650, 196652, 196653, 196654, 196656, 196658, 196659, 196660,
+      196662, 196663, 196664, 196665, 196666, 196667, 196669, 196670, 196671,
+      196672, 196673, 196674, 196675, 196677, 196678, 196679, 196680, 196682,
+      196684, 196685, 196686, 196688, 196689, 196690, 196691, 196692, 196693,
+      196694, 196695, 196697, 196698, 196699, 196700, 196701, 196702, 196703,
+      196704, 196705, 196706, 196707, 196708, 196709, 196710, 196711, 196712,
+      196713, 196714, 196715, 196717, 196719, 196720, 196722, 196723, 196725,
+      196726, 196727, 196728, 196729
+    };
+    int[] arrayContents = {196722, 196824, 196989};
+    MappeableContainer run = new MappeableRunContainer();
+    for (int v : runContents) {
+      run = run.add((char) (v % 65536));
+    }
+    assertTrue(run instanceof MappeableRunContainer);
+    MappeableContainer array = new MappeableArrayContainer();
+    for (int v : arrayContents) {
+      array = array.add((char) (v % 65536));
+    }
+    MappeableContainer result = run.andNot((MappeableArrayContainer) array);
+    assertFalse(result.contains((char) (196722 % 65536)));
+    assertEquals(runContents.length - 1, result.getCardinality());
+    for (int v : runContents) {
+      assertEquals(v != 196722, result.contains((char) (v % 65536)));
+    }
+    MappeableContainer inPlace = run.clone().iandNot((MappeableArrayContainer) array);
+    assertEquals(result, inPlace);
+  }
 }

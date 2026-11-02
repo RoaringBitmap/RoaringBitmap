@@ -258,8 +258,9 @@ public final class MutableRoaringArray
   }
 
   protected void clear() {
-    this.keys = null;
-    this.values = null;
+    // empty arrays rather than null: the array stays usable if a deserialization fails
+    this.keys = new char[0];
+    this.values = new MappeableContainer[0];
     this.size = 0;
   }
 
@@ -315,17 +316,17 @@ public final class MutableRoaringArray
     if ((cookie & 0xFFFF) != SERIAL_COOKIE && cookie != SERIAL_COOKIE_NO_RUNCONTAINER) {
       throw new InvalidRoaringFormat("I failed to find a valid cookie.");
     }
-    this.size =
+    final int size =
         ((cookie & 0xFFFF) == SERIAL_COOKIE)
             ? (cookie >>> 16) + 1
             : Integer.reverseBytes(in.readInt());
     // logically we cannot have more than (1<<16) containers.
-    if (this.size > (1 << 16)) {
+    if (size < 0 || size > (1 << 16)) {
       throw new InvalidRoaringFormat("Size too large");
     }
-    if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new char[this.size];
-      this.values = new MappeableContainer[this.size];
+    if ((this.keys == null) || (this.keys.length < size)) {
+      this.keys = new char[size];
+      this.values = new MappeableContainer[size];
     }
 
     byte[] bitmapOfRunContainers = null;
@@ -335,10 +336,10 @@ public final class MutableRoaringArray
       in.readFully(bitmapOfRunContainers);
     }
 
-    final char keys[] = new char[this.size];
-    final int cardinalities[] = new int[this.size];
-    final boolean isBitmap[] = new boolean[this.size];
-    for (int k = 0; k < this.size; ++k) {
+    final char keys[] = new char[size];
+    final int cardinalities[] = new int[size];
+    final boolean isBitmap[] = new boolean[size];
+    for (int k = 0; k < size; ++k) {
       keys[k] = Character.reverseBytes(in.readChar());
       cardinalities[k] = 1 + (0xFFFF & Character.reverseBytes(in.readChar()));
       isBitmap[k] = cardinalities[k] > MappeableArrayContainer.DEFAULT_MAX_SIZE;
@@ -346,12 +347,12 @@ public final class MutableRoaringArray
         isBitmap[k] = false;
       }
     }
-    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+    if ((!hasrun) || (size >= NO_OFFSET_THRESHOLD)) {
       // skipping the offsets
-      Util.skipFully(in, this.size * 4);
+      Util.skipFully(in, size * 4);
     }
     // Reading the containers
-    for (int k = 0; k < this.size; ++k) {
+    for (int k = 0; k < size; ++k) {
       MappeableContainer val;
       if (isBitmap[k]) {
         final LongBuffer bitmapArray =
@@ -379,6 +380,9 @@ public final class MutableRoaringArray
       this.keys[k] = keys[k];
       this.values[k] = val;
     }
+    // the size is only set once all containers have been read: a failed
+    // deserialization leaves an empty bitmap
+    this.size = size;
   }
 
   /**
@@ -407,14 +411,14 @@ public final class MutableRoaringArray
       throw new InvalidRoaringFormat("I failed to find one of the right cookies. " + cookie);
     }
     boolean hasRunContainers = (cookie & 0xFFFF) == SERIAL_COOKIE;
-    this.size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt();
+    final int size = hasRunContainers ? (cookie >>> 16) + 1 : buffer.getInt();
 
-    if (this.size > (1 << 16)) {
+    if (size < 0 || size > (1 << 16)) {
       throw new InvalidRoaringFormat("Size too large");
     }
-    if ((this.keys == null) || (this.keys.length < this.size)) {
-      this.keys = new char[this.size];
-      this.values = new MappeableContainer[this.size];
+    if ((this.keys == null) || (this.keys.length < size)) {
+      this.keys = new char[size];
+      this.values = new MappeableContainer[size];
     }
 
     byte[] bitmapOfRunContainers = null;
@@ -424,10 +428,10 @@ public final class MutableRoaringArray
       buffer.get(bitmapOfRunContainers);
     }
 
-    final char[] keys = new char[this.size];
-    final int[] cardinalities = new int[this.size];
-    final boolean[] isBitmap = new boolean[this.size];
-    for (int k = 0; k < this.size; ++k) {
+    final char[] keys = new char[size];
+    final int[] cardinalities = new int[size];
+    final boolean[] isBitmap = new boolean[size];
+    for (int k = 0; k < size; ++k) {
       keys[k] = buffer.getChar();
       cardinalities[k] = 1 + buffer.getChar();
 
@@ -436,13 +440,13 @@ public final class MutableRoaringArray
         isBitmap[k] = false;
       }
     }
-    if ((!hasrun) || (this.size >= NO_OFFSET_THRESHOLD)) {
+    if ((!hasrun) || (size >= NO_OFFSET_THRESHOLD)) {
       // skipping the offsets
-      buffer.position(buffer.position() + this.size * 4);
+      buffer.position(buffer.position() + size * 4);
     }
 
     // Reading the containers
-    for (int k = 0; k < this.size; ++k) {
+    for (int k = 0; k < size; ++k) {
       MappeableContainer container;
       if (isBitmap[k]) {
         long[] array = new long[MappeableBitmapContainer.MAX_CAPACITY / 64];
@@ -468,6 +472,9 @@ public final class MutableRoaringArray
       this.keys[k] = keys[k];
       this.values[k] = container;
     }
+    // the size is only set once all containers have been read: a failed
+    // deserialization leaves an empty bitmap
+    this.size = size;
   }
 
   // make sure there is capacity for at least k more elements
