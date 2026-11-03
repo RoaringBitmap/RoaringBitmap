@@ -68,6 +68,22 @@ This library is used by
 *   [Apache Iceberg](https://iceberg.apache.org/)
 *   [Apache Pulsar](https://pulsar.apache.org/)
 *   [Apache Flink](https://flink.apache.org/)
+*   [Elasticsearch](https://github.com/elastic/elasticsearch)
+*   [OpenSearch](https://opensearch.org/)
+*   [Trino](https://trino.io/)
+*   [Presto](https://prestodb.io/)
+*   [Delta Lake](https://delta.io/)
+*   [StarRocks](https://www.starrocks.io/)
+*   [Apache Jena](https://jena.apache.org/)
+*   [Apache Fluss](https://fluss.apache.org/)
+*   [Apache Celeborn](https://celeborn.apache.org/)
+*   [Apache Uniffle](https://uniffle.apache.org/)
+*   [XTDB](https://xtdb.com/)
+*   [ClickHouse Java client](https://github.com/ClickHouse/clickhouse-java)
+*   [Neo4j APOC](https://github.com/neo4j/apoc)
+*   [YouTrackDB](https://github.com/JetBrains/youtrackdb)
+*   [PolarDB-X](https://github.com/polardb/polardbx-sql)
+*   [Planetiler](https://github.com/onthegomap/planetiler)
 
 
 The library is mature and has been used in production for many years.
