@@ -153,7 +153,7 @@ public class PointContainsBenchmark {
     queries = new int[NQ];
     for (int i = 0; i < NQ; i++) {
       queries[i] =
-          (i % 2 == 0) ? vals[r.nextInt(vals.length)] : (int) (Math.abs(r.nextLong()) % universe);
+          (i % 2 == 0) ? vals[r.nextInt(vals.length)] : (int) ((r.nextLong() >>> 1) % universe);
     }
     for (int i = NQ - 1; i > 0; i--) {
       int j = r.nextInt(i + 1);
