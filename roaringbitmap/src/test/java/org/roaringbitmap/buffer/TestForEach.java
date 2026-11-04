@@ -1,6 +1,7 @@
 package org.roaringbitmap.buffer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.roaringbitmap.IntConsumer;
 
@@ -65,6 +66,33 @@ public class TestForEach {
           }
         });
     assertEquals(cardinality.value, bitmap.getCardinality());
+  }
+
+  @Test
+  public void testRunAtIntegerMinValue() {
+    assertForEachMatchesToArray(MutableRoaringBitmap.bitmapOfRange(1L << 31, (1L << 31) + 10));
+  }
+
+  @Test
+  public void testRunAtIntegerMaxValue() {
+    MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
+    bitmap.add(0x7FFF0000L, 0x7FFF0010L);
+    bitmap.add(0x7FFFFFFF);
+    assertForEachMatchesToArray(bitmap);
+  }
+
+  private static void assertForEachMatchesToArray(MutableRoaringBitmap bitmap) {
+    final int[] expected = bitmap.toArray();
+    final MutableInteger count = new MutableInteger();
+    bitmap.forEach(
+        new IntConsumer() {
+          @Override
+          public void accept(int value) {
+            assertTrue(count.value < expected.length, "too many values, got " + value);
+            assertEquals(expected[count.value++], value);
+          }
+        });
+    assertEquals(expected.length, count.value);
   }
 }
 

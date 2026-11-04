@@ -2492,8 +2492,8 @@ public final class RunContainer extends Container implements Cloneable {
     for (int k = 0; k < this.nbrruns; ++k) {
       int base = this.getValue(k) | high;
       int le = this.getLength(k);
-      for (int l = base; l - le <= base; ++l) {
-        ic.accept(l);
+      for (int i = 0; i <= le; ++i) {
+        ic.accept(base + i);
       }
     }
   }
