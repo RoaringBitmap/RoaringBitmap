@@ -2652,6 +2652,94 @@ public class TestRoaringBitmap {
   }
 
   @Test
+  public void orArrayArrayUnionPreservesInputsAndRepresentation() {
+    int highBits = 7 << 16;
+    RoaringBitmap left = new RoaringBitmap();
+    for (int lowBits = 0; lowBits < BitmapContainer.MAX_CAPACITY; lowBits += 16) {
+      left.add(highBits | lowBits);
+    }
+    assertTrue(left.highLowContainer.getContainerAtIndex(0) instanceof ArrayContainer);
+
+    RoaringBitmap oneContained = RoaringBitmap.bitmapOf(highBits | 32768);
+    assertArrayOrResults(left, oneContained, ArrayContainer.class);
+
+    RoaringBitmap oneDisjoint = RoaringBitmap.bitmapOf(highBits | 1);
+    assertArrayOrResults(left, oneDisjoint, BitmapContainer.class);
+
+    RoaringBitmap sixtyFourContained = new RoaringBitmap();
+    for (int i = 0; i < 64; ++i) {
+      int index = (i + 1) * 4096 / 65;
+      sixtyFourContained.add(highBits | (index * 16));
+    }
+    assertArrayOrResults(left, sixtyFourContained, ArrayContainer.class);
+
+    int[] partialValues = new int[64];
+    for (int i = 0; i < 32; ++i) {
+      int index = (i + 1) * 4096 / 33;
+      partialValues[i] = highBits | (index * 16);
+      partialValues[32 + i] = highBits | (1 + 16 * i);
+    }
+    Arrays.sort(partialValues);
+    assertArrayOrResults(left, RoaringBitmap.bitmapOf(partialValues), BitmapContainer.class);
+
+    RoaringBitmap sixtyFourDisjoint = new RoaringBitmap();
+    for (int i = 0; i < 64; ++i) {
+      sixtyFourDisjoint.add(highBits | (1 + 16 * i));
+    }
+    assertArrayOrResults(left, sixtyFourDisjoint, BitmapContainer.class);
+
+    RoaringBitmap sixtyFiveContained = new RoaringBitmap();
+    for (int i = 0; i < 65; ++i) {
+      int index = (i + 1) * 4096 / 66;
+      sixtyFiveContained.add(highBits | (index * 16));
+    }
+    assertArrayOrResults(left, sixtyFiveContained, ArrayContainer.class);
+
+    RoaringBitmap sixtyFiveDisjoint = new RoaringBitmap();
+    for (int i = 0; i < 65; ++i) {
+      sixtyFiveDisjoint.add(highBits | (1 + 16 * i));
+    }
+    assertArrayOrResults(left, sixtyFiveDisjoint, BitmapContainer.class);
+
+    int[] partialValues65 = new int[65];
+    for (int i = 0; i < 32; ++i) {
+      int index = (i + 1) * 4096 / 33;
+      partialValues65[i] = highBits | (index * 16);
+    }
+    for (int i = 0; i < 33; ++i) {
+      partialValues65[32 + i] = highBits | (1 + 16 * i);
+    }
+    Arrays.sort(partialValues65);
+    assertArrayOrResults(left, RoaringBitmap.bitmapOf(partialValues65), BitmapContainer.class);
+  }
+
+  private static void assertArrayOrResults(
+      RoaringBitmap first, RoaringBitmap second, Class<?> expectedContainerClass) {
+    assertTrue(first.highLowContainer.getContainerAtIndex(0) instanceof ArrayContainer);
+    assertTrue(second.highLowContainer.getContainerAtIndex(0) instanceof ArrayContainer);
+    RoaringBitmap firstBefore = first.clone();
+    RoaringBitmap secondBefore = second.clone();
+    RoaringBitmap expected = first.clone();
+    for (int value : second.toArray()) {
+      expected.add(value);
+    }
+
+    RoaringBitmap forward = RoaringBitmap.or(first, second);
+    RoaringBitmap reverse = RoaringBitmap.or(second, first);
+    for (RoaringBitmap result : new RoaringBitmap[] {forward, reverse}) {
+      assertEquals(expected, result);
+      assertEquals(expected.getCardinality(), result.getCardinality());
+      assertEquals(
+          expectedContainerClass, result.highLowContainer.getContainerAtIndex(0).getClass());
+      result.add((first.first() & 0xFFFF0000) | 2);
+      assertEquals(firstBefore, first);
+      assertEquals(secondBefore, second);
+    }
+    assertEquals(firstBefore, first);
+    assertEquals(secondBefore, second);
+  }
+
+  @Test
   public void orNot() {
     final RoaringBitmap rb = new RoaringBitmap();
     final RoaringBitmap rb2 = new RoaringBitmap();
