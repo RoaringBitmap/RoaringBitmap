@@ -1,8 +1,13 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestForEach {
 
@@ -63,6 +68,40 @@ public class TestForEach {
           }
         });
     assertEquals(cardinality.value, bitmap.getCardinality());
+  }
+
+  @Test
+  public void testRunAtIntegerMinValue() {
+    RoaringBitmap bitmap = RoaringBitmap.bitmapOfRange(1L << 31, (1L << 31) + 10);
+
+    final List<Integer> visited = new ArrayList<>();
+    bitmap.forEach(
+        new IntConsumer() {
+          @Override
+          public void accept(int value) {
+            assertTrue(visited.size() < bitmap.getCardinality(), "too many values, got " + value);
+            visited.add(value);
+          }
+        });
+    assertArrayEquals(bitmap.toArray(), visited.stream().mapToInt(Integer::intValue).toArray());
+  }
+
+  @Test
+  public void testRunAtIntegerMaxValue() {
+    RoaringBitmap bitmap = new RoaringBitmap();
+    bitmap.add(0x7FFF0000L, 0x7FFF0010L);
+    bitmap.add(0x7FFFFFFF);
+
+    final List<Integer> visited = new ArrayList<>();
+    bitmap.forEach(
+        new IntConsumer() {
+          @Override
+          public void accept(int value) {
+            assertTrue(visited.size() < bitmap.getCardinality(), "too many values, got " + value);
+            visited.add(value);
+          }
+        });
+    assertArrayEquals(bitmap.toArray(), visited.stream().mapToInt(Integer::intValue).toArray());
   }
 }
 
