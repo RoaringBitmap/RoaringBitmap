@@ -1,13 +1,9 @@
 package org.roaringbitmap;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestForEach {
 
@@ -72,18 +68,7 @@ public class TestForEach {
 
   @Test
   public void testRunAtIntegerMinValue() {
-    RoaringBitmap bitmap = RoaringBitmap.bitmapOfRange(1L << 31, (1L << 31) + 10);
-
-    final List<Integer> visited = new ArrayList<>();
-    bitmap.forEach(
-        new IntConsumer() {
-          @Override
-          public void accept(int value) {
-            assertTrue(visited.size() < bitmap.getCardinality(), "too many values, got " + value);
-            visited.add(value);
-          }
-        });
-    assertArrayEquals(bitmap.toArray(), visited.stream().mapToInt(Integer::intValue).toArray());
+    assertForEachMatchesToArray(RoaringBitmap.bitmapOfRange(1L << 31, (1L << 31) + 10));
   }
 
   @Test
@@ -91,17 +76,21 @@ public class TestForEach {
     RoaringBitmap bitmap = new RoaringBitmap();
     bitmap.add(0x7FFF0000L, 0x7FFF0010L);
     bitmap.add(0x7FFFFFFF);
+    assertForEachMatchesToArray(bitmap);
+  }
 
-    final List<Integer> visited = new ArrayList<>();
+  private static void assertForEachMatchesToArray(RoaringBitmap bitmap) {
+    final int[] expected = bitmap.toArray();
+    final MutableInteger count = new MutableInteger();
     bitmap.forEach(
         new IntConsumer() {
           @Override
           public void accept(int value) {
-            assertTrue(visited.size() < bitmap.getCardinality(), "too many values, got " + value);
-            visited.add(value);
+            assertTrue(count.value < expected.length, "too many values, got " + value);
+            assertEquals(expected[count.value++], value);
           }
         });
-    assertArrayEquals(bitmap.toArray(), visited.stream().mapToInt(Integer::intValue).toArray());
+    assertEquals(expected.length, count.value);
   }
 }
 

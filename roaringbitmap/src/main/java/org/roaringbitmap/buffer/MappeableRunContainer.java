@@ -2463,10 +2463,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   public void forEach(char msb, IntConsumer ic) {
     int high = ((int) msb) << 16;
     for (int k = 0; k < this.nbrruns; ++k) {
-      long l = Integer.toUnsignedLong((this.getValue(k) & 0xFFFF) | high);
-      long end = l + (this.getLength(k) & 0xFFFF);
-      for (; l <= end; ++l) {
-        ic.accept((int) l);
+      int base = (this.getValue(k) & 0xFFFF) | high;
+      int le = this.getLength(k) & 0xFFFF;
+      for (int i = 0; i <= le; ++i) {
+        ic.accept(base + i);
       }
     }
   }
