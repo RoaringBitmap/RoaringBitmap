@@ -2490,10 +2490,10 @@ public final class RunContainer extends Container implements Cloneable {
   public void forEach(char msb, IntConsumer ic) {
     int high = msb << 16;
     for (int k = 0; k < this.nbrruns; ++k) {
-      int base = this.getValue(k) | high;
-      int le = this.getLength(k);
-      for (int l = base; l - le <= base; ++l) {
-        ic.accept(l);
+      long l = Integer.toUnsignedLong(this.getValue(k) | high);
+      long end = l + this.getLength(k);
+      for (; l <= end; ++l) {
+        ic.accept((int) l);
       }
     }
   }
