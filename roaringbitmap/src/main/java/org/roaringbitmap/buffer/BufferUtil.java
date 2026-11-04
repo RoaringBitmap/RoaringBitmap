@@ -670,6 +670,36 @@ public final class BufferUtil {
   }
 
   /**
+   * Look for value k in the sorted buffer in the range [0,end) and return its index, or -1 if it
+   * is absent. Tuned for membership queries, see {@link Util#searchForContains(char[], int,
+   * char)}.
+   *
+   * @param array buffer where we search
+   * @param end last index (exclusive)
+   * @param k value we search for
+   * @return index of k, or -1
+   */
+  public static int searchForContains(final CharBuffer array, final int end, final char k) {
+    if (isBackedBySimpleArray(array)) {
+      return Util.searchForContains(array.array(), end, k);
+    }
+    int low = 0;
+    int high = end;
+    while (high - low > 32) {
+      final int middle = (low + high) >>> 1;
+      if (array.get(middle) < k) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    while (low < high && array.get(low) < k) {
+      low++;
+    }
+    return (low < end && array.get(low) == k) ? low : -1;
+  }
+
+  /**
    * Look for value k in buffer in the range [begin,end). If the value is found, return its index.
    * If not, return -(i+1) where i is the index where the value would be inserted. The buffer is
    * assumed to contain sorted values where chars are interpreted as unsigned integers.

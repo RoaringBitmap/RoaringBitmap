@@ -55,32 +55,9 @@ public final class MappeableRunContainer extends MappeableContainer implements C
     return -(low + 1);
   }
 
-  private static int branchyBufferedUnsignedInterleavedBinarySearch(
-      final ByteBuffer sb, int position, final int begin, final int end, final char k) {
-    int low = begin;
-    int high = end - 1;
-    while (low <= high) {
-      final int middleIndex = (low + high) >>> 1;
-      final int middleValue = (sb.getChar(position + 2 * middleIndex * 2));
-      if (middleValue < (int) (k)) {
-        low = middleIndex + 1;
-      } else if (middleValue > (int) (k)) {
-        high = middleIndex - 1;
-      } else {
-        return middleIndex;
-      }
-    }
-    return -(low + 1);
-  }
-
   private static int bufferedUnsignedInterleavedBinarySearch(
       final CharBuffer sb, final int begin, final int end, final char k) {
     return branchyBufferedUnsignedInterleavedBinarySearch(sb, begin, end, k);
-  }
-
-  private static int bufferedUnsignedInterleavedBinarySearch(
-      final ByteBuffer sb, int position, final int begin, final int end, final char k) {
-    return branchyBufferedUnsignedInterleavedBinarySearch(sb, position, begin, end, k);
   }
 
   protected static int getArraySizeInBytes(int nbrruns) {
@@ -716,17 +693,26 @@ public final class MappeableRunContainer extends MappeableContainer implements C
 
   @Override
   public boolean contains(char x) {
-    int index = bufferedUnsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
-    if (index >= 0) {
-      return true;
+    if (BufferUtil.isBackedBySimpleArray(valueslength)) {
+      return RunContainer.contains(valueslength.array(), nbrruns, x);
     }
-    index = -index - 2; // points to preceding value, possibly -1
-    if (index != -1) { // possible match
-      int offset = (x) - (getValue(index));
-      int le = (getLength(index));
-      return offset <= le;
+    if (nbrruns == 0) {
+      return false;
     }
-    return false;
+    // Same search as RunContainer.contains(char[], int, char).
+    final CharBuffer vl = valueslength;
+    int base = 0;
+    int n = nbrruns;
+    while (n > 16) {
+      final int half = n >>> 1;
+      base = (vl.get(2 * (base + half)) <= x) ? base + half : base;
+      n -= half;
+    }
+    final int last = base + n - 1;
+    while (base < last && vl.get(2 * base + 2) <= x) {
+      base++;
+    }
+    return Integer.compareUnsigned(x - vl.get(2 * base), vl.get(2 * base + 1)) <= 0;
   }
 
   /**
@@ -739,17 +725,23 @@ public final class MappeableRunContainer extends MappeableContainer implements C
    * @return whether the run container contains x
    */
   public static boolean contains(ByteBuffer buf, int position, char x, final int numRuns) {
-    int index = bufferedUnsignedInterleavedBinarySearch(buf, position, 0, numRuns, x);
-    if (index >= 0) {
-      return true;
+    if (numRuns == 0) {
+      return false;
     }
-    index = -index - 2; // points to preceding value, possibly -1
-    if (index != -1) { // possible match
-      int offset = (x) - (buf.getChar(position + index * 2 * 2));
-      int le = (buf.getChar(position + index * 2 * 2 + 2));
-      return offset <= le;
+    // Same search as RunContainer.contains(char[], int, char); each run takes 4 bytes.
+    int base = 0;
+    int n = numRuns;
+    while (n > 16) {
+      final int half = n >>> 1;
+      base = (buf.getChar(position + 4 * (base + half)) <= x) ? base + half : base;
+      n -= half;
     }
-    return false;
+    final int last = base + n - 1;
+    while (base < last && buf.getChar(position + 4 * base + 4) <= x) {
+      base++;
+    }
+    final int start = buf.getChar(position + 4 * base);
+    return Integer.compareUnsigned(x - start, buf.getChar(position + 4 * base + 2)) <= 0;
   }
 
   // a very cheap check... if you have more than 4096, then you should use a bitmap container.

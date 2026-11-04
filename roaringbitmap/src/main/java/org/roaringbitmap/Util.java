@@ -687,6 +687,34 @@ public final class Util {
   }
 
   /**
+   * Look for value k in the sorted array in the range [0,end) and return its index, or -1 if it
+   * is absent. This is tuned for membership queries: a plain lower-bound search (no early exit on
+   * equality, which is rarely taken and costs an extra branch per step), finished by a linear
+   * scan.
+   *
+   * @param array array where we search
+   * @param end last index (exclusive)
+   * @param k value we search for
+   * @return index of k, or -1
+   */
+  public static int searchForContains(final char[] array, final int end, final char k) {
+    int low = 0;
+    int high = end;
+    while (high - low > 32) {
+      final int middle = (low + high) >>> 1;
+      if (array[middle] < k) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    while (low < high && array[low] < k) {
+      low++;
+    }
+    return (low < end && array[low] == k) ? low : -1;
+  }
+
+  /**
    * Look for value k in array in the range [begin,end). If the value is found, return its index. If
    * not, return -(i+1) where i is the index where the value would be inserted. The array is assumed
    * to contain sorted values where shorts are interpreted as unsigned integers.

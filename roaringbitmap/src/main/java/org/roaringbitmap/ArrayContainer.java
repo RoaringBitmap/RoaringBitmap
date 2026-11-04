@@ -300,7 +300,7 @@ public final class ArrayContainer extends Container implements Cloneable {
 
   @Override
   public boolean contains(final char x) {
-    return Util.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
+    return Util.searchForContains(content, cardinality, x) >= 0;
   }
 
   @Override
