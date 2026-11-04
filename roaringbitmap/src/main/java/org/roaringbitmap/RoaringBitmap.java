@@ -1764,13 +1764,12 @@ public class RoaringBitmap
    */
   @Override
   public boolean contains(final int x) {
-    final char hb = Util.highbits(x);
-    int index = highLowContainer.getContainerIndex(hb);
+    final RoaringArray hlc = highLowContainer;
+    int index = Util.searchForContains(hlc.keys, hlc.size, Util.highbits(x));
     if (index < 0) {
       return false;
     }
-    final Container c = highLowContainer.getContainerAtIndex(index);
-    return c.contains(Util.lowbits(x));
+    return hlc.values[index].contains(Util.lowbits(x));
   }
 
   /**

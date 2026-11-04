@@ -499,7 +499,7 @@ public final class MutableRoaringArray
 
   @Override
   public int getContainerIndex(char x) {
-    return this.binarySearch(0, size, x);
+    return Util.searchForContains(keys, size, x);
   }
 
   @Override

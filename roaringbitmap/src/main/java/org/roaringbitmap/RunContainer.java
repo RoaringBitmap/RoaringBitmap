@@ -753,17 +753,36 @@ public final class RunContainer extends Container implements Cloneable {
 
   @Override
   public boolean contains(char x) {
-    int index = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
-    if (index >= 0) {
-      return true;
+    return contains(valueslength, nbrruns, x);
+  }
+
+  /**
+   * Checks whether runs stored as interleaved (start, length) pairs contain x.
+   *
+   * @param valueslength the runs: start of run i at 2i, length of run i at 2i+1
+   * @param nbrruns number of runs
+   * @param x target 16-bit value
+   * @return whether one of the runs contains x
+   */
+  public static boolean contains(char[] valueslength, int nbrruns, char x) {
+    if (nbrruns == 0) {
+      return false;
     }
-    index = -index - 2; // points to preceding value, possibly -1
-    if (index != -1) { // possible match
-      int offset = x - getValue(index);
-      int le = getLength(index);
-      return offset <= le;
+    // Find the last run starting at or before x (or run 0): branchless
+    // bisection down to 16 candidates, then a linear scan.
+    int base = 0;
+    int n = nbrruns;
+    while (n > 16) {
+      final int half = n >>> 1;
+      base = (valueslength[2 * (base + half)] <= x) ? base + half : base;
+      n -= half;
     }
-    return false;
+    final int last = base + n - 1;
+    while (base < last && valueslength[2 * base + 2] <= x) {
+      base++;
+    }
+    // If x precedes the run, the difference is negative and fails the unsigned test.
+    return Integer.compareUnsigned(x - valueslength[2 * base], valueslength[2 * base + 1]) <= 0;
   }
 
   @Override

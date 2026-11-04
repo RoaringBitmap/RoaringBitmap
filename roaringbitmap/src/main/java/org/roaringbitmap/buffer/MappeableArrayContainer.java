@@ -425,7 +425,7 @@ public final class MappeableArrayContainer extends MappeableContainer implements
 
   @Override
   public boolean contains(final char x) {
-    return BufferUtil.unsignedBinarySearch(content, 0, cardinality, x) >= 0;
+    return BufferUtil.searchForContains(content, cardinality, x) >= 0;
   }
 
   /**
@@ -438,7 +438,21 @@ public final class MappeableArrayContainer extends MappeableContainer implements
    * @return whether the container contains the value x
    */
   public static boolean contains(ByteBuffer buf, int position, final char x, int cardinality) {
-    return BufferUtil.unsignedBinarySearch(buf, position, 0, cardinality, x) >= 0;
+    // Lower-bound search (no early exit on equality), finished by a linear scan.
+    int low = 0;
+    int high = cardinality;
+    while (high - low > 32) {
+      final int middle = (low + high) >>> 1;
+      if (buf.getChar(position + 2 * middle) < x) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    while (low < high && buf.getChar(position + 2 * low) < x) {
+      low++;
+    }
+    return low < cardinality && buf.getChar(position + 2 * low) == x;
   }
 
   // in order

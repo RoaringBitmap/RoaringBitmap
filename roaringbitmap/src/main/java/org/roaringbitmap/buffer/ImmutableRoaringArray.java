@@ -153,7 +153,23 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public int getContainerIndex(char x) {
-    return unsignedBinarySearch(x);
+    // Lower-bound search (see Util.searchForContains) over (key, cardinality - 1)
+    // pairs, hence the 4-byte stride. Returns -1 when the key is absent.
+    final int start = getStartOfKeys();
+    int low = 0;
+    int high = size;
+    while (high - low > 32) {
+      final int middle = (low + high) >>> 1;
+      if (buffer.getChar(start + 4 * middle) < x) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    while (low < high && buffer.getChar(start + 4 * low) < x) {
+      low++;
+    }
+    return (low < size && buffer.getChar(start + 4 * low) == x) ? low : -1;
   }
 
   @Override
