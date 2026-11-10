@@ -692,7 +692,8 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
    * BEWARE This method is synchronized as it is a mutating operation called by read operations
    * (as it mutates some cached data-structure used to faster read operation).
    */
-  private synchronized void ensureOne(Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
+  private synchronized void ensureOne(
+      Map.Entry<Integer, BitmapDataProvider> e, int currentHigh, int indexOk) {
     // sortedHighs are valid only up to some index
     assert indexOk <= sortedHighs.length : indexOk + " is bigger than " + sortedHighs.length;
 
@@ -1998,11 +1999,12 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
     }
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dataOutput = new DataOutputStream(baos)) {
-      serialize(dataOutput);
+      // Cloning must preserve signed ordering independently of the public serialization mode.
+      serializeLegacy(dataOutput);
       Roaring64NavigableMap freshOne = new Roaring64NavigableMap();
       try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
           DataInputStream dataInput = new DataInputStream(bais)) {
-        freshOne.deserialize(dataInput);
+        freshOne.deserializeLegacy(dataInput);
         return freshOne;
       } catch (Exception e) {
         throw new RuntimeException("fail to deserialize", e);
