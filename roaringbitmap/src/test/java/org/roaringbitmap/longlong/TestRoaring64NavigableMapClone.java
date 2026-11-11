@@ -29,6 +29,14 @@ public class TestRoaring64NavigableMapClone {
           assertTrue(copy.validate());
           copy.removeLong(-1L);
           copy.addLong(1L);
+          assertFalse(copy.contains(-1L));
+          assertTrue(copy.contains(1L));
+          assertArrayEquals(
+              signed
+                  ? new long[] {Long.MIN_VALUE, 0L, 1L, Long.MAX_VALUE}
+                  : new long[] {0L, 1L, Long.MAX_VALUE, Long.MIN_VALUE},
+              copy.toArray());
+          assertTrue(copy.validate());
           assertTrue(original.contains(-1L));
           assertFalse(original.contains(1L));
           assertEquals(mode, Roaring64NavigableMap.SERIALIZATION_MODE);
