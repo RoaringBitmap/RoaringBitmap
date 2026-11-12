@@ -187,13 +187,16 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
   }
 
   private void resetPerfHelpers() {
+    resetCumulativeCardinalityCache();
+    latestAddedHigh = null;
+  }
+
+  private void resetCumulativeCardinalityCache() {
     firstHighNotValid = RoaringIntPacking.highestHigh(signedLongs) + 1;
     allValid = false;
 
     sortedCumulatedCardinality = new long[0];
     sortedHighs = new int[0];
-
-    latestAddedHigh = null;
   }
 
   // Package-friendly: for the sake of unit-testing
@@ -1529,6 +1532,11 @@ public class Roaring64NavigableMap implements Externalizable, LongBitmapDataProv
         throw new UnsupportedOperationException(
             ".repairAfterLazy is not supported for " + lowBitmap.getClass());
       }
+    }
+
+    if (doCacheCardinalities) {
+      // A lazy union can change cardinalities in any bucket, so discard every cached prefix.
+      resetCumulativeCardinalityCache();
     }
   }
 
