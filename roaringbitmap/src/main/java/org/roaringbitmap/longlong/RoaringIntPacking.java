@@ -3,7 +3,6 @@
  */
 package org.roaringbitmap.longlong;
 
-import java.math.BigInteger;
 import java.util.Comparator;
 
 /**
@@ -65,42 +64,27 @@ class RoaringIntPacking {
    * @return A comparator for unsigned longs: a negative long is a long greater than Long.MAX_VALUE
    */
   public static Comparator<Integer> unsignedComparator() {
-    return new Comparator<Integer>() {
-
-      @Override
-      public int compare(Integer o1, Integer o2) {
-        return compareUnsigned(o1, o2);
-      }
-    };
+    return Integer::compareUnsigned;
   }
 
   /**
-   * Compares two {@code int} values numerically treating the values as unsigned.
+   * Equivalent to {@link Integer#compareUnsigned(int, int)}.
    *
    * @param x the first {@code int} to compare
    * @param y the second {@code int} to compare
-   * @return the value {@code 0} if {@code x == y}; a value less than {@code 0} if {@code x < y} as
-   *         unsigned values; and a value greater than {@code 0} if {@code x > y} as unsigned values
-   * @since 1.8
+   * @return the result of comparing {@code x} and {@code y} as unsigned values
    */
-  // Duplicated from jdk8 Integer.compareUnsigned
   public static int compareUnsigned(int x, int y) {
-    return Integer.compare(x + Integer.MIN_VALUE, y + Integer.MIN_VALUE);
+    return Integer.compareUnsigned(x, y);
   }
 
-  /** the constant 2^64 */
-  private static final BigInteger TWO_64 = BigInteger.ONE.shiftLeft(64);
-
   /**
-   * JDK8 Long.toUnsignedString was too complex to backport. Go for a slow version relying on
-   * BigInteger
+   * Equivalent to {@link Long#toUnsignedString(long)}.
+   *
+   * @param l the value to convert, interpreted as unsigned
+   * @return the unsigned decimal representation of {@code l}
    */
-  // https://stackoverflow.com/questions/7031198/java-signed-long-to-unsigned-long-string
   static String toUnsignedString(long l) {
-    BigInteger b = BigInteger.valueOf(l);
-    if (b.signum() < 0) {
-      b = b.add(TWO_64);
-    }
-    return b.toString();
+    return Long.toUnsignedString(l);
   }
 }
