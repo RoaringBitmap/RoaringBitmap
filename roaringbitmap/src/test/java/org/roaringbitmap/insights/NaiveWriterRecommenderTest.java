@@ -18,6 +18,7 @@ public class NaiveWriterRecommenderTest {
         new BitmapStatistics(
             new BitmapStatistics.ArrayContainersStats(
                 arrayContainerCount, arrayContainerCount * averagePerArrayContaier),
+            new BitmapStatistics.RunContainersStats(0, 0, new int[16]),
             bitmapContainerCount,
             runContainerCount,
             bitmapsCount);
@@ -41,6 +42,7 @@ public class NaiveWriterRecommenderTest {
         new BitmapStatistics(
             new BitmapStatistics.ArrayContainersStats(
                 arrayContainerCount, arrayContainerCount * denseAveragePerArrayContaier),
+            new BitmapStatistics.RunContainersStats(0, 0, new int[16]),
             bitmapContainerCount,
             runContainerCount,
             bitmapsCount);
@@ -56,17 +58,24 @@ public class NaiveWriterRecommenderTest {
     int averagePerArrayContaier = 10;
     int bitmapContainerCount = 200;
     int runContainerCount = 50000;
+    int runsCount = 50000;
+    int averageRunLength = 16;
     int bitmapsCount = 70;
     BitmapStatistics stats =
         new BitmapStatistics(
             new BitmapStatistics.ArrayContainersStats(
                 arrayContainerCount, arrayContainerCount * averagePerArrayContaier),
+            new BitmapStatistics.RunContainersStats(
+                runsCount,
+                runsCount * averageRunLength,
+                new int[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}),
             bitmapContainerCount,
             runContainerCount,
             bitmapsCount);
 
     String recommendation = NaiveWriterRecommender.recommend(stats);
 
+    assertTrue(recommendation.contains("RangeFiller"));
     assertTrue(recommendation.contains(".initialCapacity(718)"));
     assertTrue(recommendation.contains(".optimiseForRuns()"));
   }
@@ -82,6 +91,7 @@ public class NaiveWriterRecommenderTest {
         new BitmapStatistics(
             new BitmapStatistics.ArrayContainersStats(
                 arrayContainerCount, arrayContainerCount * averagePerArrayContaier),
+            new BitmapStatistics.RunContainersStats(0, 0, new int[16]),
             bitmapContainerCount,
             runContainerCount,
             bitmapsCount);
@@ -103,6 +113,7 @@ public class NaiveWriterRecommenderTest {
         new BitmapStatistics(
             new BitmapStatistics.ArrayContainersStats(
                 arrayContainerCount, arrayContainerCount * averagePerArrayContaier),
+            new BitmapStatistics.RunContainersStats(0, 0, new int[16]),
             bitmapContainerCount,
             runContainerCount,
             bitmapsCount);
