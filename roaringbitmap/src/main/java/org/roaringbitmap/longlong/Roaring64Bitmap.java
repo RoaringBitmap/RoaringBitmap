@@ -40,6 +40,61 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
     highLowContainer = new HighLowContainer();
   }
 
+  /**
+   * Return a copy with each unsigned 64-bit value increased by the signed offset.
+   * Values outside the unsigned 64-bit range are discarded rather than wrapped.
+   * The source bitmap is unchanged and the result shares no containers with it.
+   *
+   * <p>This operates on compressed containers, not individual values. Offsets divisible by
+   * 65536 avoid splitting containers.
+   *
+   * @param source source bitmap
+   * @param offset signed increment
+   * @return a new bitmap
+   */
+  public static Roaring64Bitmap addOffset(Roaring64Bitmap source, long offset) {
+    Roaring64Bitmap result = new Roaring64Bitmap();
+    long containerOffset = Math.floorDiv(offset, 1L << 16);
+    char lowOffset = (char) offset;
+    long maxKey = (1L << 48) - 1;
+    LeafNodeIterator iterator = source.highLowContainer.highKeyLeafNodeIterator(false);
+    while (iterator.hasNext()) {
+      LeafNode leaf = iterator.next();
+      long key = leaf.getKey() + containerOffset;
+      // The shifted container can contribute only to key and key + 1.
+      if (key < -1 || key > maxKey || (key == -1 && lowOffset == 0)) {
+        continue;
+      }
+      Container container = source.highLowContainer.getContainer(leaf.getContainerIdx());
+      if (lowOffset == 0) {
+        result.putOffsetContainer(key, container.clone());
+      } else {
+        Container[] shifted = Util.addOffset(container, lowOffset);
+        if (key >= 0) {
+          result.putOffsetContainer(key, shifted[0]);
+        }
+        if (key < maxKey) {
+          result.putOffsetContainer(key + 1, shifted[1]);
+        }
+      }
+    }
+    return result;
+  }
+
+  private void putOffsetContainer(long key, Container container) {
+    if (container.isEmpty()) {
+      return;
+    }
+    byte[] high = LongUtils.highPart(key << 16);
+    ContainerWithIndex previous = highLowContainer.searchContainer(high);
+    if (previous == null) {
+      highLowContainer.put(high, container);
+    } else {
+      highLowContainer.replaceContainer(
+          previous.getContainerIdx(), previous.getContainer().ior(container));
+    }
+  }
+
   public void addInt(int x) {
     addLong(Util.toUnsignedLong(x));
   }
