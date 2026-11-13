@@ -34,7 +34,11 @@ public interface BatchIterator extends Cloneable {
   }
 
   /**
-   * If needed, advance as long as the next value is smaller than minval
+   * Advances to the target in iteration order without revisiting consumed values.
+   * Ascending iterators skip unsigned values smaller than target. Descending
+   * iterators skip unsigned values greater than target.
+   *
+   * The following example uses an ascending iterator.
    *
    *  The advanceIfNeeded method is used for performance reasons, to skip
    *  over unnecessary repeated calls to next.
