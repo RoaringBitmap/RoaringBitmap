@@ -570,6 +570,13 @@ The newer `Roaring64Bitmap` approach relies on the ART data structure to hold th
     b1.and(bitmap2);
 ```
 
+`Roaring64Bitmap.addOffset(source, offset)` creates an independent bitmap with each
+unsigned 64-bit value increased by a signed `long` offset. Values that would fall
+below zero or above 2^64 - 1 are discarded, not wrapped. The operation works on
+compressed containers; offsets divisible by 65536 avoid splitting containers.
+For example, `Roaring64Bitmap.addOffset(Roaring64Bitmap.bitmapOf(0, 65535, -1), 1)`
+contains `1` and `65536`, while the unsigned maximum (`-1`) is discarded.
+
 Both 64-bit implementations support the [portable format](https://github.com/RoaringBitmap/RoaringFormatSpec#extension-for-64-bit-implementations): `Roaring64Bitmap` through `serializePortable` and `deserializePortable`, and `Roaring64NavigableMap` through `SERIALIZATION_MODE_PORTABLE`.
 
 Range Bitmaps
