@@ -54,44 +54,68 @@ public class Roaring64Bitmap implements Externalizable, LongBitmapDataProvider {
    */
   public static Roaring64Bitmap addOffset(Roaring64Bitmap source, long offset) {
     Roaring64Bitmap result = new Roaring64Bitmap();
-    long containerOffset = Math.floorDiv(offset, 1L << 16);
-    char lowOffset = (char) offset;
-    long maxKey = (1L << 48) - 1;
-    LeafNodeIterator iterator = source.highLowContainer.highKeyLeafNodeIterator(false);
+    final long maxKey = (1L << 48) - 1;
+    // Source keys are in [0, maxKey]; a source key k lands on k + containerOffset (and on
+    // k + containerOffset + 1 when lowOffset != 0).
+    final long containerOffset = Math.floorDiv(offset, 1L << 16);
+    final char lowOffset = (char) offset;
+    // Keys are visited in ascending order, so start at the first one that can contribute.
+    // |containerOffset| <= 2^47, so minSourceKey <= maxKey and minSourceKey << 16 does not overflow
+    // the unsigned 64-bit range.
+    final long minSourceKey = Math.max(0, -containerOffset - (lowOffset == 0 ? 0 : 1));
+    LeafNodeIterator iterator =
+        source.highLowContainer.highKeyLeafNodeIteratorFrom(minSourceKey << 16, false);
+    if (lowOffset == 0) {
+      while (iterator.hasNext()) {
+        LeafNode leaf = iterator.next();
+        long key = leaf.getKey() + containerOffset;
+        if (key > maxKey) {
+          break;
+        }
+        Container container = source.highLowContainer.getContainer(leaf.getContainerIdx());
+        result.highLowContainer.put(LongUtils.highPart(key << 16), container.clone());
+      }
+      return result;
+    }
+    // A shifted container spills into the next key. Only the next source container can collide
+    // with that carry, so it is kept here until we know whether to merge it.
+    long carryKey = -1;
+    Container carry = null;
     while (iterator.hasNext()) {
       LeafNode leaf = iterator.next();
       long key = leaf.getKey() + containerOffset;
-      // The shifted container can contribute only to key and key + 1.
-      if (key < -1 || key > maxKey || (key == -1 && lowOffset == 0)) {
-        continue;
+      if (key > maxKey) {
+        break;
       }
       Container container = source.highLowContainer.getContainer(leaf.getContainerIdx());
-      if (lowOffset == 0) {
-        result.putOffsetContainer(key, container.clone());
-      } else {
-        Container[] shifted = Util.addOffset(container, lowOffset);
-        if (key >= 0) {
-          result.putOffsetContainer(key, shifted[0]);
+      Container[] shifted = Util.addOffset(container, lowOffset);
+      Container low = shifted[0];
+      if (carry != null) {
+        if (carryKey == key) {
+          low = carry.ior(low);
+        } else {
+          result.putOffsetContainer(carryKey, carry);
         }
-        if (key < maxKey) {
-          result.putOffsetContainer(key + 1, shifted[1]);
-        }
+        carry = null;
       }
+      if (key >= 0) {
+        result.putOffsetContainer(key, low);
+      }
+      if (key < maxKey && !shifted[1].isEmpty()) {
+        carryKey = key + 1;
+        carry = shifted[1];
+      }
+    }
+    if (carry != null) {
+      result.putOffsetContainer(carryKey, carry);
     }
     return result;
   }
 
   private void putOffsetContainer(long key, Container container) {
-    if (container.isEmpty()) {
-      return;
-    }
-    byte[] high = LongUtils.highPart(key << 16);
-    ContainerWithIndex previous = highLowContainer.searchContainer(high);
-    if (previous == null) {
-      highLowContainer.put(high, container);
-    } else {
-      highLowContainer.replaceContainer(
-          previous.getContainerIdx(), previous.getContainer().ior(container));
+    if (!container.isEmpty()) {
+      // Splitting a run container may leave a piece better stored as an array or bitmap.
+      highLowContainer.put(LongUtils.highPart(key << 16), container.repairAfterLazy());
     }
   }
 

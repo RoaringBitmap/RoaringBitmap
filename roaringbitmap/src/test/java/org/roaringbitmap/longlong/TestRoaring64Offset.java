@@ -88,10 +88,10 @@ public class TestRoaring64Offset {
       Roaring64Bitmap source = new Roaring64Bitmap();
       for (long base : new long[] {0, 65536, Long.MAX_VALUE - 65535, Long.MIN_VALUE, -65536}) {
         if (encoding == 2) {
-          // End-exclusive addition avoids overflow at the top of the unsigned range.
-          for (int i = 0; i < 65536; i++) {
-            source.addLong(base + i);
-          }
+          // A full block; base + 65536 would wrap to 0 for the last block, so add its last
+          // value separately.
+          source.addRange(base, base + 65535);
+          source.addLong(base + 65535);
         } else {
           int count = encoding == 0 ? 20 : 10000;
           for (int i = 0; i < count; i++) {
@@ -150,6 +150,42 @@ public class TestRoaring64Offset {
     assertEquals(3, result.getLongCardinality());
     assertTrue(result.validate());
     assertArrayEquals(new long[] {-65536L, -65535L, -2L, -1L}, source.toArray());
+  }
+
+  @Test
+  public void partialDropsAtBothEnds() {
+    Roaring64Bitmap source = new Roaring64Bitmap();
+    for (long k = 0; k < 8; k++) {
+      source.addLong((k << 16) + 7);
+      source.addLong((k << 16) + 65530);
+      source.addLong(-(k << 16) - 1);
+      source.addLong(-(k << 16) - 65530);
+    }
+    for (long blocks = 0; blocks < 10; blocks++) {
+      for (long low : new long[] {0, 1, 6, 7, 8, 65529, 65535}) {
+        check(source, (blocks << 16) + low);
+        check(source, -(blocks << 16) - low);
+      }
+    }
+  }
+
+  @Test
+  public void splitRunsUseTheMostCompactEncoding() throws IOException {
+    for (long base : new long[] {0, 65536 * 5, Long.MIN_VALUE, -65536 * 2}) {
+      Roaring64Bitmap source = new Roaring64Bitmap();
+      source.addRange(base, base + 65535);
+      source.addLong(base + 65535);
+      source.addRange(base + 65536 + 10, base + 65536 + 20);
+      source.runOptimize();
+      for (long offset : new long[] {1, 2, 32768, 65535, 65536 + 1, -1, -65535}) {
+        Roaring64Bitmap result = Roaring64Bitmap.addOffset(source, offset);
+        assertTrue(result.validate());
+        long size = result.serializedSizeInBytes();
+        result.runOptimize();
+        assertEquals(
+            size, result.serializedSizeInBytes(), "base " + base + " offset " + offset);
+      }
+    }
   }
 
   @Test
