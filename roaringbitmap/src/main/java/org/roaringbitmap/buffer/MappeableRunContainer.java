@@ -2871,7 +2871,7 @@ final class MappeableRunContainerCharIterator implements PeekableCharIterator {
     if (base > (minval)) {
       return;
     }
-    le = minval - base;
+    le = Math.max(le, minval - base);
   }
 
   @Override
@@ -2979,7 +2979,7 @@ final class RawMappeableRunContainerCharIterator implements PeekableCharIterator
     if (base > (minval)) {
       return;
     }
-    le = (minval) - base;
+    le = Math.max(le, minval - base);
   }
 
   @Override
@@ -3066,7 +3066,7 @@ final class RawReverseMappeableRunContainerCharIterator implements PeekableCharI
     if (base + maxlength < (maxval)) {
       return;
     }
-    le = maxlength + base - (maxval);
+    le = Math.max(le, maxlength + base - maxval);
   }
 
   @Override
@@ -3166,7 +3166,7 @@ final class ReverseMappeableRunContainerCharIterator implements PeekableCharIter
     if (base + maxlength < (maxval)) {
       return;
     }
-    le = maxlength + base - (maxval);
+    le = Math.max(le, maxlength + base - maxval);
   }
 
   @Override

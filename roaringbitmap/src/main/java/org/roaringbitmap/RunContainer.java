@@ -2844,7 +2844,7 @@ class RunContainerCharIterator implements PeekableCharIterator {
     if (base > (minval)) {
       return;
     }
-    le = (minval) - base;
+    le = Math.max(le, minval - base);
   }
 
   @Override
@@ -2981,7 +2981,7 @@ final class ReverseRunContainerCharIterator implements PeekableCharIterator {
     if (base + maxlength < (maxval)) {
       return;
     }
-    le = maxlength + base - (maxval);
+    le = Math.max(le, maxlength + base - maxval);
   }
 
   @Override
