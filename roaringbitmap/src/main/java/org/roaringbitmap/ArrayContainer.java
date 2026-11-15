@@ -68,9 +68,7 @@ public final class ArrayContainer extends Container implements Cloneable {
   public ArrayContainer(final int firstOfRun, final int lastOfRun) {
     final int valuesInRange = lastOfRun - firstOfRun;
     this.content = new char[valuesInRange];
-    for (int i = 0; i < valuesInRange; ++i) {
-      content[i] = (char) (firstOfRun + i);
-    }
+    CharRangeFiller.fill(content, 0, firstOfRun, lastOfRun);
     cardinality = valuesInRange;
   }
 
@@ -128,9 +126,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     ArrayContainer answer = new ArrayContainer(newcardinality, content);
     System.arraycopy(
         content, indexend, answer.content, indexstart + rangelength, cardinality - indexend);
-    for (int k = 0; k < rangelength; ++k) {
-      answer.content[k + indexstart] = (char) (begin + k);
-    }
+    CharRangeFiller.fill(answer.content, indexstart, begin, end);
     answer.cardinality = newcardinality;
     return answer;
   }
@@ -516,9 +512,7 @@ public final class ArrayContainer extends Container implements Cloneable {
       // if b > 0, we copy from 0 to b. Do nothing otherwise.
       System.arraycopy(content, 0, destination, 0, indexstart);
       // set values from b to e
-      for (int k = 0; k < rangelength; ++k) {
-        destination[k + indexstart] = (char) (begin + k);
-      }
+      CharRangeFiller.fill(destination, indexstart, begin, begin + rangelength);
       /*
        * so far cases - 1,2 and 6 are done Now, if e < cardinality, we copy from e to
        * cardinality.Otherwise do noting this covers remaining 3,4 and 5 cases
@@ -529,9 +523,7 @@ public final class ArrayContainer extends Container implements Cloneable {
     } else {
       System.arraycopy(
           content, indexend, content, indexstart + rangelength, cardinality - indexend);
-      for (int k = 0; k < rangelength; ++k) {
-        content[k + indexstart] = (char) (begin + k);
-      }
+      CharRangeFiller.fill(content, indexstart, begin, begin + rangelength);
     }
     cardinality = newcardinality;
     return this;
@@ -888,9 +880,8 @@ public final class ArrayContainer extends Container implements Cloneable {
 
     // if there are extra items (greater than the biggest
     // pre-existing one in range), buffer them
-    for (; valInRange < lastRange; ++valInRange) {
-      buffer[outPos++] = (char) valInRange;
-    }
+    CharRangeFiller.fill(buffer, outPos, valInRange, lastRange);
+    outPos += lastRange - valInRange;
 
     if (outPos != buffer.length) {
       throw new RuntimeException(
@@ -948,14 +939,11 @@ public final class ArrayContainer extends Container implements Cloneable {
       }
     }
 
-    for (; valInRange < lastOfRange; ++valInRange) {
-      answer.content[outPos++] = (char) valInRange;
-    }
+    CharRangeFiller.fill(answer.content, outPos, valInRange, lastOfRange);
+    outPos += lastOfRange - valInRange;
 
-    // content after the active range
-    for (int i = lastIndex + 1; i < cardinality; ++i) {
-      answer.content[outPos++] = content[i];
-    }
+    System.arraycopy(content, lastIndex + 1, answer.content, outPos, cardinality - lastIndex - 1);
+
     answer.cardinality = newCardinality;
     return answer;
   }

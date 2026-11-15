@@ -10,7 +10,11 @@ public class BitmapStatisticsTest {
   @Test
   public void toStringWorks() {
     BitmapStatistics statistics =
-        new BitmapStatistics(new BitmapStatistics.ArrayContainersStats(10, 50), 2, 1);
+        new BitmapStatistics(
+            new BitmapStatistics.ArrayContainersStats(10, 50),
+            new BitmapStatistics.RunContainersStats(10, 50, new int[16]),
+            2,
+            1);
 
     String string = statistics.toString();
 
