@@ -89,6 +89,9 @@ public class RoaringBitSet extends BitSet {
 
   @Override
   public int previousSetBit(int fromIndex) {
+    if (fromIndex == -1) {
+      return -1;
+    }
     return (int) roaringBitmap.previousValue(fromIndex);
   }
 
