@@ -2238,6 +2238,17 @@ public class RoaringBitmap
     return new RoaringReverseIntIterator();
   }
 
+  /**
+   * Returns a batch iterator in descending unsigned integer order.
+   * Calling advanceIfNeeded skips values greater than its target, never rewinding.
+   * The bitmap must not be modified during iteration.
+   *
+   * @return a reverse batch iterator
+   */
+  public RoaringReverseBatchIterator getReverseBatchIterator() {
+    return new RoaringReverseBatchIterator(highLowContainer);
+  }
+
   @Override
   public RoaringBatchIterator getBatchIterator() {
     return new RoaringBatchIterator(highLowContainer);
