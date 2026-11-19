@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -267,6 +268,24 @@ public class TestBufferAdversarialInputs {
         .order(ByteOrder.LITTLE_ENDIAN)
         .putInt(offsetOfSecondOffset, 45); // instead of 51
     assertFalse(new ImmutableRoaringBitmap(ByteBuffer.wrap(runBytes)).validate());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        // one container whose offset (0) points into the header
+        "3A300000 01000000 0000 0000 00000000",
+        // three containers, the second one starts where the last one ends
+        "3A300000 03000000 0000 0000 0100 0000 0200 0000 20000000 22000000 20000000 0500",
+        // same, the second container being a run container
+        "3B300300 02 0000 0000 0100 0000 0200 0000 0300 0000"
+            + " 25000000 27000000 25000000 25000000 0500",
+        // a container count that wraps the header size around
+        "3A300000 01000040 0000 0000 10000000 0500"
+      })
+  public void validateRejectsContainersOutsideTheBuffer(String hex) {
+    ImmutableRoaringBitmap rb = new ImmutableRoaringBitmap(ByteBuffer.wrap(hex(hex)));
+    assertFalse(rb.validate());
   }
 
   @Test
