@@ -101,7 +101,7 @@ public final class BitmapContainer extends Container implements Cloneable {
 
   private BitmapContainer(int newCardinality, long[] newBitmap) {
     this.cardinality = newCardinality;
-    this.bitmap = Arrays.copyOf(newBitmap, newBitmap.length);
+    this.bitmap = newBitmap.clone();
   }
 
   /**

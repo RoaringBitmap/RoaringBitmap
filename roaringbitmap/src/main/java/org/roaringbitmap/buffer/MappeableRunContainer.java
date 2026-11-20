@@ -8,6 +8,7 @@ import static org.roaringbitmap.Util.resetBitmapRange;
 import static org.roaringbitmap.Util.setBitmapRange;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
+import org.roaringbitmap.ArraysShim;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
@@ -858,6 +859,10 @@ public final class MappeableRunContainer extends MappeableContainer implements C
   private boolean equals(MappeableRunContainer runContainer) {
     if (runContainer.nbrruns != this.nbrruns) {
       return false;
+    }
+    if (isArrayBacked() && runContainer.isArrayBacked()) {
+      return ArraysShim.equals(
+          valueslength.array(), 0, 2 * nbrruns, runContainer.valueslength.array(), 0, 2 * nbrruns);
     }
     for (int i = 0; i < nbrruns; ++i) {
       if (this.getValue(i) != runContainer.getValue(i)) {
