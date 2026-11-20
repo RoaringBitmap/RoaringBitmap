@@ -1,5 +1,6 @@
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,5 +40,37 @@ public class ArraysShimTest {
     assertTrue(ArraysShim.equals(x, 1, 3, y, 1, 3));
     assertFalse(ArraysShim.equals(x, 0, 3, y, 0, 3));
     assertFalse(ArraysShim.equals(x, 0, 2, y, 0, 3));
+  }
+
+  @Test
+  public void mismatchReturnsMinusOneForEqualRanges() {
+    byte[] a = {1, 2, 3, 4};
+    byte[] b = {9, 2, 3, 8};
+    assertEquals(-1, ArraysShim.mismatch(a, 1, 3, b, 1, 3));
+    assertEquals(-1, ArraysShim.mismatch(a, 0, 0, b, 3, 3));
+  }
+
+  @Test
+  public void mismatchReturnsTheRelativeIndexOfTheFirstDifference() {
+    byte[] a = {1, 2, 3, 4};
+    byte[] b = {0, 1, 2, 9, 4};
+    assertEquals(2, ArraysShim.mismatch(a, 0, 4, b, 1, 5));
+    assertEquals(0, ArraysShim.mismatch(a, 0, 4, b, 0, 4));
+  }
+
+  @Test
+  public void mismatchReturnsTheShorterLengthWhenOneRangeIsAPrefix() {
+    byte[] a = {1, 2, 3, 4};
+    byte[] b = {1, 2, 3};
+    assertEquals(3, ArraysShim.mismatch(a, 0, 4, b, 0, 3));
+    assertEquals(3, ArraysShim.mismatch(b, 0, 3, a, 0, 4));
+    assertEquals(0, ArraysShim.mismatch(a, 0, 4, b, 0, 0));
+  }
+
+  @Test
+  public void mismatchReturnsMinusOneWhenTheSecondRangeIsInvertedByOne() {
+    byte[] a = {1, 2, 3};
+    byte[] b = {1, 2, 3};
+    assertEquals(-1, ArraysShim.mismatch(a, 0, 3, b, 2, 1));
   }
 }
