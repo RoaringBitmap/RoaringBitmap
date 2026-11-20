@@ -127,8 +127,8 @@ public final class RoaringArray implements Cloneable, Externalizable, Appendable
       System.arraycopy(roaringArray.values, 0, values, size, roaringArray.size);
       size += roaringArray.size;
     } else if (size == 0 && roaringArray.size != 0) {
-      keys = Arrays.copyOf(roaringArray.keys, roaringArray.keys.length);
-      values = Arrays.copyOf(roaringArray.values, roaringArray.values.length);
+      keys = roaringArray.keys.clone();
+      values = roaringArray.values.clone();
       size = roaringArray.size;
     }
   }

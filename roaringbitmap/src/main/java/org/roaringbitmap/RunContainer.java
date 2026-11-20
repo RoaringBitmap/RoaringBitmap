@@ -207,7 +207,7 @@ public final class RunContainer extends Container implements Cloneable {
 
   private RunContainer(int nbrruns, char[] valueslength) {
     this.nbrruns = nbrruns;
-    this.valueslength = Arrays.copyOf(valueslength, valueslength.length);
+    this.valueslength = valueslength.clone();
   }
 
   /**

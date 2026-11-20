@@ -7,6 +7,7 @@ package org.roaringbitmap.buffer;
 import static org.roaringbitmap.buffer.MappeableBitmapContainer.MAX_CAPACITY;
 
 import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.ArraysShim;
 import org.roaringbitmap.CharIterator;
 import org.roaringbitmap.Container;
 import org.roaringbitmap.ContainerBatchIterator;
@@ -476,12 +477,9 @@ public final class MappeableArrayContainer extends MappeableContainer implements
         char[] t = this.content.array();
         char[] sr = srb.content.array();
 
-        for (int i = 0; i < this.cardinality; ++i) {
-          if (t[i] != sr[i]) {
-            return false;
-          }
+        if (!ArraysShim.equals(t, 0, this.cardinality, sr, 0, this.cardinality)) {
+          return false;
         }
-
       } else {
         for (int i = 0; i < this.cardinality; ++i) {
           if (this.content.get(i) != srb.content.get(i)) {

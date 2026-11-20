@@ -15,6 +15,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 public class HighLowContainer {
@@ -28,6 +29,7 @@ public class HighLowContainer {
     art = new Art();
     containers = new Containers();
   }
+
   @Override
   public HighLowContainer clone() {
     HighLowContainer cloned = new HighLowContainer();
@@ -54,6 +56,7 @@ public class HighLowContainer {
       return new ContainerWithIndex(container, containerIdx);
     }
   }
+
   /**
    * search the container by the given 48 bit high part key
    * @param highPart the 48 bit key array
@@ -318,10 +321,7 @@ public class HighLowContainer {
     KeyIterator keyIterator = highKeyIterator();
     while (keyIterator.hasNext()) {
       byte[] key = keyIterator.next();
-      int result = 1;
-      for (byte element : key) {
-        result = 31 * result + element;
-      }
+      int result = Arrays.hashCode(key);
       long containerIdx = keyIterator.currentContainerIdx();
       Container container = containers.getContainer(containerIdx);
       hashCode = 31 * hashCode + result + container.hashCode();

@@ -8,6 +8,7 @@ import static java.lang.Long.numberOfLeadingZeros;
 import static java.lang.Long.numberOfTrailingZeros;
 import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
+import org.roaringbitmap.ArraysShim;
 import org.roaringbitmap.BitSetUtil;
 import org.roaringbitmap.BitmapContainer;
 import org.roaringbitmap.CharIterator;
@@ -446,10 +447,8 @@ public final class MappeableBitmapContainer extends MappeableContainer implement
         long[] b = this.bitmap.array();
         long[] s = srb.bitmap.array();
         int len = this.bitmap.limit();
-        for (int k = 0; k < len; ++k) {
-          if (b[k] != s[k]) {
-            return false;
-          }
+        if (!ArraysShim.equals(b, 0, len, s, 0, len)) {
+          return false;
         }
       } else {
         int len = this.bitmap.limit();
