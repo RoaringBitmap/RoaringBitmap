@@ -732,8 +732,12 @@ public final class RangeBitmap {
               resetBitmapRange(bits, (int) remaining, 0x10000);
             }
           }
-          if ((containerMask & 1) == 1) {
-            skipContainer();
+          // OR-ing a slice into a full buffer cannot change it until the first zero bit.
+          int trailingOnes = Math.min(Long.numberOfTrailingZeros(~threshold), Long.bitCount(mask));
+          for (; slice < trailingOnes; slice++) {
+            if ((containerMask >>> slice & 1) == 1) {
+              skipContainer();
+            }
           }
           empty = false;
         } else {
@@ -749,8 +753,8 @@ public final class RangeBitmap {
               skipContainer();
             }
           }
+          slice++;
         }
-        slice++;
       }
       for (; slice < Long.bitCount(mask); ++slice) {
         if ((containerMask >>> slice & 1) == 1) {
