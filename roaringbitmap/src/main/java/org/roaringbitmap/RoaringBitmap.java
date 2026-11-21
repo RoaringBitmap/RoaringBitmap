@@ -2653,6 +2653,32 @@ public class RoaringBitmap
     return size;
   }
 
+  /**
+   * Returns the zero-based index of x in unsigned sorted order, or -1 if x is absent.
+   * Unlike {@link #rankLong(int)}, this distinguishes absent values without a separate
+   * {@link #contains(int)} call. The index counts the present unsigned values smaller than x.
+   *
+   * @param x value to find, interpreted as an unsigned integer
+   * @return the index of x as a long, or -1
+   * @see #select(int)
+   */
+  public long findIndex(int x) {
+    int containerIndex =
+        Util.searchForContains(highLowContainer.keys, highLowContainer.size, Util.highbits(x));
+    if (containerIndex < 0) {
+      return -1;
+    }
+    int index = highLowContainer.getContainerAtIndex(containerIndex).findIndex(Util.lowbits(x));
+    if (index < 0) {
+      return -1;
+    }
+    long result = index;
+    for (int i = 0; i < containerIndex; i++) {
+      result += highLowContainer.getContainerAtIndex(i).getCardinality();
+    }
+    return result;
+  }
+
   @Override
   public long rangeCardinality(long start, long end) {
     if (Long.compareUnsigned(start, end) >= 0) {
