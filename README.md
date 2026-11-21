@@ -203,6 +203,8 @@ public class Basic {
         rr.rank(2); // would return the rank of 2, which is index 1
         rr.contains(1000); // will return true
         rr.contains(7); // will return false
+        rr.findIndex(1000); // returns the zero-based index, 3
+        rr.findIndex(7); // returns -1 for an absent value
 
         RoaringBitmap rror = RoaringBitmap.or(rr, rr2);// new bitmap
         rr.or(rr2); //in-place computation
