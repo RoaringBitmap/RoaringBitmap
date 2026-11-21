@@ -288,6 +288,24 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
   }
 
   @Override
+  public long findIndex(int x) {
+    int containerIndex =
+        Util.searchForContains(highLowContainer.keys, highLowContainer.size, Util.highbits(x));
+    if (containerIndex < 0) {
+      return -1;
+    }
+    int index = highLowContainer.getContainerAtIndex(containerIndex).findIndex(Util.lowbits(x));
+    if (index < 0) {
+      return -1;
+    }
+    preComputeCardinalities();
+    return index
+        + (containerIndex == 0
+            ? 0L
+            : Integer.toUnsignedLong(highToCumulatedCardinality[containerIndex - 1]));
+  }
+
+  @Override
   public int select(int j) {
     preComputeCardinalities();
 
