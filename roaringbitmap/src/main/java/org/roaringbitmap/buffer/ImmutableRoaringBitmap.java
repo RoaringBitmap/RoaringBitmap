@@ -1530,6 +1530,20 @@ public class ImmutableRoaringBitmap
     return new ImmutableRoaringReverseIntIterator();
   }
 
+  /**
+   * Returns a batch iterator in descending unsigned integer order.
+   * Calling advanceIfNeeded skips values greater than its target, never rewinding.
+   * The bitmap must not be modified during iteration.
+   *
+   * @return a reverse batch iterator
+   */
+  public RoaringReverseBatchIterator getReverseBatchIterator() {
+    return new RoaringReverseBatchIterator(
+        highLowContainer == null
+            ? null
+            : highLowContainer.getContainerPointer(highLowContainer.size() - 1));
+  }
+
   @Override
   public BatchIterator getBatchIterator() {
     return new RoaringBatchIterator(null == highLowContainer ? null : getContainerPointer());
