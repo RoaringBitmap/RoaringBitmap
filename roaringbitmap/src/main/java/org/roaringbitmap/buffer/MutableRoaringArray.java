@@ -129,8 +129,8 @@ public final class MutableRoaringArray
       System.arraycopy(appendage.values, 0, values, size, appendage.size);
       size += appendage.size;
     } else if (size == 0 && appendage.size != 0) {
-      keys = Arrays.copyOf(appendage.keys, appendage.keys.length);
-      values = Arrays.copyOf(appendage.values, appendage.values.length);
+      keys = appendage.keys.clone();
+      values = appendage.values.clone();
       size = appendage.size;
     }
   }

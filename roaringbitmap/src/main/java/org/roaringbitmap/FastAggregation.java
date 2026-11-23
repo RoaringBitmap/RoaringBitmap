@@ -733,7 +733,9 @@ public final class FastAggregation {
       return new RoaringBitmap();
     }
     // we buffer the call to getSizeInBytes(), hence the code complexity
-    final RoaringBitmap[] buffer = Arrays.copyOf(bitmaps, bitmaps.length);
+    // copy into a RoaringBitmap[]: the varargs array may have a subtype as its runtime type
+    // (e.g. FastRankRoaringBitmap[]), which would reject the temporary bitmaps stored below
+    final RoaringBitmap[] buffer = Arrays.copyOf(bitmaps, bitmaps.length, RoaringBitmap[].class);
     final long[] sizes = new long[buffer.length];
     final boolean[] istmp = new boolean[buffer.length];
     for (int k = 0; k < sizes.length; ++k) {

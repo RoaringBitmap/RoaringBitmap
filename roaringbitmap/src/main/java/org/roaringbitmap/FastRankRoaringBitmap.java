@@ -25,9 +25,9 @@ import java.util.Arrays;
 public class FastRankRoaringBitmap extends RoaringBitmap {
   // The cache of cardinalities: it maps the index of the underlying bucket to the cumulated
   // cardinalities (i.e. the sum of current bucket cardinalities plus all previous bucklet
-  // cardinalities)
+  // cardinalities). It is a long[] because the total cardinality can reach 2^32.
   private boolean cumulatedCardinalitiesCacheIsValid = false;
-  private int[] highToCumulatedCardinality = null;
+  private long[] highToCumulatedCardinality = null;
 
   public FastRankRoaringBitmap() {
     super();
@@ -233,7 +233,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
 
       // Ensure the cache size is the right one
       if (highToCumulatedCardinality == null || highToCumulatedCardinality.length != nbBuckets) {
-        highToCumulatedCardinality = new int[nbBuckets];
+        highToCumulatedCardinality = new long[nbBuckets];
       }
 
       // Ensure the cache content is valid
@@ -316,38 +316,20 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
           "select " + j + " when the cardinality is " + this.getCardinality());
     }
 
-    int maxCardinality = highToCumulatedCardinality[highToCumulatedCardinality.length - 1] - 1;
-    if (j == maxCardinality) {
-      // We select the total cardinality: we are selecting the last element of the last bucket
-      return this.last();
-    } else if (j > maxCardinality) {
+    // j is interpreted as an unsigned integer, as in RoaringBitmap.select
+    long target = Util.toUnsignedLong(j);
+    long cardinality = highToCumulatedCardinality[highToCumulatedCardinality.length - 1];
+    if (target >= cardinality) {
       throw new IllegalArgumentException(
-          "select " + j + " when the cardinality is " + this.getCardinality());
+          "select " + target + " when the cardinality is " + cardinality);
     }
 
-    int index = Arrays.binarySearch(highToCumulatedCardinality, j);
-
-    int fixedIndex;
-
-    long leftover = Util.toUnsignedLong(j);
-
-    if (index >= 0) {
-      // We selected exactly a cumulated cardinality:
-      // we are selecting the first element of next bucket
-      int keycontrib = this.highLowContainer.getKeyAtIndex(index + 1) << 16;
-
-      // If first bucket has cardinality 1 and we select 1: we actual select the first item of
-      // next bucket
-      int output = keycontrib + this.highLowContainer.getContainerAtIndex(index + 1).first();
-
-      return output;
-    } else {
-      // We selected a cardinality not matching exactly the cumulated cardinalities: we are not
-      // selected the last element of a bucket
-      fixedIndex = -1 - index;
-      if (fixedIndex > 0) {
-        leftover -= highToCumulatedCardinality[fixedIndex - 1];
-      }
+    int index = Arrays.binarySearch(highToCumulatedCardinality, target);
+    // If we hit a cumulated cardinality exactly, we select the first element of the next bucket
+    int fixedIndex = index >= 0 ? index + 1 : -1 - index;
+    long leftover = target;
+    if (fixedIndex > 0) {
+      leftover -= highToCumulatedCardinality[fixedIndex - 1];
     }
 
     int keycontrib = this.highLowContainer.getKeyAtIndex(fixedIndex) << 16;
@@ -362,7 +344,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     long size = 8;
     size += super.getLongSizeInBytes();
     if (highToCumulatedCardinality != null) {
-      size += 4L * highToCumulatedCardinality.length;
+      size += 8L * highToCumulatedCardinality.length;
     }
     return size;
   }
@@ -392,7 +374,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
     public int peekNextRank() {
       int iterRank = iter.peekNextRank();
       if (pos > 0) {
-        return FastRankRoaringBitmap.this.highToCumulatedCardinality[pos - 1] + iterRank;
+        return (int) FastRankRoaringBitmap.this.highToCumulatedCardinality[pos - 1] + iterRank;
       } else {
         return iterRank;
       }

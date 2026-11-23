@@ -220,9 +220,7 @@ public final class BufferFastAggregation {
   }
 
   private static ImmutableRoaringBitmap[] convertToImmutable(MutableRoaringBitmap[] array) {
-    ImmutableRoaringBitmap[] answer = new ImmutableRoaringBitmap[array.length];
-    System.arraycopy(array, 0, answer, 0, answer.length);
-    return answer;
+    return Arrays.copyOf(array, array.length, ImmutableRoaringBitmap[].class);
   }
 
   /**
@@ -863,7 +861,10 @@ public final class BufferFastAggregation {
       return bitmaps[0].toMutableRoaringBitmap();
     }
     // we buffer the call to getLongSizeInBytes(), hence the code complexity
-    final ImmutableRoaringBitmap[] buffer = Arrays.copyOf(bitmaps, bitmaps.length);
+    // copy into an ImmutableRoaringBitmap[]: the varargs array may have a subtype as its runtime
+    // type, which could reject the temporary bitmaps stored below
+    final ImmutableRoaringBitmap[] buffer =
+        Arrays.copyOf(bitmaps, bitmaps.length, ImmutableRoaringBitmap[].class);
     final int[] sizes = new int[buffer.length];
     final boolean[] istmp = new boolean[buffer.length];
     for (int k = 0; k < sizes.length; ++k) {

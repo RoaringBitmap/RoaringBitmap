@@ -132,10 +132,8 @@ public class Node4 extends BranchNode {
     assert pos < count;
     count--;
     key = IntegerUtil.shiftLeftFromSpecifiedPosition(key, pos, (4 - pos - 1));
-    for (; pos < count; pos++) {
-      children[pos] = children[pos + 1];
-    }
-    children[pos] = null;
+    System.arraycopy(children, pos + 1, children, pos, count - pos);
+    children[count] = null;
     if (count == 1) {
       // shrink to the child node
       Node childNode = children[0];
@@ -145,7 +143,7 @@ public class Node4 extends BranchNode {
         byte thisPrefixLength = this.prefixLength();
         byte newLength = (byte) (childPrefixLength + thisPrefixLength + 1);
         byte[] newPrefix = new byte[newLength];
-        System.arraycopy(this.prefix, 0, newPrefix, 0,thisPrefixLength);
+        System.arraycopy(this.prefix, 0, newPrefix, 0, thisPrefixLength);
         newPrefix[thisPrefixLength] = IntegerUtil.firstByte(key);
         System.arraycopy(child.prefix, 0, newPrefix, thisPrefixLength + 1, childPrefixLength);
         child.prefix = newPrefix;
