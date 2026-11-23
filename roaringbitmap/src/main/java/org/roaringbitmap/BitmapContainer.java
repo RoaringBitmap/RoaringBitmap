@@ -1100,9 +1100,70 @@ public final class BitmapContainer extends Container implements Cloneable {
   }
 
   @Override
+  public Container or(final Container value2) {
+    if (value2 instanceof BitmapContainer) {
+      return orWithoutCopyIfPossible((BitmapContainer) value2);
+    }
+    return super.or(value2);
+  }
+
+  @Override
   public Container or(final BitmapContainer value2) {
     BitmapContainer value1 = this.clone();
     return value1.ior(value2);
+  }
+
+  private Container orWithoutCopyIfPossible(final BitmapContainer value2) {
+    if (cardinality >= 0 && value2.cardinality >= 0) {
+      final long cardinalitySum = (long) cardinality + value2.cardinality;
+      if (cardinalitySum < MAX_CAPACITY) {
+        return orWithoutCopy(value2);
+      }
+      if (cardinalitySum == MAX_CAPACITY
+          && bitmap.length == MAX_CAPACITY_LONG
+          && value2.bitmap.length == MAX_CAPACITY_LONG
+          && isDisjoint(value2)) {
+        return RunContainer.full();
+      }
+    }
+    return or(value2);
+  }
+
+  private boolean isDisjoint(final BitmapContainer value2) {
+    for (int k = 0; k < MAX_CAPACITY_LONG; ++k) {
+      if ((bitmap[k] & value2.bitmap[k]) != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Container orWithoutCopy(final BitmapContainer value2) {
+    final long[] answerBitmap = new long[bitmap.length];
+    final int commonLength = Math.min(bitmap.length, value2.bitmap.length);
+    int newCardinality = 0;
+    long anyIntersection = 0;
+    for (int k = 0; k < commonLength; ++k) {
+      final long leftWord = bitmap[k];
+      final long rightWord = value2.bitmap[k];
+      final long word = leftWord | rightWord;
+      answerBitmap[k] = word;
+      anyIntersection |= leftWord & rightWord;
+    }
+    for (int k = commonLength; k < bitmap.length; ++k) {
+      answerBitmap[k] = bitmap[k];
+    }
+    if (anyIntersection == 0 && bitmap.length == value2.bitmap.length) {
+      newCardinality = cardinality + value2.cardinality;
+    } else {
+      for (int k = 0; k < bitmap.length; ++k) {
+        newCardinality += Long.bitCount(answerBitmap[k]);
+      }
+    }
+    if (newCardinality == MAX_CAPACITY) {
+      return RunContainer.full();
+    }
+    return new BitmapContainer(answerBitmap, newCardinality);
   }
 
   @Override

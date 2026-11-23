@@ -39,7 +39,7 @@ public class BitmapContainerOrBenchmark {
 
   @Benchmark
   public Container stable() {
-    return modified.clone().ior(parameter);
+    return modified.or(parameter);
   }
 
   @Benchmark

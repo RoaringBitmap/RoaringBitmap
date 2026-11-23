@@ -4,8 +4,10 @@
 
 package org.roaringbitmap;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.roaringbitmap.ValidationRangeConsumer.Value.ABSENT;
@@ -129,6 +131,129 @@ public class TestBitmapContainer {
     RunContainer rc = new RunContainer();
     rc.iadd(0, 1 << 16);
     assertEquals(0, bc.iandNot(rc).getCardinality());
+  }
+
+  @Test
+  public void testBitmapBitmapORPreservesInputsAndUnequalLengths() {
+    long[] leftWords = {0x3L, 0x10L, 0x40L};
+    long[] rightWords = {0x4L};
+    long[] leftBefore = leftWords.clone();
+    long[] rightBefore = rightWords.clone();
+    BitmapContainer left = new BitmapContainer(leftWords, 3);
+    BitmapContainer right = new BitmapContainer(rightWords, 1);
+
+    Container result = left.orWithoutCopy(right);
+
+    assertTrue(result instanceof BitmapContainer);
+    BitmapContainer resultBitmap = (BitmapContainer) result;
+    assertArrayEquals(new long[] {0x7L, 0x10L, 0x40L}, resultBitmap.bitmap);
+    assertEquals(5, resultBitmap.getCardinality());
+    assertArrayEquals(leftBefore, left.bitmap);
+    assertArrayEquals(rightBefore, right.bitmap);
+    assertNotSame(left.bitmap, resultBitmap.bitmap);
+    assertNotSame(right.bitmap, resultBitmap.bitmap);
+
+    resultBitmap.bitmap[0] = 0;
+    assertArrayEquals(leftBefore, left.bitmap);
+    assertArrayEquals(rightBefore, right.bitmap);
+
+    long[] shortLeftWords = {0x1L};
+    long[] longRightWords = {0x2L, 0x4L};
+    BitmapContainer shortLeft = new BitmapContainer(shortLeftWords, 1);
+    BitmapContainer longRight = new BitmapContainer(longRightWords, 2);
+    BitmapContainer ignoredTailResult = (BitmapContainer) shortLeft.orWithoutCopy(longRight);
+
+    assertArrayEquals(new long[] {0x3L}, ignoredTailResult.bitmap);
+    assertEquals(2, ignoredTailResult.getCardinality());
+    assertArrayEquals(new long[] {0x1L}, shortLeft.bitmap);
+    assertArrayEquals(new long[] {0x2L, 0x4L}, longRight.bitmap);
+
+    RoaringBitmap publicUnequalResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {shortLeft}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {longRight}, 1)));
+    BitmapContainer publicUnequalResultBitmap =
+        (BitmapContainer) publicUnequalResult.highLowContainer.getContainerAtIndex(0);
+    assertArrayEquals(new long[] {0x3L}, publicUnequalResultBitmap.bitmap);
+    assertEquals(2, publicUnequalResultBitmap.getCardinality());
+
+    BitmapContainer lazyLeft = new BitmapContainer(new long[] {0x1L}, -1);
+    BitmapContainer lazyRight = new BitmapContainer(new long[] {0x2L}, -1);
+    BitmapContainer lazyResult = (BitmapContainer) ((Container) lazyLeft).or(lazyRight);
+    assertArrayEquals(new long[] {0x3L}, lazyResult.bitmap);
+    assertEquals(2, lazyResult.getCardinality());
+
+    BitmapContainer equalLeft = new BitmapContainer(new long[] {0x1L, 0x10L}, 2);
+    BitmapContainer equalRight = new BitmapContainer(new long[] {0x2L, 0x20L}, 2);
+    BitmapContainer equalResult = (BitmapContainer) equalLeft.orWithoutCopy(equalRight);
+    assertArrayEquals(new long[] {0x3L, 0x30L}, equalResult.bitmap);
+    assertEquals(4, equalResult.getCardinality());
+
+    RoaringBitmap publicResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {equalLeft}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {equalRight}, 1)));
+    BitmapContainer publicResultContainer =
+        (BitmapContainer) publicResult.highLowContainer.getContainerAtIndex(0);
+    assertArrayEquals(new long[] {0x3L, 0x30L}, publicResultContainer.bitmap);
+    assertEquals(4, publicResultContainer.getCardinality());
+    assertNotSame(equalLeft.bitmap, publicResultContainer.bitmap);
+    assertNotSame(equalRight.bitmap, publicResultContainer.bitmap);
+  }
+
+  @Test
+  public void testPublicBitmapORSpecializationForMultipleContainers() {
+    BitmapContainer left0 = new BitmapContainer(0, 5000);
+    BitmapContainer left1 = new BitmapContainer(0, 5000);
+    BitmapContainer right0 = new BitmapContainer(6000, 7000);
+    BitmapContainer right1 = new BitmapContainer(6000, 7000);
+    long[] left0Before = left0.bitmap.clone();
+    long[] right0Before = right0.bitmap.clone();
+
+    RoaringBitmap result =
+        RoaringBitmap.or(
+            new RoaringBitmap(
+                new RoaringArray(new char[] {0, 1}, new Container[] {left0, left1}, 2)),
+            new RoaringBitmap(
+                new RoaringArray(new char[] {0, 1}, new Container[] {right0, right1}, 2)));
+
+    assertEquals(12000, result.getCardinality());
+    for (int i = 0; i < 2; ++i) {
+      Container resultContainer = result.highLowContainer.getContainerAtIndex(i);
+      assertTrue(resultContainer instanceof BitmapContainer);
+      assertEquals(6000, resultContainer.getCardinality());
+    }
+    assertArrayEquals(left0Before, left0.bitmap);
+    assertArrayEquals(right0Before, right0.bitmap);
+    assertNotSame(
+        left0.bitmap, ((BitmapContainer) result.highLowContainer.getContainerAtIndex(0)).bitmap);
+    assertNotSame(
+        right0.bitmap, ((BitmapContainer) result.highLowContainer.getContainerAtIndex(0)).bitmap);
+  }
+
+  @Test
+  public void testBitmapBitmapORReturnsFullRunContainer() {
+    BitmapContainer left = new BitmapContainer(0, 1 << 15);
+    BitmapContainer right = new BitmapContainer(1 << 15, 1 << 16);
+
+    Container result = ((Container) left).or(right);
+
+    assertTrue(result instanceof RunContainer);
+    assertEquals(1 << 16, result.getCardinality());
+    assertEquals(1 << 15, left.getCardinality());
+    assertEquals(1 << 15, right.getCardinality());
+
+    RoaringBitmap publicResult =
+        RoaringBitmap.or(
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {left}, 1)),
+            new RoaringBitmap(new RoaringArray(new char[] {0}, new Container[] {right}, 1)));
+    assertTrue(publicResult.highLowContainer.getContainerAtIndex(0) instanceof RunContainer);
+
+    BitmapContainer overlapLeft = new BitmapContainer(0, 40000);
+    BitmapContainer overlapRight = new BitmapContainer(20000, 45536);
+    Container overlapResult = ((Container) overlapLeft).or(overlapRight);
+    assertTrue(overlapResult instanceof BitmapContainer);
+    assertEquals(45536, overlapResult.getCardinality());
   }
 
   @Test
