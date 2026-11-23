@@ -299,10 +299,7 @@ public class FastRankRoaringBitmap extends RoaringBitmap {
       return -1;
     }
     preComputeCardinalities();
-    return index
-        + (containerIndex == 0
-            ? 0L
-            : Integer.toUnsignedLong(highToCumulatedCardinality[containerIndex - 1]));
+    return index + (containerIndex == 0 ? 0L : highToCumulatedCardinality[containerIndex - 1]);
   }
 
   @Override
