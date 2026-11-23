@@ -47,6 +47,25 @@ class TestFindIndex {
     }
   }
 
+  @Test
+  void runContainerIndicesIncludeLeadingAndInternalGaps() {
+    Container container = new RunContainer();
+    boolean[] present = new boolean[1 << 16];
+    for (int start = 5; start < present.length; start += 257) {
+      for (int value = start; value < Math.min(start + 4, present.length); value++) {
+        present[value] = true;
+        container = container.add((char) value);
+      }
+    }
+    present[65535] = true;
+    container = container.add((char) 65535);
+    assertInstanceOf(RunContainer.class, container);
+    int index = 0;
+    for (int value = 0; value < present.length; value++) {
+      assertEquals(present[value] ? index++ : -1, container.findIndex((char) value));
+    }
+  }
+
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
   void mixedContainersAndUnsignedOrder(boolean cached) {
