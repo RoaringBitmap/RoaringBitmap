@@ -2044,6 +2044,26 @@ public final class RunContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int findIndex(char x) {
+    int run = unsignedInterleavedBinarySearch(valueslength, 0, nbrruns, x);
+    if (run < 0) {
+      run = -run - 2;
+    }
+    if (run < 0) {
+      return -1;
+    }
+    int offset = x - getValue(run);
+    if (offset > getLength(run)) {
+      return -1;
+    }
+    int index = offset;
+    for (int i = 0; i < run; i++) {
+      index += getLength(i) + 1;
+    }
+    return index;
+  }
+
+  @Override
   public void readExternal(ObjectInput in) throws IOException {
     deserialize(in);
   }
