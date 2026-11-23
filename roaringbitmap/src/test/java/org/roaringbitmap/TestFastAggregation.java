@@ -415,4 +415,17 @@ public class TestFastAggregation {
       assertTrue(result.validate());
     }
   }
+
+  @Test
+  public void priorityQueueOrAcceptsSubtypeArray() {
+    // the runtime type of the varargs array is FastRankRoaringBitmap[]
+    FastRankRoaringBitmap[] bitmaps = new FastRankRoaringBitmap[4];
+    for (int i = 0; i < bitmaps.length; i++) {
+      bitmaps[i] = new FastRankRoaringBitmap();
+      bitmaps[i].add(i, i + 10);
+      bitmaps[i].add(100_000 * i);
+    }
+    RoaringBitmap expected = FastAggregation.naive_or(bitmaps);
+    assertEquals(expected, FastAggregation.priorityqueue_or(bitmaps));
+  }
 }
