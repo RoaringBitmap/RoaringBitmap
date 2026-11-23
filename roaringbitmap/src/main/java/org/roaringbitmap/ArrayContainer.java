@@ -1070,6 +1070,11 @@ public final class ArrayContainer extends Container implements Cloneable {
   }
 
   @Override
+  public int findIndex(char x) {
+    return Util.searchForContains(content, cardinality, x);
+  }
+
+  @Override
   public void readExternal(ObjectInput in) throws IOException {
     deserialize(in);
   }

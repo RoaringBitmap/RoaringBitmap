@@ -826,6 +826,16 @@ public abstract class Container
   public abstract int rank(char lowbits);
 
   /**
+   * Returns the zero-based index of x, or -1 if x is absent.
+   *
+   * @param x value to find
+   * @return the index of x, or -1
+   */
+  public int findIndex(char x) {
+    return contains(x) ? rank(x) - 1 : -1;
+  }
+
+  /**
    * Return a new container with all chars in [begin,end) remove using an unsigned interpretation.
    *
    * @param begin start of range (inclusive)
