@@ -42,7 +42,7 @@ public class Containers {
     Containers containers = new Containers();
     containers.containerArrays = new ArrayList<>(this.containerArrays.size());
     for (Container[] array : this.containerArrays) {
-      Container[] values = Arrays.copyOf(array, array.length);
+      Container[] values = array.clone();
       containers.containerArrays.add(values);
       for (int i = 0; i < values.length; i++) {
         if (values[i] != null) {
