@@ -676,7 +676,7 @@ public class TestRoaringBitmap_FastRank {
     fast.rank(1024);
 
     // Check the size is bigger once the cache is allocated
-    assertEquals(42, fast.getLongSizeInBytes());
+    assertEquals(50, fast.getLongSizeInBytes());
   }
 
   // https://github.com/RoaringBitmap/RoaringBitmap/issues/498
@@ -715,5 +715,40 @@ public class TestRoaringBitmap_FastRank {
     assertThrows(
         IllegalArgumentException.class,
         () -> rankRoaringBitmap.select(rankRoaringBitmap.getCardinality() + 1));
+  }
+  @Test
+  public void rankAndSelectBeyondSignedIntegerRange() {
+    // more than 2^31 values: cumulated cardinalities overflow a signed int
+    FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
+    fast.add(0L, 1L << 32);
+    fast.remove(5);
+    fast.remove(Integer.MIN_VALUE + 7);
+    RoaringBitmap plain = RoaringBitmap.or(new RoaringBitmap(), fast);
+    int[] values = {
+      0, 6, 0x7FFFFFFF, Integer.MIN_VALUE, Integer.MIN_VALUE + 8, 0xC0000000, -2, -1
+    };
+    for (int x : values) {
+      assertEquals(plain.rankLong(x), fast.rankLong(x), "rankLong " + Integer.toUnsignedString(x));
+    }
+    assertEquals(0xFFFFFFFEL, fast.rankLong(-1));
+    long[] ranks = {0L, 4L, 5L, 0x7FFFFFFEL, 0x7FFFFFFFL, 0x80000006L, 0xFFFFFFFDL};
+    for (long j : ranks) {
+      assertEquals(plain.select((int) j), fast.select((int) j), "select " + j);
+    }
+    assertEquals(-1, fast.select(0xFFFFFFFD));
+    assertThrows(IllegalArgumentException.class, () -> fast.select(0xFFFFFFFE));
+    assertThrows(IllegalArgumentException.class, () -> fast.select(-1));
+  }
+
+  @Test
+  public void selectOnFullBitmap() {
+    // the total cardinality is exactly 2^32
+    FastRankRoaringBitmap fast = new FastRankRoaringBitmap();
+    fast.add(0L, 1L << 32);
+    assertEquals(1L << 32, fast.rankLong(-1));
+    assertEquals(0x80000000L, fast.rankLong(Integer.MAX_VALUE));
+    assertEquals(0, fast.select(0));
+    assertEquals(Integer.MIN_VALUE, fast.select(Integer.MIN_VALUE));
+    assertEquals(-1, fast.select(-1));
   }
 }
