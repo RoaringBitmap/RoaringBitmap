@@ -46,6 +46,71 @@ import java.util.stream.Stream;
 public class RangeBitmapTest {
 
   @Test
+  public void rangeQueriesWithTrailingOneThresholds() {
+    long[] values = new long[0x30005];
+    SplittableRandom random = new SplittableRandom(42);
+    for (int i = 0; i < 0x10000; i++) {
+      values[i] = random.nextLong();
+    }
+    // Dense bitmap slices, full run slices, absent slices, and a partial final row block.
+    Arrays.fill(values, 0x20000, 0x30000, -1L);
+    long[] tail = {0L, 0xFFL, Long.MIN_VALUE, Long.MAX_VALUE, -1L};
+    System.arraycopy(tail, 0, values, 0x30000, tail.length);
+    RangeBitmap.Appender appender = RangeBitmap.appender(-1L);
+    for (long value : values) {
+      appender.add(value);
+    }
+    RangeBitmap range = appender.build();
+    RoaringBitmap context = RoaringBitmap.bitmapOfRange(0, 0x10000);
+    context.add(0x20000L, values.length);
+
+    long[] thresholds = {0L, 1L, 0xFFL, 0xFFFFL, Long.MIN_VALUE | 0xFFL, Long.MAX_VALUE, -1L};
+    for (long threshold : thresholds) {
+      RoaringBitmap lt = new RoaringBitmap();
+      RoaringBitmap lte = new RoaringBitmap();
+      RoaringBitmap gt = new RoaringBitmap();
+      RoaringBitmap gte = new RoaringBitmap();
+      for (int i = 0; i < values.length; i++) {
+        int comparison = Long.compareUnsigned(values[i], threshold);
+        if (comparison < 0) {
+          lt.add(i);
+        }
+        if (comparison <= 0) {
+          lte.add(i);
+        }
+        if (comparison > 0) {
+          gt.add(i);
+        }
+        if (comparison >= 0) {
+          gte.add(i);
+        }
+      }
+
+      assertEquals(lt, range.lt(threshold));
+      assertEquals(lte, range.lte(threshold));
+      assertEquals(gt, range.gt(threshold));
+      assertEquals(gte, range.gte(threshold));
+      assertEquals(lt.getLongCardinality(), range.ltCardinality(threshold));
+      assertEquals(lte.getLongCardinality(), range.lteCardinality(threshold));
+      assertEquals(gt.getLongCardinality(), range.gtCardinality(threshold));
+      assertEquals(gte.getLongCardinality(), range.gteCardinality(threshold));
+
+      assertEquals(RoaringBitmap.and(lt, context), range.lt(threshold, context));
+      assertEquals(RoaringBitmap.and(lte, context), range.lte(threshold, context));
+      assertEquals(RoaringBitmap.and(gt, context), range.gt(threshold, context));
+      assertEquals(RoaringBitmap.and(gte, context), range.gte(threshold, context));
+      assertEquals(
+          RoaringBitmap.andCardinality(lt, context), range.ltCardinality(threshold, context));
+      assertEquals(
+          RoaringBitmap.andCardinality(lte, context), range.lteCardinality(threshold, context));
+      assertEquals(
+          RoaringBitmap.andCardinality(gt, context), range.gtCardinality(threshold, context));
+      assertEquals(
+          RoaringBitmap.andCardinality(gte, context), range.gteCardinality(threshold, context));
+    }
+  }
+
+  @Test
   public void betweenRegressionTest() throws IOException {
     String[] lines =
         new String(
