@@ -489,7 +489,9 @@ public class TestFastAggregation {
     }
   }
 
-  private static class SubMutableRoaringBitmap extends MutableRoaringBitmap {}
+  public static class SubMutableRoaringBitmap extends MutableRoaringBitmap {
+    public SubMutableRoaringBitmap() {}
+  }
 
   @Test
   public void priorityQueueOrAcceptsSubtypeArray() {
@@ -497,7 +499,7 @@ public class TestFastAggregation {
     SubMutableRoaringBitmap[] bitmaps = new SubMutableRoaringBitmap[4];
     for (int i = 0; i < bitmaps.length; i++) {
       bitmaps[i] = new SubMutableRoaringBitmap();
-      bitmaps[i].add(i, i + 10);
+      bitmaps[i].add((long) i, i + 10L);
       bitmaps[i].add(100_000 * i);
     }
     MutableRoaringBitmap expected = BufferFastAggregation.naive_or(bitmaps);
