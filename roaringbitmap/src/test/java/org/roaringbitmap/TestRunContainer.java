@@ -420,6 +420,36 @@ public class TestRunContainer {
   }
 
   @Test
+  public void andNotArrayKeepsRunContainerForRunFriendlyResult() {
+    // Issue #512: andNot on a large contiguous run minus a sparse array must
+    // yield a compact RunContainer, not an inflated BitmapContainer. This
+    // exercises the branch (this.cardinality > DEFAULT_MAX_SIZE and
+    // x.cardinality >= 32) that previously materialised a bitmap.
+    RunContainer rc = new RunContainer();
+    rc = (RunContainer) rc.iadd(0, 40000);
+    ArrayContainer ac = new ArrayContainer();
+    for (int i = 0; i < 40000; i += 125) {
+      ac = (ArrayContainer) ac.add((char) i);
+    }
+    assertTrue(ac.getCardinality() >= 32);
+    assertTrue(rc.getCardinality() > DEFAULT_MAX_SIZE);
+
+    Container result = rc.andNot(ac);
+
+    Container expected = rc.clone();
+    for (int i = 0; i < 40000; i += 125) {
+      expected = expected.remove((char) i);
+    }
+    assertEquals(expected, result);
+    assertTrue(
+        result instanceof RunContainer,
+        "expected RunContainer, got " + result.getClass().getSimpleName());
+    assertTrue(
+        result.getArraySizeInBytes() < new BitmapContainer().getArraySizeInBytes(),
+        "run form should be more compact than a bitmap container");
+  }
+
+  @Test
   public void basic() {
     RunContainer x = new RunContainer();
     for (int k = 0; k < (1 << 16); ++k) {
