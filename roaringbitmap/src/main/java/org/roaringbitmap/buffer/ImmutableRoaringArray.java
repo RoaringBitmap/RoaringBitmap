@@ -311,10 +311,20 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
 
   @Override
   public Boolean validate() {
+    // the constructor ends the buffer after the last container, wherever the input places it,
+    // so the header and the other containers have to be checked against that limit
+    final int limit = buffer.limit();
+    // logically we cannot have more than (1<<16) containers.
+    if (limit < 4 || size < 0 || size > (1 << 16)) {
+      return false;
+    }
     final boolean hasrun = hasRunCompression();
     // containers are located through the offset table (when present), which must therefore
     // agree with the sequential layout used by the other readers of the format
     int expectedOffset = headerSize(hasrun);
+    if (expectedOffset > limit) {
+      return false;
+    }
     for (int k = 0; k < size; ++k) {
       if (k > 0 && getKey(k - 1) >= getKey(k)) {
         return false;
@@ -323,10 +333,16 @@ public final class ImmutableRoaringArray implements PointableRoaringArray {
         return false;
       }
       if (isRunContainer(k, hasrun)) {
+        if (expectedOffset + 2 > limit) {
+          return false;
+        }
         expectedOffset +=
             BufferUtil.getSizeInBytesFromCardinalityEtc(0, buffer.getChar(expectedOffset), true);
       } else {
         expectedOffset += BufferUtil.getSizeInBytesFromCardinalityEtc(getCardinality(k), 0, false);
+      }
+      if (expectedOffset > limit) {
+        return false;
       }
       MappeableContainer container = getContainerAtIndex(k);
       if (container == null) {
